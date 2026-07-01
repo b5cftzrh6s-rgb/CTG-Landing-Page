@@ -13,7 +13,6 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
 
-/* NAV BAR — matches screenshot exactly */
 .navbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;
   align-items:center;justify-content:space-between;flex-wrap:wrap}
 .navbar .brand{font-weight:700;padding:20px 0;font-size:18px;letter-spacing:.3px}
@@ -24,7 +23,6 @@ body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
 .navbar ul li a:hover{background:var(--blue)}
 .navbar ul li a.active{background:var(--teal);color:#fff}
 
-/* PAGE HEADER */
 header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:32px 40px}
 header.page-header h1{margin:0;font-size:32px;font-weight:700}
 header.page-header p{margin:6px 0 0;opacity:.9;font-size:15px}
@@ -152,7 +150,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
     <tr><td>Volume % Void (Fired)</td><td class="value" id="out_void_fired">—</td></tr>
   </table>
   <div class="notes">
-    Assumptions: Polymer treated as 50% solids / 50% water. Water density 8.345 lb/gal. Polymer density 1.0 g/cc (standard latex). Void % fired ignores shell shrinkage (~1–3%).
+    Assumptions: External polymer treated as 50% solids / 50% water. Water density 8.345 lb/gal. Polymer density 1.0 g/cc (standard latex). Pre-blended binder polymer values are fixed per binder specification. Void % fired ignores shell shrinkage (~1–3%).
   </div>
 </div>
 
@@ -199,15 +197,16 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 <div class="card">
   <h3>NALCO 2305 Antifoam Dose</h3>
   <div class="desc">
-    Nalco 2305 is applied at 4–8 ml/L of binder. Select a dosage level appropriate for your foam severity or agitation type.
+    Nalco 2305 is applied per liter of binder. Select a dosage level appropriate for your operation. Turbo Wheel operations require 2× the Maximum rate.
   </div>
 
-  <div class="field" style="max-width:320px">
+  <div class="field" style="max-width:340px">
     <label>Dosage Level</label>
     <select id="af_level">
       <option value="4">Minimum (4 ml/L binder)</option>
-      <option value="6">Typical (6 ml/L binder)</option>
-      <option value="8">Maximum / Turbowheel (8 ml/L binder)</option>
+      <option value="6">Normal (6 ml/L binder)</option>
+      <option value="8">Maximum (8 ml/L binder)</option>
+      <option value="16">Turbo Wheel (16 ml/L binder)</option>
     </select>
   </div>
 
@@ -235,17 +234,18 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
 <script>
 // ---------- Binder Database (empirically calibrated to CTG Slurry Dashboard) ----------
+// polymer = pre-blended polymer % (fixed additive per binder specification)
 const BINDERS = {
   "ESB Prime":     {solids: 28.81, density: 1.197, polymer: 4.85, sodium: 0.02},
-  "ESB 1":         {solids: 22.00, density: 1.153, polymer: 7.70, sodium: 0.03},
-  "ESB 6":         {solids: 27.86, density: 1.189, polymer: 0.01, sodium: 0.02},
+  "ESB 1":         {solids: 22.00, density: 1.153, polymer: 9.09, sodium: 0.03},
+  "ESB 6":         {solids: 27.86, density: 1.189, polymer: 7.70, sodium: 0.02},
   "ESB 10":        {solids: 30.00, density: 1.215, polymer: 0.00, sodium: 0.02},
   "ESB 11":        {solids: 30.00, density: 1.214, polymer: 0.00, sodium: 0.03},
   "ESB Precision": {solids: 50.00, density: 1.389, polymer: 0.00, sodium: 0.01},
   "6009 / 6009C":  {solids: 30.00, density: 1.209, polymer: 0.00, sodium: 0.02},
   "6022":          {solids: 30.00, density: 1.208, polymer: 0.00, sodium: 0.02},
   "Etna":          {solids: 30.00, density: 1.209, polymer: 0.17, sodium: 0.02},
-  "Rainier II":    {solids: 32.00, density: 1.220, polymer: 9.09, sodium: 0.03}
+  "Rainier II":    {solids: 32.00, density: 1.220, polymer: 2.17, sodium: 0.03}
 };
 
 // ---------- Refractory Database (CTG Slurry Dashboards + Carey Training Deck) ----------
@@ -324,14 +324,14 @@ function calc(){
   const pctRef = totalWt > 0 ? totalRefWt / totalWt * 100 : 0;
 
   // --- 3. Total % Solids (dry) ---
-  //   binder × solids% + polymer × 50% + refractories
+  //   binder silica + external polymer solids (50%) + refractories
   const dryWt = (b ? bw * b.solids/100 : 0) + pw * 0.5 + r1w + r2w;
   const pctSolids = totalWt > 0 ? dryWt / totalWt * 100 : 0;
 
   // --- 4. Slurry Density (g/cc) ---
   const density = totalVol > 0 ? totalWt / (totalVol * WATER_LB_GAL) : 0;
 
-  // --- 5. Target % Silica (CORRECTED — liquid phase only) ---
+  // --- 5. Target % Silica (liquid phase only) ---
   const liquidWt = bw + ww + pw;
   const pctSilica = (b && liquidWt > 0) ? (bw * b.solids/100) / liquidWt * 100 : 0;
 
@@ -343,8 +343,10 @@ function calc(){
   const pctSilicaSurf = totalRefWt > 0 ? refSilicaWt / totalRefWt * 100 : 0;
   const pctCobalt     = totalRefWt > 0 ? cobaltWt   / totalRefWt * 100 : 0;
 
-  // --- 9. % Polymer (binder polymer + external polymer, on total slurry basis) ---
-  const pctPolymer = totalWt > 0 ? ((b ? bw * b.polymer/100 : 0) + pw) / totalWt * 100 : 0;
+  // --- 9. % Polymer (CORRECTED — external liquid basis + pre-blended additive) ---
+  const pctPolymer_external = liquidWt > 0 ? (pw / liquidWt) * 100 : 0;
+  const pctPolymer_preblend = b ? b.polymer : 0;
+  const pctPolymer = pctPolymer_external + pctPolymer_preblend;
 
   // --- 10. % Sodium ---
   const pctSodium = (b && totalWt > 0) ? bw * b.sodium/100 / totalWt * 100 : 0;
@@ -376,23 +378,18 @@ function calc(){
   const afTotalMl = binderL * afRate;
 
   // ---------- Render ----------
-  const set = (id, val, unit='', digits=2) => {
-    const el = document.getElementById(id);
-    el.textContent = (val && !isNaN(val) && val !== 0) ? val.toFixed(digits) + unit : '—';
-  };
-
   document.getElementById('out_vol').textContent      = totalVol > 0   ? totalVol.toFixed(4)   : '—';
   document.getElementById('out_liq_vol').textContent  = liquidsGal > 0 ? liquidsGal.toFixed(4) : '—';
   document.getElementById('out_ref_pct').textContent  = totalWt > 0    ? pctRef.toFixed(4)+'%' : '—';
   document.getElementById('out_solids').textContent   = totalWt > 0    ? pctSolids.toFixed(4)+'%' : '—';
   document.getElementById('out_density').textContent  = density > 0    ? density.toFixed(4)     : '—';
-  document.getElementById('out_silica').textContent   = liquidWt > 0 && b ? pctSilica.toFixed(4)+'%' : '—';
+  document.getElementById('out_silica').textContent   = (liquidWt > 0 && b) ? pctSilica.toFixed(4)+'%' : '—';
   document.getElementById('out_zircon').textContent   = totalWt > 0    ? pctZircon.toFixed(4)+'%' : '—';
   document.getElementById('out_zircon_surf').textContent = totalRefWt > 0 ? pctZirconSurf.toFixed(4)+'%' : '—';
   document.getElementById('out_silica_surf').textContent = totalRefWt > 0 ? pctSilicaSurf.toFixed(4)+'%' : '—';
   document.getElementById('out_cobalt').textContent   = totalRefWt > 0 ? pctCobalt.toFixed(4)+'%' : '—';
-  document.getElementById('out_sodium').textContent   = totalWt > 0 && b ? pctSodium.toFixed(4)+'%' : '—';
-  document.getElementById('out_polymer').textContent  = totalWt > 0    ? pctPolymer.toFixed(4)+'%' : '—';
+  document.getElementById('out_sodium').textContent   = (totalWt > 0 && b) ? pctSodium.toFixed(4)+'%' : '—';
+  document.getElementById('out_polymer').textContent  = (b || pw > 0)  ? pctPolymer.toFixed(4)+'%' : '—';
   document.getElementById('out_void_dry').textContent = totalVol > 0   ? voidDry.toFixed(4)+'%'   : '—';
   document.getElementById('out_void_fired').textContent = totalVol > 0 ? voidFired.toFixed(4)+'%' : '—';
 
