@@ -74,6 +74,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 .tool-app .toggle-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 .tool-app .toggle-btn{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600}
 .tool-app .toggle-btn.active{background:#00d4ff;color:#000;border-color:#00d4ff}
+.tool-app .info-badge{display:inline-block;background:#0a1a1f;color:#00d4ff;padding:4px 10px;border-radius:4px;font-size:11px;margin-left:8px;border:1px solid #00d4ff;font-weight:600}
 
 @media (max-width:768px){
   .navbar{flex-direction:column;align-items:flex-start;padding:0 16px}
@@ -100,14 +101,17 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
 <header class="page-header">
   <h1>Shell Control Correlation Tool</h1>
-  <p>Correlate inline SlurrySense sensor data with manual viscosity readings — 100% offline, no CDN dependencies</p>
+  <p>Correlate inline SlurrySense sensor data with manual viscosity readings — 100% offline, no external dependencies</p>
 </header>
 
 <main>
 <div class="tool-app">
 
 <div class="card">
-  <div class="section-title">1. Upload CSV File</div>
+  <div class="section-title">
+    1. Upload CSV File
+    <span class="info-badge">Header row 14 · Data starts row 15</span>
+  </div>
   <input type="file" id="fileInput" accept=".csv">
   <div id="loadStatus" class="status"></div>
 </div>
@@ -194,7 +198,11 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 <script>
 'use strict';
 
-// ============ EMBEDDED CSV PARSER (no PapaParse needed) ============
+// ============ FIXED CSV STRUCTURE ============
+var HEADER_ROW_INDEX = 13;   // Row 14 in Excel (zero-based = 13)
+var DATA_START_INDEX = 14;   // Row 15 in Excel (zero-based = 14)
+
+// ============ EMBEDDED CSV PARSER ============
 function parseCSV(text){
   var rows = [];
   var row = [];
@@ -329,7 +337,7 @@ function assignShift(d, sl){
   return 'Unassigned';
 }
 
-// ============ FILE UPLOAD (uses embedded parser) ============
+// ============ FILE UPLOAD — ROW 14 HEADER, ROW 15 DATA (HARDCODED) ============
 function handleFileUpload(e){
   var f = e.target.files[0];
   if(!f) return;
@@ -342,28 +350,24 @@ function handleFileUpload(e){
     try {
       var text = ev.target.result;
       var r = parseCSV(text);
-      if(!r || !r.length) throw new Error('CSV is empty.');
+      if(!r || !r.length) throw new Error('CSV file is empty.');
 
-      // Detect header row
-     // Fixed header/data location — row 14 headers, row 15 data (zero-based index 13/14)
-var HEADER_ROW_INDEX = 13;   // Row 14 in Excel = index 13
-var DATA_START_INDEX = 14;   // Row 15 in Excel = index 14
+      // ---- HARDCODED PARSING ----
+      if(r.length < DATA_START_INDEX + 1){
+        throw new Error('CSV has fewer than 15 rows. Expected header at row 14 and data starting at row 15.');
+      }
+      if(!r[HEADER_ROW_INDEX] || r[HEADER_ROW_INDEX].filter(function(x){ return String(x||'').trim().length > 0; }).length === 0){
+        throw new Error('Row 14 is empty. Header row must contain column names.');
+      }
 
-if(r.length < DATA_START_INDEX + 1){
-  throw new Error('CSV has fewer than ' + (DATA_START_INDEX + 1) + ' rows. Expected header at row 14 and data starting at row 15.');
-}
+      headers = r[HEADER_ROW_INDEX].map(function(h){ return String(h||'').trim(); });
+      rawRows = r.slice(DATA_START_INDEX).filter(function(row){
+        return row && row.some(function(cell){ return String(cell||'').trim().length > 0; });
+      });
 
-if(!r[HEADER_ROW_INDEX] || r[HEADER_ROW_INDEX].filter(function(x){ return String(x||'').trim().length > 0; }).length === 0){
-  throw new Error('Row 14 is empty. Header row must contain column names.');
-}
+      console.log('✓ Parsed row-14 header (' + headers.length + ' columns) + ' + rawRows.length + ' data rows');
 
-headers = r[HEADER_ROW_INDEX].map(function(h){ return String(h||'').trim(); });
-rawRows = r.slice(DATA_START_INDEX).filter(function(row){
-  return row && row.some(function(cell){ return String(cell||'').trim().length > 0; });
-});
-
-console.log('✓ Parsed header from row 14 (' + headers.length + ' columns), data rows: ' + rawRows.length);
-
+      // Populate dropdowns
       ['dateCol','manualCol','sensorCol'].forEach(function(sid){
         var sel = document.getElementById(sid);
         sel.innerHTML = '';
@@ -372,6 +376,7 @@ console.log('✓ Parsed header from row 14 (' + headers.length + ' columns), dat
         });
       });
 
+      // Auto-select columns based on header keywords
       headers.forEach(function(h, hi){
         var hl = h.toLowerCase();
         if(hl.indexOf('date') !== -1 && hl.indexOf('time') !== -1) document.getElementById('dateCol').value = hi;
@@ -380,7 +385,7 @@ console.log('✓ Parsed header from row 14 (' + headers.length + ' columns), dat
       });
 
       document.getElementById('controls').style.display = 'block';
-      ls.textContent = '✓ Loaded ' + rawRows.length + ' rows | ' + headers.length + ' cols | Header row: ' + (idx + 1);
+      ls.textContent = '✓ Loaded ' + rawRows.length + ' data rows | ' + headers.length + ' columns | Header row: 14 (fixed)';
     } catch(err){
       ls.className = 'error';
       ls.textContent = '✗ ' + err.message;
@@ -615,7 +620,7 @@ function renderShiftAnalysis(){
   t.innerHTML = h;
 }
 
-// ============ NATIVE CANVAS CHART (no Chart.js needed) ============
+// ============ NATIVE CANVAS CHART ============
 function drawChart(inPts, exPts, line){
   var canvas = document.getElementById('chart');
   var ctx = canvas.getContext('2d');
@@ -644,7 +649,6 @@ function drawChart(inPts, exPts, line){
   function xPx(v){ return padL + (v - xMin) / (xMax - xMin) * plotW; }
   function yPx(v){ return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
 
-  // grid + axes
   ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
   ctx.fillStyle = '#aaa'; ctx.font = '11px Arial';
   var gx = 8, gy = 6;
@@ -661,7 +665,6 @@ function drawChart(inPts, exPts, line){
     ctx.fillText(yv.toFixed(1), 8, py + 4);
   }
 
-  // axis labels
   ctx.fillStyle = '#aaa'; ctx.font = 'bold 13px Arial';
   ctx.fillText('Cup Seconds', W/2 - 40, H - 6);
   ctx.save();
@@ -670,19 +673,16 @@ function drawChart(inPts, exPts, line){
   ctx.fillText('Sensor cP', 0, 0);
   ctx.restore();
 
-  // excluded points
   ctx.fillStyle = 'rgba(150,150,150,0.5)';
   exPts.forEach(function(p){
     ctx.beginPath(); ctx.arc(xPx(p.cupSec), yPx(p.sensorCP), 3, 0, Math.PI*2); ctx.fill();
   });
 
-  // in-window points
   ctx.fillStyle = '#00d4ff';
   inPts.forEach(function(p){
     ctx.beginPath(); ctx.arc(xPx(p.cupSec), yPx(p.sensorCP), 5, 0, Math.PI*2); ctx.fill();
   });
 
-  // regression line
   if(line && inPts.length >= 2){
     var xsIn = inPts.map(function(p){ return p.cupSec; });
     var xMn = Math.min.apply(null, xsIn), xMx = Math.max.apply(null, xsIn);
@@ -693,7 +693,6 @@ function drawChart(inPts, exPts, line){
     ctx.stroke();
   }
 
-  // legend
   ctx.fillStyle = '#00d4ff'; ctx.beginPath(); ctx.arc(padL + 10, padT + 12, 5, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText('In window', padL + 22, padT + 16);
   ctx.fillStyle = 'rgba(150,150,150,0.7)'; ctx.beginPath(); ctx.arc(padL + 110, padT + 12, 4, 0, Math.PI*2); ctx.fill();
@@ -750,7 +749,7 @@ document.addEventListener('DOMContentLoaded', function(){
   addShift({name: 'Shift 1', start: '06:00', end: '14:00'});
   addShift({name: 'Shift 2', start: '14:00', end: '22:00'});
   addShift({name: 'Shift 3', start: '22:00', end: '06:00'});
-  console.log('✓ Correlation tool initialized — 100% offline, no CDN needed');
+  console.log('✓ Correlation tool initialized (row 14 header / row 15 data, 100% offline)');
 });
 </script>
 
