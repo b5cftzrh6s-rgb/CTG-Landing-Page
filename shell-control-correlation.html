@@ -345,23 +345,24 @@ function handleFileUpload(e){
       if(!r || !r.length) throw new Error('CSV is empty.');
 
       // Detect header row
-      var idx = -1;
-      for(var i=0; i<Math.min(r.length, 30); i++){
-        if(r[i] && r[i].some(function(x){ return String(x||'').toLowerCase().indexOf('date') !== -1; })){
-          idx = i; break;
-        }
-      }
-      if(idx === -1){
-        for(var j=0; j<Math.min(r.length, 30); j++){
-          if(r[j] && r[j].filter(function(x){ return String(x||'').trim().length > 0; }).length >= 3){
-            idx = j; break;
-          }
-        }
-      }
-      if(idx === -1) throw new Error('Cannot detect header row.');
+     // Fixed header/data location — row 14 headers, row 15 data (zero-based index 13/14)
+var HEADER_ROW_INDEX = 13;   // Row 14 in Excel = index 13
+var DATA_START_INDEX = 14;   // Row 15 in Excel = index 14
 
-      headers = r[idx].map(function(h){ return String(h||'').trim(); });
-      rawRows = r.slice(idx + 1);
+if(r.length < DATA_START_INDEX + 1){
+  throw new Error('CSV has fewer than ' + (DATA_START_INDEX + 1) + ' rows. Expected header at row 14 and data starting at row 15.');
+}
+
+if(!r[HEADER_ROW_INDEX] || r[HEADER_ROW_INDEX].filter(function(x){ return String(x||'').trim().length > 0; }).length === 0){
+  throw new Error('Row 14 is empty. Header row must contain column names.');
+}
+
+headers = r[HEADER_ROW_INDEX].map(function(h){ return String(h||'').trim(); });
+rawRows = r.slice(DATA_START_INDEX).filter(function(row){
+  return row && row.some(function(cell){ return String(cell||'').trim().length > 0; });
+});
+
+console.log('✓ Parsed header from row 14 (' + headers.length + ' columns), data rows: ' + rawRows.length);
 
       ['dateCol','manualCol','sensorCol'].forEach(function(sid){
         var sel = document.getElementById(sid);
