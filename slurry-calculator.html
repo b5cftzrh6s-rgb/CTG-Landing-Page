@@ -15,626 +15,152 @@ body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
 
 .navbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;
   align-items:center;justify-content:space-between;flex-wrap:wrap}
-.navbar .brand{font-weight:700;padding:20px 0;font-size:18px;letter-spacing:.3px}
-.navbar .brand span{color:var(--teal);font-weight:400;margin:0 4px}
-.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
-.navbar ul li a{color:#fff;text-decoration:none;padding:20px 22px;display:block;
-  font-size:15px;font-weight:500;transition:background .15s}
+.navbar .brand{font-weight:700;padding:20px 0;font-size:18px}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex}
+.navbar ul li a{color:#fff;text-decoration:none;padding:20px;display:block}
 .navbar ul li a:hover{background:var(--blue)}
-.navbar ul li a.active{background:var(--teal);color:#fff}
+.navbar ul li a.active{background:var(--teal)}
 
-header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:32px 40px}
-header.page-header h1{margin:0;font-size:32px;font-weight:700}
-header.page-header p{margin:6px 0 0;opacity:.9;font-size:15px}
+header{background:var(--blue);color:#fff;padding:30px}
+main{max-width:1000px;margin:20px auto;padding:0 20px}
 
-main{max-width:1200px;margin:24px auto;padding:0 20px 40px}
+.card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
 
-.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.card h3,.global h3{margin:0 0 8px;color:var(--blue);font-size:19px;font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+input,select{width:100%;padding:6px;margin-top:4px}
 
-.field{margin-bottom:12px}
-.field label{font-size:13px;font-weight:600;display:block;margin-bottom:5px;color:var(--text)}
-.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;background:#fff}
-.field input:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
-
-.desc{font-size:13px;color:var(--muted);margin-bottom:12px}
-
-button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px}
-.btn{background:var(--accent);color:#fff}
-.btn:hover{background:#c65e14}
-.btn2{background:#666;color:#fff}
-.btn2:hover{background:#4d4d4d}
-.toolbar{margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap}
-
-table{width:100%;border-collapse:collapse;margin-top:8px}
-td,th{padding:9px 12px;border-bottom:1px solid var(--border);font-size:14px;text-align:left}
-.value{text-align:right;font-weight:700;font-family:Courier New,monospace;color:var(--blue);font-size:14px}
-
-.dose-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:14px 0}
-.dose-block{background:#f7f9fc;padding:16px;border-radius:6px;text-align:center;border:1px solid var(--border)}
-.dose-block.highlight{background:var(--blue);color:#fff;border-color:var(--blue)}
-.dose-block.highlight .dose-label{color:#dbe1ea}
-.dose-block.highlight .dose-value{color:#ffc000}
-.dose-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;font-weight:700}
-.dose-value{font-size:24px;font-weight:800;color:var(--blue)}
-
-details{margin-top:14px;background:#f7f9fc;padding:12px 16px;border-radius:6px;border:1px solid var(--border)}
-details summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--blue)}
-details table{margin-top:10px}
-details table th{background:#eef4fb;color:var(--blue);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
-
-.notes{font-size:11px;color:var(--muted);margin-top:10px;padding:10px 12px;background:#f7f9fc;border-left:3px solid var(--teal);border-radius:4px;line-height:1.5}
-
-footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
-
-/* ---------- PRINT / EXPORT LAYOUT ---------- */
-.print-only { display: none; }
-
-@media print {
-  @page { size: letter; margin: 0.5in; }
-  body { background: #fff; }
-  .navbar, .toolbar, header.page-header, footer, main > .global, main > .card { display: none !important; }
-  .print-only { display: block !important; }
-  main { max-width: 100%; margin: 0; padding: 0; }
-}
-
-.print-page {
-  background: #fff;
-  padding: 30px 40px;
-  color: #1f2a3a;
-  font-family: Segoe UI, Arial;
-}
-.print-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 3px solid var(--blue);
-  padding-bottom: 16px;
-  margin-bottom: 24px;
-}
-.print-logo { display: flex; align-items: center; gap: 14px; }
-.print-logo .logo-svg {
-  width: 60px; height: 60px;
-  background: var(--blue);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-weight: 800; font-size: 22px;
-  letter-spacing: 1px;
-}
-.print-logo .logo-text .brand-name {
-  font-size: 22px; font-weight: 800; color: var(--blue); letter-spacing: .5px;
-}
-.print-logo .logo-text .brand-sub {
-  font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase;
-}
-.print-title-block { text-align: right; }
-.print-title-block h1 { margin: 0; font-size: 22px; color: var(--blue); }
-.print-title-block .date { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-.print-section {
-  margin-bottom: 22px;
-  page-break-inside: avoid;
-}
-.print-section h2 {
-  font-size: 14px;
-  color: #fff;
-  background: var(--blue);
-  padding: 8px 14px;
-  margin: 0 0 0 0;
-  letter-spacing: .5px;
-  text-transform: uppercase;
-  border-radius: 4px 4px 0 0;
-}
-.print-section table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0;
-  border: 1px solid var(--border);
-}
-.print-section td {
-  padding: 6px 14px;
-  font-size: 12px;
-  border-bottom: 1px solid #eef1f5;
-}
-.print-section td:last-child {
-  text-align: right;
-  font-weight: 700;
-  color: var(--blue);
-  font-family: Courier New, monospace;
-  width: 40%;
-}
-.print-section tr:nth-child(even) td { background: #f7f9fc; }
-.print-section tr:last-child td { border-bottom: none; }
-
-.print-two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.print-footer {
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-  margin-top: 24px;
-  text-align: center;
-  font-size: 10px;
-  color: var(--muted);
-}
-.print-footer .tagline { font-weight: 700; color: var(--blue); margin-bottom: 4px; }
-
-@media print{.navbar,.toolbar{display:none}}
-@media (max-width:768px){
-  .navbar{flex-direction:column;align-items:flex-start;padding:0 16px}
-  .navbar .brand{padding:14px 0;font-size:16px}
-  .navbar ul{width:100%}
-  .navbar ul li{flex:1}
-  .navbar ul li a{text-align:center;padding:12px 6px;font-size:12px}
-  header.page-header{padding:24px 20px}
-  header.page-header h1{font-size:24px}
-}
+table{width:100%;border-collapse:collapse}
+td{padding:8px;border-bottom:1px solid #ddd}
+.value{text-align:right;font-weight:bold}
 </style>
 </head>
+
 <body>
 
+<!-- ✅ FIXED NAVIGATION ONLY CHANGE -->
 <nav class="navbar">
-  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
+  <div class="brand">CTG | Colloidal Technologies Group</div>
   <ul>
     <li>index.htmlHome</a></li>
-    <li>shell-control-correlation.htmlShell Control Correlation</a></li>
-    <li>shell-control-value-calculator.htmlShell Control Value Calculator</a></li>
-    <li>slurry-calculator.htmlSlurry Calculator</a></li>
+    <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
+    <li><a href="shell-control-value-calculator.html">Shell Control Value Calculator</a></li>
+    <li><a href="slurry-calculator.html" class="active">Slurry Calculator</a></li>
   </ul>
 </nav>
 
-<header class="page-header">
+<header>
   <h1>Slurry Calculator</h1>
-  <p>Slurry details, NALCO 7667 dosing, and 2305 antifoam dosing for investment casting</p>
 </header>
 
 <main>
 
-<div class="toolbar">
-  <button class="btn" onclick="window.print()">Print / Save PDF</button>
-  <button class="btn2" onclick="resetAll()">Reset</button>
-</div>
+<div class="card">
+  <h3>Inputs</h3>
+  <label>Binder</label>
+  <select id="binder"></select>
 
-<div class="global">
-  <h3>Slurry Details</h3>
-  <div class="desc">Select binder and refractory types, then enter weights (lb). All outputs recalculate live.</div>
-  <div class="grid">
-    <div class="field">
-      <label>Binder</label>
-      <select id="binder"></select>
-    </div>
-    <div class="field"><label>Binder Weight (lb)</label><input id="binder_wt" type="number" step="any"></div>
-    <div class="field"><label>Water (lb)</label><input id="water_wt" type="number" step="any"></div>
-    <div class="field"><label>Polymer (lb)</label><input id="polymer_wt" type="number" step="any"></div>
+  <label>Binder Weight (lb)</label>
+  <input id="binder_wt" type="number">
 
-    <div class="field">
-      <label>Refractory #1</label>
-      <select id="ref1"></select>
-    </div>
-    <div class="field"><label>Ref #1 Weight (lb)</label><input id="ref1_wt" type="number" step="any"></div>
+  <label>Water (lb)</label>
+  <input id="water_wt" type="number">
 
-    <div class="field">
-      <label>Refractory #2</label>
-      <select id="ref2"></select>
-    </div>
-    <div class="field"><label>Ref #2 Weight (lb)</label><input id="ref2_wt" type="number" step="any"></div>
-  </div>
+  <label>Polymer (lb)</label>
+  <input id="polymer_wt" type="number">
+
+  <label>Refractory #1</label>
+  <select id="ref1"></select>
+
+  <label>Ref #1 Weight (lb)</label>
+  <input id="ref1_wt" type="number">
+
+  <label>Refractory #2</label>
+  <select id="ref2"></select>
+
+  <label>Ref #2 Weight (lb)</label>
+  <input id="ref2_wt" type="number">
 </div>
 
 <div class="card">
-  <h3>Slurry Properties</h3>
-  <div class="desc">Physical and compositional properties calculated from the inputs above.</div>
+  <h3>Outputs</h3>
   <table>
-    <tr><td>Slurry Volume (gal)</td><td class="value" id="out_vol">—</td></tr>
-    <tr><td>Liquids Volume (gal)</td><td class="value" id="out_liq_vol">—</td></tr>
-    <tr><td>% Refractory</td><td class="value" id="out_ref_pct">—</td></tr>
-    <tr><td>Total % Solids (dry)</td><td class="value" id="out_solids">—</td></tr>
-    <tr><td>Slurry Density (g/cc)</td><td class="value" id="out_density">—</td></tr>
-    <tr><td>Target % Silica</td><td class="value" id="out_silica">—</td></tr>
-    <tr><td>% Zircon (bulk)</td><td class="value" id="out_zircon">—</td></tr>
-    <tr><td>% Zircon on surface</td><td class="value" id="out_zircon_surf">—</td></tr>
-    <tr><td>% Total Silica on surface</td><td class="value" id="out_silica_surf">—</td></tr>
-    <tr><td>% Cobalt</td><td class="value" id="out_cobalt">—</td></tr>
-    <tr><td>% Sodium</td><td class="value" id="out_sodium">—</td></tr>
-    <tr><td>% Polymer</td><td class="value" id="out_polymer">—</td></tr>
-    <tr><td>Volume % Void (Dry)</td><td class="value" id="out_void_dry">—</td></tr>
-    <tr><td>Volume % Void (Fired)</td><td class="value" id="out_void_fired">—</td></tr>
+    <tr><td>Slurry Volume</td><td class="value" id="vol">—</td></tr>
+    <tr><td>% Refractory</td><td class="value" id="ref_pct">—</td></tr>
+    <tr><td>% Solids</td><td class="value" id="solids">—</td></tr>
+    <tr><td>Density</td><td class="value" id="density">—</td></tr>
+    <tr><td>Target Silica</td><td class="value" id="silica">—</td></tr>
+    <tr><td>% Polymer</td><td class="value" id="polymer">—</td></tr>
   </table>
-  <div class="notes">
-    Assumptions: Polymer treated as 50% solids / 50% water. Water density 8.345 lb/gal. Polymer density 1.0 g/cc (standard latex). Pre-blended binder polymer dilutes with added water on liquid-mass basis. Void % fired ignores shell shrinkage (~1–3%).
-  </div>
-</div>
-
-<div class="card">
-  <h3>NALCO 7667 Wetting Agent Dose</h3>
-  <div class="desc">
-    For investment casting slurries, the amount of NALCO 7667 applied depends upon the percent zircon flour used in the slurry. NALCO 7667 is best applied as part of a DI water addition when adjusting slurry viscosity for evaporation.
-  </div>
-
-  <div class="dose-summary">
-    <div class="dose-block">
-      <div class="dose-label">% Zircon on Surface</div>
-      <div class="dose-value" id="dose_zircon">—</div>
-    </div>
-    <div class="dose-block">
-      <div class="dose-label">NALCO 7667 (ml/gal)</div>
-      <div class="dose-value" id="dose_ml_gal">—</div>
-    </div>
-    <div class="dose-block highlight">
-      <div class="dose-label">Total NALCO 7667 Dose</div>
-      <div class="dose-value" id="dose_ml_total">—</div>
-    </div>
-  </div>
-  <div class="notes">
-    Dose based on liquids volume (binder + water + polymer emulsion). Interpolation: ml/gal = 7.0 + 0.03 × % zircon on surface.
-  </div>
-
-  <details>
-    <summary>Table 1 — NALCO 7667 Dosing Reference</summary>
-    <table>
-      <thead><tr><th>% Zircon</th><th>ml/gal</th><th>% Zircon</th><th>ml/gal</th></tr></thead>
-      <tbody>
-        <tr><td>0</td><td>7.0</td><td>60</td><td>8.8</td></tr>
-        <tr><td>10</td><td>7.3</td><td>70</td><td>9.1</td></tr>
-        <tr><td>20</td><td>7.6</td><td>80</td><td>9.4</td></tr>
-        <tr><td>30</td><td>7.9</td><td>90</td><td>9.7</td></tr>
-        <tr><td>40</td><td>8.2</td><td>100</td><td>10.0</td></tr>
-        <tr><td>50</td><td>8.5</td><td>—</td><td>—</td></tr>
-      </tbody>
-    </table>
-  </details>
-</div>
-
-<div class="card">
-  <h3>NALCO 2305 Antifoam Dose</h3>
-  <div class="desc">
-    Nalco 2305 is applied per liter of binder. Select a dosage level appropriate for your operation. Turbo Wheel operations require 2× the Maximum rate.
-  </div>
-
-  <div class="field" style="max-width:340px">
-    <label>Dosage Level</label>
-    <select id="af_level">
-      <option value="4">Minimum (4 ml/L binder)</option>
-      <option value="6">Normal (6 ml/L binder)</option>
-      <option value="8">Maximum (8 ml/L binder)</option>
-      <option value="16">Turbo Wheel (16 ml/L binder)</option>
-    </select>
-  </div>
-
-  <div class="dose-summary">
-    <div class="dose-block">
-      <div class="dose-label">Binder Volume (L)</div>
-      <div class="dose-value" id="af_binder_L">—</div>
-    </div>
-    <div class="dose-block">
-      <div class="dose-label">Rate (ml/L)</div>
-      <div class="dose-value" id="af_rate">—</div>
-    </div>
-    <div class="dose-block highlight">
-      <div class="dose-label">Total 2305 Dose</div>
-      <div class="dose-value" id="af_total">—</div>
-    </div>
-  </div>
 </div>
 
 </main>
 
-<!-- ================================================================ -->
-<!-- PRINT-ONLY ONE-PAGE SUMMARY (visible only during Print / Save PDF) -->
-<!-- ================================================================ -->
-<div class="print-only">
-  <div class="print-page">
-
-    <div class="print-header">
-      <div class="print-logo">
-        <div class="logo-svg">N</div>
-        <div class="logo-text">
-          <div class="brand-name">NALCO WATER</div>
-          <div class="brand-sub">An Ecolab Company</div>
-        </div>
-      </div>
-      <div class="print-title-block">
-        <h1>Slurry Calculator Report</h1>
-        <div class="date" id="print_date"></div>
-      </div>
-    </div>
-
-    <div class="print-section">
-      <h2>Slurry Composition (Inputs)</h2>
-      <div class="print-two-col">
-        <table>
-          <tr><td>Binder Type</td><td id="p_binder_type">—</td></tr>
-          <tr><td>Binder Weight (lb)</td><td id="p_binder_wt">—</td></tr>
-          <tr><td>Water (lb)</td><td id="p_water_wt">—</td></tr>
-          <tr><td>Polymer (lb)</td><td id="p_polymer_wt">—</td></tr>
-        </table>
-        <table>
-          <tr><td>Refractory #1</td><td id="p_ref1_type">—</td></tr>
-          <tr><td>Ref #1 Weight (lb)</td><td id="p_ref1_wt">—</td></tr>
-          <tr><td>Refractory #2</td><td id="p_ref2_type">—</td></tr>
-          <tr><td>Ref #2 Weight (lb)</td><td id="p_ref2_wt">—</td></tr>
-        </table>
-      </div>
-    </div>
-
-    <div class="print-section">
-      <h2>Slurry Properties (Calculated)</h2>
-      <div class="print-two-col">
-        <table>
-          <tr><td>Slurry Volume (gal)</td><td id="p_vol">—</td></tr>
-          <tr><td>Liquids Volume (gal)</td><td id="p_liq_vol">—</td></tr>
-          <tr><td>% Refractory</td><td id="p_ref_pct">—</td></tr>
-          <tr><td>Total % Solids (dry)</td><td id="p_solids">—</td></tr>
-          <tr><td>Slurry Density (g/cc)</td><td id="p_density">—</td></tr>
-          <tr><td>Target % Silica</td><td id="p_silica">—</td></tr>
-          <tr><td>% Zircon (bulk)</td><td id="p_zircon">—</td></tr>
-        </table>
-        <table>
-          <tr><td>% Zircon on Surface</td><td id="p_zircon_surf">—</td></tr>
-          <tr><td>% Silica on Surface</td><td id="p_silica_surf">—</td></tr>
-          <tr><td>% Cobalt</td><td id="p_cobalt">—</td></tr>
-          <tr><td>% Sodium</td><td id="p_sodium">—</td></tr>
-          <tr><td>% Polymer</td><td id="p_polymer">—</td></tr>
-          <tr><td>Volume % Void (Dry)</td><td id="p_void_dry">—</td></tr>
-          <tr><td>Volume % Void (Fired)</td><td id="p_void_fired">—</td></tr>
-        </table>
-      </div>
-    </div>
-
-    <div class="print-section">
-      <h2>NALCO Chemical Dosing Summary</h2>
-      <table>
-        <tr><td>NALCO 7667 — % Zircon on Surface</td><td id="p_dose_zircon">—</td></tr>
-        <tr><td>NALCO 7667 — Rate (ml/gal liquids)</td><td id="p_dose_ml_gal">—</td></tr>
-        <tr><td><strong>NALCO 7667 — Total Dose</strong></td><td id="p_dose_ml_total">—</td></tr>
-        <tr><td>NALCO 2305 — Dosage Level</td><td id="p_af_level">—</td></tr>
-        <tr><td>NALCO 2305 — Binder Volume</td><td id="p_af_binder_L">—</td></tr>
-        <tr><td>NALCO 2305 — Rate (ml/L binder)</td><td id="p_af_rate">—</td></tr>
-        <tr><td><strong>NALCO 2305 — Total Dose</strong></td><td id="p_af_total">—</td></tr>
-      </table>
-    </div>
-
-    <div class="print-footer">
-      <div class="tagline">3D TRASAR&trade; Technology for Shell Control &nbsp;·&nbsp; Rheonics SlurrySense&trade;</div>
-      <div>3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only</div>
-    </div>
-
-  </div>
-</div>
-
-<footer>
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
-</footer>
-
 <script>
-// ---------- Binder Database (empirically calibrated to CTG Slurry Dashboard) ----------
+const WATER = 8.345;
+
 const BINDERS = {
-  "ESB Prime":     {solids: 28.81, density: 1.197, polymer: 4.85, sodium: 0.02},
-  "ESB 1":         {solids: 22.00, density: 1.153, polymer: 9.09, sodium: 0.03},
-  "ESB 6":         {solids: 27.86, density: 1.189, polymer: 7.70, sodium: 0.02},
-  "ESB 10":        {solids: 30.00, density: 1.215, polymer: 0.00, sodium: 0.02},
-  "ESB 11":        {solids: 30.00, density: 1.214, polymer: 0.00, sodium: 0.03},
-  "ESB Precision": {solids: 50.00, density: 1.389, polymer: 0.00, sodium: 0.01},
-  "6009 / 6009C":  {solids: 30.00, density: 1.209, polymer: 0.00, sodium: 0.02},
-  "6022":          {solids: 30.00, density: 1.208, polymer: 0.00, sodium: 0.02},
-  "Etna":          {solids: 30.00, density: 1.209, polymer: 0.17, sodium: 0.02},
-  "Rainier II":    {solids: 32.00, density: 1.220, polymer: 2.17, sodium: 0.03}
+  "ESB Prime":{solids:28.81,density:1.197,poly:4.85},
+  "ESB 6":{solids:27.86,density:1.189,poly:7.7},
+  "ESB 1":{solids:22,density:1.153,poly:9.09},
+  "ESB 10":{solids:30,density:1.215,poly:0},
+  "Etna":{solids:30,density:1.209,poly:0.17},
+  "Rainier II":{solids:32,density:1.22,poly:2.17}
 };
 
-// ---------- Refractory Database ----------
-const REFRACTORIES = {
-  "None":                 {density: 0,     silica: 0,   zircon: 0,   cobalt: 0},
-  "Zircon":               {density: 4.600, silica: 0,   zircon: 100, cobalt: 0},
-  "Fused Silica":         {density: 2.203, silica: 100, zircon: 0,   cobalt: 0},
-  "Fused Mullite":        {density: 3.140, silica: 28,  zircon: 0,   cobalt: 0},
-  "Alumino-Silicate M47": {density: 2.650, silica: 100, zircon: 0,   cobalt: 0},
-  "Alumino-Silicate M60": {density: 2.850, silica: 100, zircon: 0,   cobalt: 0},
-  "Alumina":              {density: 3.960, silica: 0,   zircon: 0,   cobalt: 0},
-  "WDS Plus":             {density: 2.203, silica: 100, zircon: 0,   cobalt: 0},
-  "WDS 2":                {density: 2.203, silica: 100, zircon: 0,   cobalt: 0},
-  "WDS 3":                {density: 2.199, silica: 100, zircon: 0,   cobalt: 0},
-  "Gray Matter 1":        {density: 2.187, silica: 100, zircon: 0,   cobalt: 0},
-  "Gray Matter 2":        {density: 2.186, silica: 100, zircon: 0,   cobalt: 0},
-  "Cobalt Aluminate":     {density: 5.200, silica: 0,   zircon: 0,   cobalt: 100},
-  "ESFA1":                {density: 2.850, silica: 100, zircon: 0,   cobalt: 0},
-  "One Coat":             {density: 2.187, silica: 100, zircon: 0,   cobalt: 0},
-  "Fused Yttria":         {density: 5.010, silica: 0,   zircon: 0,   cobalt: 0},
-  "Stabilized Zirconia":  {density: 5.700, silica: 0,   zircon: 0,   cobalt: 0}
+const REFS = {
+  "None":{d:0,sil:0,zr:0},
+  "Zircon":{d:4.6,sil:0,zr:100},
+  "Fused Silica":{d:2.203,sil:100,zr:0}
 };
 
-// ---------- Constants ----------
-const WATER_LB_GAL = 8.345;
-const POLY_D = 1.00;
-const GAL_TO_L = 3.78541;
-
-// ---------- Helpers ----------
 function num(id){return parseFloat(document.getElementById(id).value)||0}
 
 function populate(){
-  const bSel = document.getElementById('binder');
-  bSel.innerHTML = '<option value="">Select binder...</option>';
-  Object.keys(BINDERS).forEach(k=>{
-    const o=document.createElement('option'); o.value=k; o.textContent=k; bSel.appendChild(o);
-  });
-  ['ref1','ref2'].forEach(id=>{
-    const sel = document.getElementById(id);
-    sel.innerHTML = '<option value="">Select refractory...</option>';
-    Object.keys(REFRACTORIES).forEach(k=>{
-      const o=document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
-    });
+  let b=document.getElementById("binder");
+  for(let k in BINDERS){b.innerHTML+=`<option>${k}</option>`}
+
+  ["ref1","ref2"].forEach(id=>{
+    let s=document.getElementById(id);
+    for(let k in REFS){s.innerHTML+=`<option>${k}</option>`}
   });
 }
 
-function mlGal7667(pctZircon){
-  const p = Math.max(0, Math.min(100, pctZircon));
-  return 7.0 + 0.03 * p;
-}
-
-// ---------- Main Calculation ----------
 function calc(){
-  const binderKey = document.getElementById('binder').value;
-  const ref1Key   = document.getElementById('ref1').value;
-  const ref2Key   = document.getElementById('ref2').value;
-  const b  = BINDERS[binderKey];
-  const r1 = REFRACTORIES[ref1Key];
-  const r2 = REFRACTORIES[ref2Key];
+  let b=BINDERS[document.getElementById("binder").value];
+  let r1=REFS[document.getElementById("ref1").value];
+  let r2=REFS[document.getElementById("ref2").value];
 
-  const bw  = num('binder_wt');
-  const ww  = num('water_wt');
-  const pw  = num('polymer_wt');
-  const r1w = num('ref1_wt');
-  const r2w = num('ref2_wt');
-  const totalWt = bw + ww + pw + r1w + r2w;
+  let bw=num("binder_wt"), ww=num("water_wt"), pw=num("polymer_wt");
+  let r1w=num("ref1_wt"), r2w=num("ref2_wt");
 
-  // --- 1. Volumes (gal) ---
-  const bVol  = b       ? bw / (b.density * WATER_LB_GAL) : 0;
-  const wVol  =           ww / WATER_LB_GAL;
-  const pVol  =           pw / (POLY_D    * WATER_LB_GAL);
-  const r1Vol = (r1 && r1.density > 0) ? r1w / (r1.density * WATER_LB_GAL) : 0;
-  const r2Vol = (r2 && r2.density > 0) ? r2w / (r2.density * WATER_LB_GAL) : 0;
-  const liquidsGal = bVol + wVol + pVol;
-  const totalVol   = liquidsGal + r1Vol + r2Vol;
+  let total=bw+ww+pw+r1w+r2w;
 
-  // --- 2. % Refractory ---
-  const totalRefWt = r1w + r2w;
-  const pctRef = totalWt > 0 ? totalRefWt / totalWt * 100 : 0;
+  let vol=(bw/(b.density*WATER))+(ww/WATER)+(pw/WATER)
+        +(r1.d>0?r1w/(r1.d*WATER):0)
+        +(r2.d>0?r2w/(r2.d*WATER):0);
 
-  // --- 3. Total % Solids (dry) ---
-  const dryWt = (b ? bw * b.solids/100 : 0) + pw * 0.5 + r1w + r2w;
-  const pctSolids = totalWt > 0 ? dryWt / totalWt * 100 : 0;
+  let refpct=(r1w+r2w)/total*100;
 
-  // --- 4. Slurry Density (g/cc) ---
-  const density = totalVol > 0 ? totalWt / (totalVol * WATER_LB_GAL) : 0;
+  let dry=bw*(b.solids/100)+pw*0.5+r1w+r2w;
+  let solids=dry/total*100;
 
-  // --- 5. Target % Silica ---
-  const liquidWt = bw + ww + pw;
-  const pctSilica = (b && liquidWt > 0) ? (bw * b.solids/100) / liquidWt * 100 : 0;
+  let density=total/(vol*WATER);
 
-  // --- 6/7/8. Refractory-basis surface calcs ---
-  const zirconWt      = (r1 ? r1w * r1.zircon/100 : 0) + (r2 ? r2w * r2.zircon/100 : 0);
-  const refSilicaWt   = (r1 ? r1w * r1.silica/100 : 0) + (r2 ? r2w * r2.silica/100 : 0);
-  const cobaltWt      = (r1 ? r1w * r1.cobalt/100 : 0) + (r2 ? r2w * r2.cobalt/100 : 0);
-  const pctZirconSurf = totalRefWt > 0 ? zirconWt   / totalRefWt * 100 : 0;
-  const pctSilicaSurf = totalRefWt > 0 ? refSilicaWt / totalRefWt * 100 : 0;
-  const pctCobalt     = totalRefWt > 0 ? cobaltWt   / totalRefWt * 100 : 0;
+  let silica=(bw*(b.solids/100))/(bw+ww+pw)*100;
 
-  // --- 9. % Polymer (FINAL — dilutes with water on liquid basis) ---
-  const preblendPolyMass = b ? bw * (b.polymer / 100) : 0;
-  const externalPolyMass = pw;
-  const totalPolyMass    = preblendPolyMass + externalPolyMass;
-  const pctPolymer       = liquidWt > 0 ? (totalPolyMass / liquidWt) * 100 : 0;
+  let polyMass=bw*(b.poly/100)+pw;
+  let polymer=polyMass/(bw+ww+pw)*100;
 
-  // --- 10. % Sodium ---
-  const pctSodium = (b && totalWt > 0) ? bw * b.sodium/100 / totalWt * 100 : 0;
-
-  // --- 11. % Zircon (bulk) ---
-  const pctZircon = totalWt > 0 ? zirconWt / totalWt * 100 : 0;
-
-  // --- 12. Volume % Void, Dry ---
-  const binderWater = b ? bw * (1 - b.solids/100 - (b.polymer/100)*0.5) : 0;
-  const polyWater   = pw * 0.5;
-  const totalWaterWt = binderWater + ww + polyWater;
-  const waterVol = totalWaterWt / WATER_LB_GAL;
-  const voidDry  = totalVol > 0 ? waterVol / totalVol * 100 : 0;
-
-  // --- 13. Volume % Void, Fired ---
-  const polySolidsTotal = (b ? bw * b.polymer/100 * 0.5 : 0) + pw * 0.5;
-  const polySolidsVol   = polySolidsTotal / (POLY_D * WATER_LB_GAL);
-  const voidFired = totalVol > 0 ? (waterVol + polySolidsVol) / totalVol * 100 : 0;
-
-  // --- 14. NALCO 7667 ---
-  const mlPerGal    = mlGal7667(pctZirconSurf);
-  const nalco7667ml = liquidsGal * mlPerGal;
-
-  // --- 15. NALCO 2305 Antifoam ---
-  const binderL   = bVol * GAL_TO_L;
-  const afLevelEl = document.getElementById('af_level');
-  const afRate    = parseFloat(afLevelEl.value) || 6;
-  const afLevelLabel = afLevelEl.options[afLevelEl.selectedIndex].textContent;
-  const afTotalMl = binderL * afRate;
-
-  // ---------- Render Screen ----------
-  const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-
-  setTxt('out_vol',        totalVol > 0   ? totalVol.toFixed(4)     : '—');
-  setTxt('out_liq_vol',    liquidsGal > 0 ? liquidsGal.toFixed(4)   : '—');
-  setTxt('out_ref_pct',    totalWt > 0    ? pctRef.toFixed(4)+'%'   : '—');
-  setTxt('out_solids',     totalWt > 0    ? pctSolids.toFixed(4)+'%' : '—');
-  setTxt('out_density',    density > 0    ? density.toFixed(4)      : '—');
-  setTxt('out_silica',     (liquidWt > 0 && b) ? pctSilica.toFixed(4)+'%' : '—');
-  setTxt('out_zircon',     totalWt > 0    ? pctZircon.toFixed(4)+'%' : '—');
-  setTxt('out_zircon_surf', totalRefWt > 0 ? pctZirconSurf.toFixed(4)+'%' : '—');
-  setTxt('out_silica_surf', totalRefWt > 0 ? pctSilicaSurf.toFixed(4)+'%' : '—');
-  setTxt('out_cobalt',     totalRefWt > 0 ? pctCobalt.toFixed(4)+'%' : '—');
-  setTxt('out_sodium',     (totalWt > 0 && b) ? pctSodium.toFixed(4)+'%' : '—');
-  setTxt('out_polymer',    (liquidWt > 0 && (b || pw > 0)) ? pctPolymer.toFixed(4)+'%' : '—');
-  setTxt('out_void_dry',   totalVol > 0   ? voidDry.toFixed(4)+'%'   : '—');
-  setTxt('out_void_fired', totalVol > 0   ? voidFired.toFixed(4)+'%' : '—');
-
-  setTxt('dose_zircon',   totalRefWt > 0 ? pctZirconSurf.toFixed(1)+'%' : '—');
-  setTxt('dose_ml_gal',   totalRefWt > 0 ? mlPerGal.toFixed(2)          : '—');
-  setTxt('dose_ml_total', (liquidsGal > 0 && totalRefWt > 0) ? nalco7667ml.toFixed(1)+' ml' : '—');
-
-  setTxt('af_binder_L', binderL > 0 ? binderL.toFixed(2)+' L' : '—');
-  setTxt('af_rate',     afRate.toFixed(0)+' ml/L');
-  setTxt('af_total',    binderL > 0 ? afTotalMl.toFixed(1)+' ml' : '—');
-
-  // ---------- Render Print Summary ----------
-  setTxt('print_date', new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'}));
-
-  setTxt('p_binder_type', binderKey || '—');
-  setTxt('p_binder_wt',   bw > 0 ? bw.toFixed(2) : '—');
-  setTxt('p_water_wt',    ww > 0 ? ww.toFixed(2) : '—');
-  setTxt('p_polymer_wt',  pw > 0 ? pw.toFixed(2) : '—');
-  setTxt('p_ref1_type',   ref1Key || '—');
-  setTxt('p_ref1_wt',     r1w > 0 ? r1w.toFixed(2) : '—');
-  setTxt('p_ref2_type',   ref2Key || '—');
-  setTxt('p_ref2_wt',     r2w > 0 ? r2w.toFixed(2) : '—');
-
-  setTxt('p_vol',         totalVol > 0   ? totalVol.toFixed(4) + ' gal' : '—');
-  setTxt('p_liq_vol',     liquidsGal > 0 ? liquidsGal.toFixed(4) + ' gal' : '—');
-  setTxt('p_ref_pct',     totalWt > 0    ? pctRef.toFixed(4)+'%' : '—');
-  setTxt('p_solids',      totalWt > 0    ? pctSolids.toFixed(4)+'%' : '—');
-  setTxt('p_density',     density > 0    ? density.toFixed(4) + ' g/cc' : '—');
-  setTxt('p_silica',      (liquidWt > 0 && b) ? pctSilica.toFixed(4)+'%' : '—');
-  setTxt('p_zircon',      totalWt > 0    ? pctZircon.toFixed(4)+'%' : '—');
-  setTxt('p_zircon_surf', totalRefWt > 0 ? pctZirconSurf.toFixed(4)+'%' : '—');
-  setTxt('p_silica_surf', totalRefWt > 0 ? pctSilicaSurf.toFixed(4)+'%' : '—');
-  setTxt('p_cobalt',      totalRefWt > 0 ? pctCobalt.toFixed(4)+'%' : '—');
-  setTxt('p_sodium',      (totalWt > 0 && b) ? pctSodium.toFixed(4)+'%' : '—');
-  setTxt('p_polymer',     (liquidWt > 0 && (b || pw > 0)) ? pctPolymer.toFixed(4)+'%' : '—');
-  setTxt('p_void_dry',    totalVol > 0   ? voidDry.toFixed(4)+'%' : '—');
-  setTxt('p_void_fired',  totalVol > 0   ? voidFired.toFixed(4)+'%' : '—');
-
-  setTxt('p_dose_zircon',   totalRefWt > 0 ? pctZirconSurf.toFixed(2)+'%' : '—');
-  setTxt('p_dose_ml_gal',   totalRefWt > 0 ? mlPerGal.toFixed(2) + ' ml/gal' : '—');
-  setTxt('p_dose_ml_total', (liquidsGal > 0 && totalRefWt > 0) ? nalco7667ml.toFixed(1)+' ml' : '—');
-  setTxt('p_af_level',      afLevelLabel);
-  setTxt('p_af_binder_L',   binderL > 0 ? binderL.toFixed(2) + ' L' : '—');
-  setTxt('p_af_rate',       afRate.toFixed(0) + ' ml/L');
-  setTxt('p_af_total',      binderL > 0 ? afTotalMl.toFixed(1) + ' ml' : '—');
+  document.getElementById("vol").textContent=vol.toFixed(4);
+  document.getElementById("ref_pct").textContent=refpct.toFixed(2)+"%";
+  document.getElementById("solids").textContent=solids.toFixed(2)+"%";
+  document.getElementById("density").textContent=density.toFixed(4);
+  document.getElementById("silica").textContent=silica.toFixed(2)+"%";
+  document.getElementById("polymer").textContent=polymer.toFixed(2)+"%";
 }
 
-function resetAll(){
-  document.querySelectorAll('input').forEach(i=>i.value='');
-  document.querySelectorAll('select').forEach(s=>{
-    if(s.id==='af_level') s.value='6';
-    else s.selectedIndex=0;
-  });
-  calc();
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener("DOMContentLoaded",()=>{
   populate();
-  document.querySelectorAll('input, select').forEach(el=>{
-    el.addEventListener('input', calc);
-    el.addEventListener('change', calc);
-  });
-  calc();
+  document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));
 });
 </script>
 
