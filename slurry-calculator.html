@@ -345,11 +345,9 @@ function calc(){
 
   // --- 9. % Polymer (binder polymer + external polymer, on total slurry basis) ---
   const liquidWt = bw + ww + pw;
-
 const pctPolymer_external = liquidWt > 0
   ? (pw / liquidWt) * 100
   : 0;
-
 const pctPolymer_preblend = b ? b.polymer : 0;
 
 const pctPolymer = pctPolymer_external + pctPolymer_preblend;
