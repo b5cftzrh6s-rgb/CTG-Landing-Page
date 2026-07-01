@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tank RPM Calculator — CTG Tools</title>
+<style>
+:root{
+  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
+  --accent:#e87722; --green:#2e7d32; --bg:#f4f6f9;
+  --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+
+.navbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap}
+.navbar .brand{font-weight:700;padding:20px 0;font-size:18px;letter-spacing:.3px}
+.navbar .brand span{color:var(--teal);font-weight:400;margin:0 4px}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:20px 22px;display:block;
+  font-size:15px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:32px 40px}
+header.page-header h1{margin:0;font-size:32px;font-weight:700}
+header.page-header p{margin:6px 0 0;opacity:.9;font-size:15px}
+
+main{max-width:1000px;margin:24px auto;padding:0 20px 40px}
+
+.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3,.global h3{margin:0 0 8px;color:var(--blue);font-size:19px;font-weight:700}
+
+.desc{font-size:13px;color:var(--muted);margin-bottom:12px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+
+.field{margin-bottom:12px}
+.field label{font-size:13px;font-weight:600;display:block;margin-bottom:5px;color:var(--text)}
+.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
+.field input[readonly]{background:#eef4fb;color:var(--blue);font-weight:700}
+
+button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px}
+.btn{background:var(--accent);color:#fff}
+.btn:hover{background:#c65e14}
+.btn2{background:#666;color:#fff}
+.btn2:hover{background:#4d4d4d}
+.toolbar{margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+.rpm-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:14px 0}
+.rpm-block{background:#f7f9fc;padding:18px;border-radius:6px;text-align:center;border:1px solid var(--border)}
+.rpm-block.highlight{background:var(--blue);color:#fff;border-color:var(--blue)}
+.rpm-block.highlight .rpm-label{color:#dbe1ea}
+.rpm-block.highlight .rpm-value{color:#ffc000}
+.rpm-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:6px;font-weight:700}
+.rpm-value{font-size:28px;font-weight:800;color:var(--blue);font-family:Courier New,monospace}
+.rpm-sub{font-size:11px;color:var(--muted);margin-top:6px}
+.rpm-block.highlight .rpm-sub{color:#dbe1ea}
+
+.notes{font-size:11px;color:var(--muted);margin-top:10px;padding:10px 12px;background:#f7f9fc;border-left:3px solid var(--teal);border-radius:4px;line-height:1.5}
+
+footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
+
+@media print{.navbar,.toolbar{display:none}}
+@media (max-width:768px){
+  .navbar{flex-direction:column;align-items:flex-start;padding:0 16px}
+  .navbar .brand{padding:14px 0;font-size:16px}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 6px;font-size:12px}
+  header.page-header{padding:24px 20px}
+  header.page-header h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
+  <ul>
+    <li>index.htmlHome</a></li>
+    <li>shell-control-correlation.htmlShell Control Correlation</a></li>
+    <li>shell-control-value-calculator.htmlShell Control Value Calculator</a></li>
+    <li>slurry-calculator.htmlSlurry Calculator</a></li>
+    <li>tank-rpm-calculator.htmlTank RPM</a></li>
+  </ul>
+</nav>
+
+<header class="page-header">
+  <h1>Tank RPM Calculator</h1>
+  <p>Recommended slurry tank rotation speed based on tangential velocity (Vp)</p>
+</header>
+
+<main>
+
+<div class="toolbar">
+  <button class="btn" onclick="window.print()">Print / Save PDF</button>
+  <button class="btn2" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="global">
+  <h3>Tank Inputs</h3>
+  <div class="desc">Enter tank diameter in inches, then choose a slurry preset or enter a custom Vp (tangential speed, m/min). Formula: Vp = π × D × RPM.</div>
+
+  <div class="grid">
+    <div class="field">
+      <label>Tank Diameter (inches)</label>
+      <input id="diameter_in" type="number" step="any" placeholder="e.g. 48">
+    </div>
+    <div class="field">
+      <label>Tank Diameter (meters)</label>
+      <input id="diameter_m" readonly>
+    </div>
+    <div class="field">
+      <label>Slurry Preset</label>
+      <select id="preset">
+        <option value="prime">Prime (Vp = 80 m/min)</option>
+        <option value="backup" selected>Backup (Vp = 90–110 m/min)</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid" id="vp_inputs">
+    <div class="field" id="vp_single_wrap">
+      <label>Vp (m/min)</label>
+      <input id="vp_single" type="number" step="any">
+    </div>
+    <div class="field" id="vp_low_wrap" style="display:none">
+      <label>Vp Low (m/min)</label>
+      <input id="vp_low" type="number" step="any">
+    </div>
+    <div class="field" id="vp_high_wrap" style="display:none">
+      <label>Vp High (m/min)</label>
+      <input id="vp_high" type="number" step="any">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Recommended RPM</h3>
+  <div class="desc" id="rpm_desc">RPM required to achieve the selected tangential speed at the given tank diameter.</div>
+
+  <div class="rpm-summary" id="rpm_prime_view" style="display:none">
+    <div class="rpm-block">
+      <div class="rpm-label">Vp</div>
+      <div class="rpm-value" id="rpm_prime_vp">—</div>
+      <div class="rpm-sub">m/min</div>
+    </div>
+    <div class="rpm-block highlight">
+      <div class="rpm-label">Recommended RPM</div>
+      <div class="rpm-value" id="rpm_prime">—</div>
+      <div class="rpm-sub">revolutions per minute</div>
+    </div>
+  </div>
+
+  <div class="rpm-summary" id="rpm_backup_view" style="display:none">
+    <div class="rpm-block">
+      <div class="rpm-label">Vp Range</div>
+      <div class="rpm-value" id="rpm_backup_vp">—</div>
+      <div class="rpm-sub">m/min</div>
+    </div>
+    <div class="rpm-block">
+      <div class="rpm-label">RPM (Low)</div>
+      <div class="rpm-value" id="rpm_backup_low">—</div>
+      <div class="rpm-sub">at Vp Low</div>
+    </div>
+    <div class="rpm-block highlight">
+      <div class="rpm-label">RPM (High)</div>
+      <div class="rpm-value" id="rpm_backup_high">—</div>
+      <div class="rpm-sub">at Vp High</div>
+    </div>
+  </div>
+
+  <div class="notes">
+    Vp = tangential speed. Backup uses 90–110 m/min; Prime uses 80 m/min (more flour → higher particle attrition risk). Diameter converted at 1 in = 0.0254 m.
+  </div>
+</div>
+
+</main>
+
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+</footer>
+
+<script>
+const IN_TO_M = 0.0254;
+const PI = Math.PI;
+
+function num(id){ const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
+
+function applyPreset(){
+  const preset = document.getElementById('preset').value;
+  const vpSingleWrap = document.getElementById('vp_single_wrap');
+  const vpLowWrap    = document.getElementById('vp_low_wrap');
+  const vpHighWrap   = document.getElementById('vp_high_wrap');
+  const vpSingle     = document.getElementById('vp_single');
+  const vpLow        = document.getElementById('vp_low');
+  const vpHigh       = document.getElementById('vp_high');
+
+  if (preset === 'prime') {
+    vpSingleWrap.style.display = '';
+    vpLowWrap.style.display    = 'none';
+    vpHighWrap.style.display   = 'none';
+    vpSingle.value = 80;
+  } else if (preset === 'backup') {
+    vpSingleWrap.style.display = 'none';
+    vpLowWrap.style.display    = '';
+    vpHighWrap.style.display   = '';
+    vpLow.value  = 90;
+    vpHigh.value = 110;
+  } else {
+    // custom
+    vpSingleWrap.style.display = '';
+    vpLowWrap.style.display    = 'none';
+    vpHighWrap.style.display   = 'none';
+    vpSingle.value = '';
+  }
+  calc();
+}
+
+function calc(){
+  const d_in = num('diameter_in');
+  const d_m  = d_in * IN_TO_M;
+
+  document.getElementById('diameter_m').value = d_m > 0 ? d_m.toFixed(6) : '';
+
+  const preset = document.getElementById('preset').value;
+  const primeView  = document.getElementById('rpm_prime_view');
+  const backupView = document.getElementById('rpm_backup_view');
+
+  if (preset === 'backup') {
+    primeView.style.display  = 'none';
+    backupView.style.display = 'grid';
+
+    const vpLow  = num('vp_low');
+    const vpHigh = num('vp_high');
+
+    const rpmLow  = (d_m > 0 && vpLow  > 0) ? vpLow  / (PI * d_m) : 0;
+    const rpmHigh = (d_m > 0 && vpHigh > 0) ? vpHigh / (PI * d_m) : 0;
+
+    document.getElementById('rpm_backup_vp').textContent =
+      (vpLow > 0 && vpHigh > 0) ? vpLow.toFixed(0) + '–' + vpHigh.toFixed(0) : '—';
+    document.getElementById('rpm_backup_low').textContent  = rpmLow  > 0 ? rpmLow.toFixed(2)  : '—';
+    document.getElementById('rpm_backup_high').textContent = rpmHigh > 0 ? rpmHigh.toFixed(2) : '—';
+
+  } else {
+    primeView.style.display  = 'grid';
+    backupView.style.display = 'none';
+
+    const vp = num('vp_single');
+    const rpm = (d_m > 0 && vp > 0) ? vp / (PI * d_m) : 0;
+
+    document.getElementById('rpm_prime_vp').textContent = vp > 0 ? vp.toFixed(0) : '—';
+    document.getElementById('rpm_prime').textContent    = rpm > 0 ? rpm.toFixed(2) : '—';
+  }
+}
+
+function resetAll(){
+  document.getElementById('diameter_in').value = '';
+  document.getElementById('vp_single').value   = '';
+  document.getElementById('vp_low').value      = '';
+  document.getElementById('vp_high').value     = '';
+  document.getElementById('preset').value      = 'backup';
+  applyPreset();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('preset').addEventListener('change', applyPreset);
+  document.querySelectorAll('input').forEach(el => el.addEventListener('input', calc));
+  applyPreset();  // initial load — apply Backup defaults (90/110)
+});
+</script>
+
+</body>
+</html>
