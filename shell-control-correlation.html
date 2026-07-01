@@ -68,19 +68,555 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);margin-t
 </header>
 
 <main>
-  <div class="card">
-    <div class="icon">📊</div>
-    <div class="status">COMING SOON</div>
-    <h2>Data Correlation Tool</h2>
-    <p>Upload SlurrySense inline viscometer data alongside manual viscosity cup readings from your slurry tanks to generate a real-time R² correlation. Validate sensor accuracy, confirm data quality, and build customer confidence in the 3D TRASAR Technology for Shell Control program.</p>
-    <p><strong>This tool is under active development.</strong> The correlation workflow will support CSV export from SlurrySense readings and manual entry of viscosity cup measurements per tank.</p>
-    <a class="back" href="index.html">← Back to CTG Tools Home</a>
-  </div>
-</main>
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell Control Suite v9.0</title>
 
-<footer>
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
-</footer>
+https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js
+<script>if(typeof Papa==='undefined'){document.write('<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"><\/script>');}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>if(typeof Chart==='undefined'){document.write('<script src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');}</script>
+
+<style>
+body{font-family:system-ui,sans-serif;background:#0a0a0a;color:#fff;padding:20px;margin:0}
+.container{max-width:1400px;margin:auto}
+.card{background:#111;padding:20px;border-radius:16px;margin-bottom:20px;border:1px solid #222}
+.section-title{color:#00d4ff;font-weight:600;margin-bottom:10px;font-size:18px}
+button{background:#00d4ff;color:#000;padding:10px 20px;border-radius:999px;border:none;cursor:pointer;font-weight:600;margin-top:10px}
+button:hover{background:#00b8d9}
+select,input[type="number"],input[type="text"]{width:100%;padding:8px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;margin:5px 0;box-sizing:border-box}
+input[type="file"]{padding:8px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px}
+label{display:block;margin-top:10px;color:#aaa;font-size:14px}
+.chart-container{height:500px;margin-top:20px}
+.status{color:#0f0;margin-top:10px;font-size:14px}
+.error{color:#f55;margin-top:10px;font-size:14px}
+.warning{color:#fa0;margin-top:10px;font-size:14px}
+.metric{display:inline-block;background:#1a1a1a;padding:12px 18px;border-radius:8px;margin:5px;border:1px solid #00d4ff;min-width:140px;vertical-align:top}
+.metric-label{color:#888;font-size:12px}
+.metric-value{color:#00d4ff;font-size:22px;font-weight:600}
+.row{display:flex;gap:15px;flex-wrap:wrap}
+.col{flex:1;min-width:200px}
+.slider-row{display:flex;align-items:center;gap:15px;margin-top:15px}
+.slider-row input[type="range"]{flex:1;accent-color:#00d4ff;height:6px}
+.slider-value{color:#00d4ff;font-weight:600;min-width:140px;text-align:right;font-size:16px}
+hr{border:none;border-top:1px solid #222;margin:25px 0}
+.range-container{position:relative;height:50px;margin-top:15px;padding:0 11px}
+.range-track{position:absolute;left:11px;right:11px;height:6px;background:#333;border-radius:3px;top:22px}
+.range-selected{position:absolute;height:6px;background:#00d4ff;border-radius:3px;top:22px}
+.range-container input[type="range"]{position:absolute;left:0;right:0;width:100%;height:6px;top:22px;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;margin:0;padding:0;border:none}
+.range-container input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;background:#00d4ff;border-radius:50%;cursor:pointer;border:2px solid #0a0a0a;box-shadow:0 0 6px rgba(0,212,255,0.6)}
+.range-container input[type="range"]::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;background:#00d4ff;border-radius:50%;cursor:pointer;border:2px solid #0a0a0a;box-shadow:0 0 6px rgba(0,212,255,0.6)}
+.date-labels{display:flex;justify-content:space-between;margin-top:8px;color:#00d4ff;font-weight:600;font-size:15px;padding:0 11px}
+.date-bounds{display:flex;justify-content:space-between;margin-top:2px;color:#666;font-size:12px;padding:0 11px}
+.limit-card{padding:15px;border-radius:8px}
+.limit-card.all{background:#0a1a1f;border:1px solid #00d4ff}
+.limit-card.active{background:#0a1f0f;border:1px solid #00ff66}
+.limit-card h4{margin:0 0 8px 0}
+.limit-card .row-val{margin-top:6px}
+.optimization-indicator{background:#1a1a1a;padding:10px 15px;border-radius:8px;margin-top:10px;border-left:4px solid #00d4ff}
+.opt-bar{background:#222;height:6px;border-radius:3px;margin-top:6px;overflow:hidden}
+.opt-bar>div{height:100%;background:linear-gradient(90deg,#00d4ff,#00ff66)}
+.shift-row{display:flex;gap:10px;align-items:center;margin:5px 0}
+.shift-row input{flex:1;margin:0}
+.btn-small{padding:6px 14px;font-size:13px;margin:0;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.btn-remove{background:#f55;color:#fff}
+.btn-add{background:#00ff66;color:#000}
+.shift-card{background:#1a1a1a;padding:15px;border-radius:8px;border:1px solid #333;margin:10px 0}
+.shift-card h4{color:#00d4ff;margin:0 0 10px 0}
+.data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.data-table th{background:#1a1a1a;color:#00d4ff;padding:8px;text-align:left;border-bottom:2px solid #00d4ff;position:sticky;top:0}
+.data-table td{padding:6px 8px;border-bottom:1px solid #222;color:#ccc}
+.data-table tr:hover td{background:#1a1a1a}
+.toggle-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.toggle-btn{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600}
+.toggle-btn.active{background:#00d4ff;color:#000;border-color:#00d4ff}
+.nav-tabs{display:flex;gap:6px;background:#111;padding:8px;border-radius:14px;border:1px solid #222;margin-bottom:20px}
+.nav-tab{flex:1;padding:14px 20px;background:transparent;color:#aaa;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.nav-tab:hover{background:#1a1a1a;color:#fff}
+.nav-tab.active{background:linear-gradient(90deg,#00d4ff,#0099cc);color:#000;box-shadow:0 4px 12px rgba(0,212,255,0.25)}
+.page{display:none}
+.page.active{display:block}
+.calc-out{background:#0a1a1f;border:1px solid #00d4ff;padding:15px;border-radius:8px;margin:6px;min-width:170px;display:inline-block;vertical-align:top}
+.calc-out .label{color:#888;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+.calc-out .val{color:#00d4ff;font-size:26px;font-weight:700;margin-top:5px}
+.calc-out .unit{color:#888;font-size:13px;margin-left:4px}
+.formula{color:#666;font-size:12px;font-style:italic;margin-top:4px}
+.tank-header{background:#0a1a1f;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #00d4ff}
+.tank-header input{background:#111;font-weight:600;font-size:15px}
+</style>
+</head>
+<body>
+<div class="container">
+<h1 style="color:#00d4ff;margin-bottom:20px;">🧪 Shell Control Suite v9.0</h1>
+
+<div class="nav-tabs">
+<button class="nav-tab active" onclick="switchPage(event,'page1')">📊 Correlation Tool</button>
+<button class="nav-tab" onclick="switchPage(event,'page2')">⚗️ Slurry Dashboard</button>
+</div>
+
+<!-- ============ PAGE 1 : CORRELATION TOOL (same as v7/v8) ============ -->
+<div id="page1" class="page active">
+<div class="card">
+<div class="section-title">1. Upload CSV File</div>
+<input type="file" id="fileInput" accept=".csv">
+<div id="loadStatus" class="status"></div>
+</div>
+<div id="controls" class="card" style="display:none;">
+<div class="section-title">2. Column Mapping & Cup Type</div>
+<div class="row">
+<div class="col"><label>Date/Time Column:</label><select id="dateCol"></select></div>
+<div class="col"><label>Manual Cup Seconds (X):</label><select id="manualCol"></select></div>
+<div class="col"><label>Sensor cP (Y):</label><select id="sensorCol"></select></div>
+<div class="col"><label>Cup Type:</label>
+<select id="cupType"><option value="">-- Select --</option><option value="EZ-Zahn4">EZ-Zahn #4</option><option value="EZ-Zahn5">EZ-Zahn #5</option><option value="ISO6">ISO #6</option><option value="ISO8">ISO #8</option></select>
+</div>
+</div>
+<hr>
+<div class="section-title" style="font-size:16px;">Spec Limits on Cup Seconds</div>
+<div class="row">
+<div class="col"><label>LSL:</label><input type="number" id="lsl" step="any" placeholder="e.g., 25"></div>
+<div class="col"><label>USL:</label><input type="number" id="usl" step="any" placeholder="e.g., 45"></div>
+</div>
+<hr>
+<div class="section-title" style="font-size:16px;">Shifts (Optional)</div>
+<div id="shiftConfig"></div>
+<button class="btn-small btn-add" onclick="addShift()">+ Add Shift</button>
+<br><br>
+<button onclick="processData()">Process Data</button>
+</div>
+<div id="results" class="card" style="display:none;">
+<div class="section-title">3. Pairing Summary</div>
+<div id="pairingMetrics"></div>
+<hr>
+<div class="section-title">4. Date Range Filter</div>
+<div class="range-container"><div class="range-track"></div><div class="range-selected" id="rangeSelected"></div><input type="range" id="dateSliderMin"><input type="range" id="dateSliderMax"></div>
+<div class="date-labels"><span id="dateMinLabel">--</span><span id="dateMaxLabel">--</span></div>
+<div class="date-bounds"><span id="dateMinBound">--</span><span id="dateMaxBound">--</span></div>
+<hr>
+<div class="section-title">5. Quality Filter |Calc cSt − Sensor cP|</div>
+<div class="slider-row"><span style="color:#aaa;">Max |Δ|:</span><input type="range" id="diffSlider" min="0" max="100" step="1" value="100"><span class="slider-value" id="sliderValue">--</span></div>
+<div class="optimization-indicator"><div style="display:flex;justify-content:space-between;"><span style="color:#aaa;font-size:13px;">Quality score:</span><span id="qualityScore" style="color:#00d4ff;font-weight:600;">--</span></div><div class="opt-bar"><div id="qualityBar" style="width:0%"></div></div></div>
+<hr>
+<div class="section-title">6. Cup → Sensor Regression</div>
+<div id="regressionMetrics"></div>
+<hr>
+<div class="section-title">7. Recommended Sensor LSL / USL</div>
+<div id="recommendedLimits"></div>
+<hr>
+<div class="section-title">8. Per-Shift Analysis</div>
+<div id="shiftAnalysis"></div>
+<div class="chart-container"><canvas id="chart"></canvas></div>
+<hr>
+<div class="section-title">9. Data Table & Export</div>
+<div class="toggle-row">
+<button class="toggle-btn active" id="tblFullBtn" onclick="setTableView('full')">All</button>
+<button class="toggle-btn" id="tblFiltBtn" onclick="setTableView('filt')">Filtered</button>
+<button class="btn-small btn-add" onclick="downloadCSV()" style="margin-left:auto;">⬇ Download CSV</button>
+</div>
+<div id="dataTableInfo" style="color:#aaa;font-size:13px;margin-bottom:8px;"></div>
+<div style="max-height:400px;overflow:auto;border:1px solid #222;border-radius:8px;"><table class="data-table" id="dataTable"></table></div>
+</div>
+</div><!-- ============ PAGE 2 : SLURRY DASHBOARD ============ -->
+<div id="page2" class="page">
+
+<div class="card">
+<div class="section-title">2A. Tank & Operational Calculator</div>
+<div class="row">
+<div class="col"><label>Tank Diameter (in):</label><input type="number" id="tankDia" step="any" placeholder="52" oninput="calcTank()"></div>
+<div class="col"><label>Tank Depth (in):</label><input type="number" id="tankDepth" step="any" placeholder="40" oninput="calcTank()"></div>
+<div class="col"><label>Slurry Fill Height (in):</label><input type="number" id="fillHeight" step="any" placeholder="40" oninput="calcTank()"></div>
+<div class="col"><label>Seconds per Revolution:</label><input type="number" id="secPerRev" step="any" placeholder="2.75" oninput="calcTank()"></div>
+</div>
+<div id="tankOut" style="margin-top:15px;"></div>
+</div>
+
+<div class="card">
+<div class="section-title">2B. Slurry Details Calculator (Excel-style)</div>
+<p style="color:#aaa;font-size:13px;">Enter all raw material weights and selections. Every output field updates live using the exact same formulas the workbook uses.</p>
+
+<div class="tank-header"><label>Slurry Tank Name:</label><input type="text" id="sd_name" placeholder="e.g., Cobalt Old" oninput="calcSlurryDetails()"></div>
+
+<h4 style="color:#00d4ff;">Liquids</h4>
+<div class="row">
+<div class="col"><label>Binder Type:</label><select id="sd_binderType" onchange="calcSlurryDetails()"></select></div>
+<div class="col"><label>Binder Weight (lb):</label><input type="number" id="sd_binderWt" step="any" placeholder="166" oninput="calcSlurryDetails()"></div>
+<div class="col"><label>Water Weight (lb):</label><input type="number" id="sd_waterWt" step="any" placeholder="21" oninput="calcSlurryDetails()"></div>
+<div class="col"><label>Polymer Type:</label><select id="sd_polymerType" onchange="calcSlurryDetails()"></select></div>
+<div class="col"><label>Polymer Weight (lb):</label><input type="number" id="sd_polymerWt" step="any" placeholder="18" oninput="calcSlurryDetails()"></div>
+</div>
+
+<h4 style="color:#00d4ff;margin-top:20px;">Solids (Refractories)</h4>
+<div class="row">
+<div class="col"><label>Refractory #1:</label><select id="sd_ref1Type" onchange="calcSlurryDetails()"></select></div>
+<div class="col"><label>Ref #1 Weight (lb):</label><input type="number" id="sd_ref1Wt" step="any" placeholder="500" oninput="calcSlurryDetails()"></div>
+<div class="col"><label>Refractory #2:</label><select id="sd_ref2Type" onchange="calcSlurryDetails()"></select></div>
+<div class="col"><label>Ref #2 Weight (lb):</label><input type="number" id="sd_ref2Wt" step="any" placeholder="220" oninput="calcSlurryDetails()"></div>
+</div>
+
+<h4 style="color:#00d4ff;margin-top:20px;">Additives</h4>
+<div class="row">
+<div class="col"><label>Wetting Agent:</label><select id="sd_wettingType" onchange="calcSlurryDetails()"><option value="1">7667</option><option value="2">(none)</option></select></div>
+<div class="col"><label>Antifoam:</label><select id="sd_antifoamType" onchange="calcSlurryDetails()"><option value="1">2305</option><option value="2">Dow 1430</option><option value="3">Dow Y30</option><option value="4">(none)</option><option value="5">Turbowheel</option></select></div>
+<div class="col"><label>2305 Dosage Level:</label><select id="sd_dosage" onchange="calcSlurryDetails()"><option value="1">Minimum</option><option value="2">Typical</option><option value="3">Maximum</option></select></div>
+</div>
+
+<hr>
+<h4 style="color:#00ff66;margin-top:10px;">📊 Calculated Outputs</h4>
+<div id="sd_out"></div>
+</div>
+
+<div class="card">
+<div class="section-title">2C. Slurry Design (Back-Calculator)</div>
+<p style="color:#aaa;font-size:13px;">Enter target properties → get the mass balance solution for binder / polymer / water / refractory weights.</p>
+
+<div class="row">
+<div class="col"><label>Target Slurry Volume (gal):</label><input type="number" id="dz_vol" step="any" value="40" oninput="calcDesign()"></div>
+<div class="col"><label>Target Slurry S.G.:</label><input type="number" id="dz_sg" step="any" value="1.7" oninput="calcDesign()"></div>
+<div class="col"><label>Target % Silica (fraction):</label><input type="number" id="dz_silica" step="any" value="0.227" oninput="calcDesign()"></div>
+<div class="col"><label>Target % Polymer (fraction):</label><input type="number" id="dz_polymer" step="any" value="0.08" oninput="calcDesign()"></div>
+</div>
+<div class="row">
+<div class="col"><label>Binder Type:</label><select id="dz_binderType" onchange="calcDesign()"></select></div>
+<div class="col"><label>Polymer Type:</label><select id="dz_polymerType" onchange="calcDesign()"></select></div>
+<div class="col"><label>1st Refractory:</label><select id="dz_ref1Type" onchange="calcDesign()"></select></div>
+<div class="col"><label>2nd Refractory:</label><select id="dz_ref2Type" onchange="calcDesign()"></select></div>
+</div>
+<div class="row">
+<div class="col"><label>Ref 1 fraction of total refractory (0–1):</label><input type="number" id="dz_r1frac" step="any" value="0.7" oninput="calcDesign()"></div>
+<div class="col"><label>Ref 2 fraction of total refractory (0–1):</label><input type="number" id="dz_r2frac" step="any" value="0.3" oninput="calcDesign()"></div>
+</div>
+<div id="dz_out" style="margin-top:15px;"></div>
+</div>
+
+<div class="card">
+<div class="section-title">2D. Slurry Database (Historical Benchmarks)</div>
+<div class="row">
+<div class="col"><label>Slurry Type:</label><select id="dbType" onchange="renderDB()"><option value="">All</option><option value="Backup">Backup</option><option value="Prime">Prime</option><option value="Interm">Interm</option></select></div>
+<div class="col"><label>Viscosity Cup:</label><select id="dbCup" onchange="renderDB()"><option value="">All</option><option value="zahn 4">zahn 4</option><option value="zahn 5">zahn 5</option><option value="EZ zahn 5">EZ zahn 5</option><option value="8mm ISO">8mm ISO</option><option value="6mm ISO">6mm ISO</option></select></div>
+<div class="col"><label>Search Comment:</label><input type="text" id="dbSearch" placeholder="e.g., Aero Metals" oninput="renderDB()"></div>
+<div class="col"><label>Max Records:</label><input type="number" id="dbLimit" value="100" min="1" max="500" oninput="renderDB()"></div>
+</div>
+<div id="dbInfo" style="color:#aaa;font-size:13px;margin-top:8px;"></div>
+<div style="max-height:500px;overflow:auto;border:1px solid #222;border-radius:8px;margin-top:10px;"><table class="data-table" id="dbTable"></table></div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ============ TABS ============
+function switchPage(evt,pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  evt.target.classList.add('active');
+}
+
+// ============ PAGE 1 (compact — same logic as v8) ============
+function parseDateTime(str){if(!str)return null;const s=String(str).trim();if(!s)return null;const d=new Date(s);if(!isNaN(d.getTime()))return d;const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);if(m){let[,mm,dd,yyyy,HH,MM,SS]=m;mm=parseInt(mm,10)-1;dd=parseInt(dd,10);yyyy=parseInt(yyyy.length===2?'20'+yyyy:yyyy,10);HH=HH?parseInt(HH,10):0;MM=MM?parseInt(MM,10):0;SS=SS?parseInt(SS,10):0;const dt=new Date(yyyy,mm,dd,HH,MM,SS);return isNaN(dt.getTime())?null:dt;}return null;}
+function dateToDay(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000);}
+function dayToDate(d){return new Date(d*86400000);}
+function formatDate(d){return String(d.getUTCMonth()+1).padStart(2,'0')+'/'+String(d.getUTCDate()).padStart(2,'0')+'/'+d.getUTCFullYear();}
+function formatDateTime(d){return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function timeToMinutes(t){if(!t)return null;const m=String(t).trim().match(/^(\d{1,2}):(\d{2})$/);if(!m)return null;const h=parseInt(m[1]),mi=parseInt(m[2]);if(h<0||h>23||mi<0||mi>59)return null;return h*60+mi;}
+function dateToMinutes(d){return d.getHours()*60+d.getMinutes();}
+function isInShift(t,s,e){if(s===null||e===null||s===e)return false;if(e>s)return t>=s&&t<e;return t>=s||t<e;}
+let rawRows=[],headers=[],pairedDataAll=[],basePaired=[],activePaired=[],chartInstance=null,medianAbsDiff=0,maxAbsDiff=0,cupLSL=NaN,cupUSL=NaN,minDay=0,maxDay=0,shifts=[],shiftCounter=0,tableView='full';
+function calculateCst(sec,type){if(!sec||sec<=0)return null;switch(type){case"EZ-Zahn4":return 13.26*sec-(673/sec);case"EZ-Zahn5":return 23.56*sec-(744/sec);case"ISO6":return 6.9*sec-(570/sec);case"ISO8":return 21.78*sec-(306/sec);}return null;}
+function isValidSensor(v){return isFinite(v)&&v>0&&v!==-999&&Math.abs(v)<1e10;}
+function getInterpolatedSensor(a,i){const c=a[i];if(isValidSensor(c))return{value:c,interpolated:false};let b=null,f=null;for(let j=i-1;j>=0;j--)if(isValidSensor(a[j])){b=a[j];break;}for(let j=i+1;j<a.length;j++)if(isValidSensor(a[j])){f=a[j];break;}if(b!==null&&f!==null)return{value:(b+f)/2,interpolated:true};if(b!==null)return{value:b,interpolated:true};if(f!==null)return{value:f,interpolated:true};return{value:null,interpolated:false};}
+function addShift(d){shiftCounter++;const id='shift_'+shiftCounter;d=d||{};const div=document.createElement('div');div.className='shift-row';div.id=id;div.innerHTML='<input type="text" placeholder="Name" value="'+(d.name||'')+'" data-field="name"><input type="text" placeholder="Start HH:MM" value="'+(d.start||'')+'" data-field="start" style="max-width:140px;"><input type="text" placeholder="End HH:MM" value="'+(d.end||'')+'" data-field="end" style="max-width:140px;"><button class="btn-small btn-remove" onclick="removeShift(\''+id+'\')">×</button>';document.getElementById('shiftConfig').appendChild(div);}
+function removeShift(id){const e=document.getElementById(id);if(e)e.remove();}
+function readShifts(){const out=[];document.querySelectorAll('#shiftConfig .shift-row').forEach(r=>{const n=r.querySelector('[data-field="name"]').value.trim();const s=r.querySelector('[data-field="start"]').value.trim();const e=r.querySelector('[data-field="end"]').value.trim();const sm=timeToMinutes(s),em=timeToMinutes(e);if(n&&sm!==null&&em!==null)out.push({name:n,startMin:sm,endMin:em,startStr:s,endStr:e});});return out;}
+function assignShift(d,sl){if(!sl||!sl.length)return'';const t=dateToMinutes(d);for(const sh of sl)if(isInShift(t,sh.startMin,sh.endMin))return sh.name;return'Unassigned';}
+document.getElementById('fileInput').addEventListener('change',function(e){const f=e.target.files[0];if(!f)return;const ls=document.getElementById('loadStatus');ls.className='status';if(typeof Papa==='undefined'){ls.className='error';ls.textContent='✗ PapaParse not loaded.';return;}ls.textContent='Reading '+f.name+' ...';Papa.parse(f,{skipEmptyLines:false,complete:function(res){try{const r=res.data;if(!r||!r.length)throw new Error('CSV empty.');let idx=-1;for(let i=12;i<Math.min(r.length,25);i++)if(r[i]&&r[i].some(x=>String(x||'').toLowerCase().includes("date"))){idx=i;break;}if(idx===-1)for(let i=0;i<Math.min(r.length,30);i++)if(r[i]&&r[i].filter(x=>String(x||'').trim().length>0).length>=3){idx=i;break;}if(idx===-1)throw new Error('Cannot detect header row.');headers=r[idx].map(h=>String(h||'').trim());rawRows=r.slice(idx+1);["dateCol","manualCol","sensorCol"].forEach(id=>{const s=document.getElementById(id);s.innerHTML="";headers.forEach((h,i)=>{if(h)s.add(new Option(h,i));});});headers.forEach((h,i)=>{const hl=h.toLowerCase();if(hl.includes('date')&&hl.includes('time'))document.getElementById('dateCol').value=i;if(hl.includes('zahn')||hl.includes('efflux')||hl.includes('cup'))document.getElementById('manualCol').value=i;if(hl.includes('viscosity')||(hl.includes('cp')&&!hl.includes('cup')))document.getElementById('sensorCol').value=i;});document.getElementById('controls').style.display='block';ls.textContent='✓ Loaded '+rawRows.length+' rows | '+headers.length+' cols | Headers row '+(idx+1);}catch(err){ls.className='error';ls.textContent='✗ '+err.message;}},error:function(err){ls.className='error';ls.textContent='✗ '+(err.message||err);}});});
+function processData(){const m=parseInt(document.getElementById('manualCol').value),s=parseInt(document.getElementById('sensorCol').value),dCol=parseInt(document.getElementById('dateCol').value),cupType=document.getElementById('cupType').value;cupLSL=parseFloat(document.getElementById('lsl').value);cupUSL=parseFloat(document.getElementById('usl').value);if(isFinite(cupLSL)&&isFinite(cupUSL)&&cupLSL>cupUSL){const t=cupLSL;cupLSL=cupUSL;cupUSL=t;}if(!cupType){alert('Select a Cup Type.');return;}shifts=readShifts();const sensorArr=rawRows.map(r=>r?parseFloat(r[s]):NaN);pairedDataAll=[];let totalManual=0,interpCount=0,badDates=0;rawRows.forEach((r,i)=>{if(!r)return;const cs=parseFloat(r[m]);if(!isFinite(cs)||cs<=0)return;totalManual++;const dt=parseDateTime(r[dCol]);if(!dt){badDates++;return;}const ip=getInterpolatedSensor(sensorArr,i);if(ip.value===null)return;const cc=calculateCst(cs,cupType);if(cc===null||!isFinite(cc))return;const ad=Math.abs(cc-ip.value);if(ip.interpolated)interpCount++;pairedDataAll.push({date:dt,day:dateToDay(dt),cupSec:cs,sensorCP:ip.value,calcCst:cc,absDiff:ad,interpolated:ip.interpolated,shift:assignShift(dt,shifts)});});if(pairedDataAll.length<3){alert('Not enough pairs ('+pairedDataAll.length+').');return;}const days=pairedDataAll.map(p=>p.day);minDay=Math.min.apply(null,days);maxDay=Math.max.apply(null,days);if(minDay===maxDay)maxDay=minDay+1;const dMin=document.getElementById('dateSliderMin'),dMax=document.getElementById('dateSliderMax');dMin.min=minDay;dMin.max=maxDay;dMin.step=1;dMin.value=minDay;dMax.min=minDay;dMax.max=maxDay;dMax.step=1;dMax.value=maxDay;dMin.oninput=onDateSliderChange;dMax.oninput=onDateSliderChange;document.getElementById('dateMinBound').textContent='Min: '+formatDate(dayToDate(minDay));document.getElementById('dateMaxBound').textContent='Max: '+formatDate(dayToDate(maxDay));let inSpecPct=null;if(isFinite(cupLSL)&&isFinite(cupUSL)&&cupUSL>cupLSL)inSpecPct=(pairedDataAll.filter(p=>p.cupSec>=cupLSL&&p.cupSec<=cupUSL).length/pairedDataAll.length)*100;document.getElementById('pairingMetrics').innerHTML='<div class="metric"><div class="metric-label">Total Manual</div><div class="metric-value">'+totalManual+'</div></div><div class="metric"><div class="metric-label">Paired</div><div class="metric-value">'+pairedDataAll.length+'</div></div><div class="metric"><div class="metric-label">Interpolated</div><div class="metric-value">'+interpCount+'</div></div><div class="metric"><div class="metric-label">Bad Dates</div><div class="metric-value">'+badDates+'</div></div>'+(inSpecPct!==null?'<div class="metric"><div class="metric-label">% In Spec</div><div class="metric-value">'+inSpecPct.toFixed(1)+'%</div></div>':'');document.getElementById('results').style.display='block';updateDateSliderVisuals();applyDateFilter();}
+function onDateSliderChange(e){const dMin=document.getElementById('dateSliderMin'),dMax=document.getElementById('dateSliderMax');let lo=parseInt(dMin.value),hi=parseInt(dMax.value);if(lo>hi){if(e&&e.target&&e.target.id==='dateSliderMin'){lo=hi;dMin.value=lo;}else{hi=lo;dMax.value=hi;}}updateDateSliderVisuals();applyDateFilter();}
+function updateDateSliderVisuals(){const lo=parseInt(document.getElementById('dateSliderMin').value),hi=parseInt(document.getElementById('dateSliderMax').value);const t=(maxDay-minDay)||1;document.getElementById('rangeSelected').style.left=(((lo-minDay)/t)*100)+'%';document.getElementById('rangeSelected').style.width=(((hi-lo)/t)*100)+'%';document.getElementById('dateMinLabel').textContent=formatDate(dayToDate(lo));document.getElementById('dateMaxLabel').textContent=formatDate(dayToDate(hi));}
+function applyDateFilter(){const lo=parseInt(document.getElementById('dateSliderMin').value),hi=parseInt(document.getElementById('dateSliderMax').value);basePaired=pairedDataAll.filter(p=>p.day>=lo&&p.day<=hi);if(basePaired.length<3){document.getElementById('regressionMetrics').innerHTML='<div class="warning">Not enough points in date range.</div>';document.getElementById('recommendedLimits').innerHTML='';document.getElementById('shiftAnalysis').innerHTML='';renderChart([],[],null);renderDataTable();return;}const abs=basePaired.map(p=>p.absDiff).slice().sort((a,b)=>a-b);const mid=Math.floor(abs.length/2);medianAbsDiff=abs.length%2===0?(abs[mid-1]+abs[mid])/2:abs[mid];maxAbsDiff=abs[abs.length-1]||1;if(maxAbsDiff===0)maxAbsDiff=1;const sl=document.getElementById('diffSlider');sl.min=0;sl.max=maxAbsDiff;sl.step=maxAbsDiff/200;sl.value=maxAbsDiff;sl.oninput=updateFromSlider;updateFromSlider();}
+function computeStats(d){if(!d||d.length<2)return null;const xs=d.map(p=>p.cupSec),ys=d.map(p=>p.sensorCP);const l=linearRegression(xs,ys);const r=computeR2(xs,ys,l.fn);const m=d.reduce((s,p)=>s+p.absDiff,0)/d.length;return{lin:l,r2:r,meanAbsDiff:m,n:d.length};}
+function computeLimits(m,d){let l=m.fn(cupLSL),h=m.fn(cupUSL);if(l>h){const t=l;l=h;h=t;}const c=d.length?(d.filter(p=>p.sensorCP>=l&&p.sensorCP<=h).length/d.length*100):0;return{lsl:l,usl:h,coverage:c};}
+function updateFromSlider(){const tol=parseFloat(document.getElementById('diffSlider').value);document.getElementById('sliderValue').textContent='≤ '+tol.toFixed(2)+' cP';activePaired=basePaired.filter(p=>p.absDiff<=tol);const ex=basePaired.filter(p=>p.absDiff>tol);if(activePaired.length<2){document.getElementById('regressionMetrics').innerHTML='<div class="error">Not enough points.</div>';document.getElementById('qualityScore').textContent='--';document.getElementById('qualityBar').style.width='0%';renderChart(activePaired,ex,null);renderDataTable();return;}const st=computeStats(activePaired);const ag=Math.max(0,Math.min(1,1-(st.meanAbsDiff/maxAbsDiff)));const r2c=Math.max(0,Math.min(1,st.r2));const q=r2c*ag;document.getElementById('qualityScore').textContent=(q*100).toFixed(1)+'%';document.getElementById('qualityBar').style.width=(q*100).toFixed(1)+'%';document.getElementById('regressionMetrics').innerHTML='<div class="metric"><div class="metric-label">Pts</div><div class="metric-value">'+activePaired.length+'/'+basePaired.length+'</div></div><div class="metric"><div class="metric-label">R²</div><div class="metric-value">'+st.r2.toFixed(4)+'</div></div><div class="metric"><div class="metric-label">Mean|Δ|</div><div class="metric-value">'+st.meanAbsDiff.toFixed(2)+'</div></div><div class="metric"><div class="metric-label">Slope</div><div class="metric-value">'+st.lin.m.toFixed(3)+'</div></div><div class="metric"><div class="metric-label">Intercept</div><div class="metric-value">'+st.lin.b.toFixed(2)+'</div></div>';if(isFinite(cupLSL)&&isFinite(cupUSL)&&cupUSL>cupLSL){const bs=computeStats(basePaired);const bl=computeLimits(bs.lin,basePaired),al=computeLimits(st.lin,activePaired);document.getElementById('recommendedLimits').innerHTML='<div class="row"><div class="col"><div class="limit-card all"><h4 style="color:#00d4ff;">A) All Data</h4><div>LSL <strong style="color:#00d4ff;">'+bl.lsl.toFixed(1)+'</strong>, USL <strong style="color:#00d4ff;">'+bl.usl.toFixed(1)+'</strong> cP</div><div style="color:#0f0;">'+bl.coverage.toFixed(1)+'% coverage</div></div></div><div class="col"><div class="limit-card active"><h4 style="color:#00ff66;">B) Quality-Filtered</h4><div>LSL <strong style="color:#00ff66;">'+al.lsl.toFixed(1)+'</strong>, USL <strong style="color:#00ff66;">'+al.usl.toFixed(1)+'</strong> cP</div><div style="color:#0f0;">'+al.coverage.toFixed(1)+'% coverage</div></div></div></div>';}renderShiftAnalysis(tol);renderChart(activePaired,ex,st.lin);renderDataTable();}
+function renderShiftAnalysis(tol){const t=document.getElementById('shiftAnalysis');if(shifts.length===0){t.innerHTML='<div style="color:#aaa;">No shifts defined.</div>';return;}let h='';shifts.forEach((sh,i)=>{const bs=basePaired.filter(p=>p.shift===sh.name),as=activePaired.filter(p=>p.shift===sh.name);const lb=String.fromCharCode(65+i);if(bs.length<2||as.length<2){h+='<div class="shift-card"><h4>8'+lb+') '+sh.name+'</h4><div class="warning">Not enough data.</div></div>';return;}const bst=computeStats(bs),ast=computeStats(as);h+='<div class="shift-card"><h4>8'+lb+') '+sh.name+' ('+sh.startStr+'→'+sh.endStr+')</h4><div class="metric"><div class="metric-label">Pts</div><div class="metric-value">'+ast.n+'/'+bst.n+'</div></div><div class="metric"><div class="metric-label">R²</div><div class="metric-value">'+ast.r2.toFixed(4)+'</div></div><div class="metric"><div class="metric-label">Mean|Δ|</div><div class="metric-value">'+ast.meanAbsDiff.toFixed(2)+'</div></div></div>';});t.innerHTML=h;}
+function linearRegression(x,y){const n=x.length;let sx=0,sy=0,sxy=0,sx2=0;for(let i=0;i<n;i++){sx+=x[i];sy+=y[i];sxy+=x[i]*y[i];sx2+=x[i]*x[i];}const d=(n*sx2-sx*sx);const m=d===0?0:(n*sxy-sx*sy)/d;const b=(sy-m*sx)/n;return{m,b,fn:xi=>m*xi+b};}
+function computeR2(x,y,fn){const mean=y.reduce((a,b)=>a+b,0)/y.length;let ssr=0,sst=0;for(let i=0;i<x.length;i++){const p=fn(x[i]);ssr+=(y[i]-p)*(y[i]-p);sst+=(y[i]-mean)*(y[i]-mean);}return sst===0?0:1-ssr/sst;}
+function renderChart(a,e,l){if(typeof Chart==='undefined')return;if(chartInstance)chartInstance.destroy();const ctx=document.getElementById('chart').getContext('2d');const ds=[{label:'Excluded',data:e.map(d=>({x:d.cupSec,y:d.sensorCP})),backgroundColor:'rgba(150,150,150,0.35)',pointRadius:3},{label:'In window',data:a.map(d=>({x:d.cupSec,y:d.sensorCP})),backgroundColor:'#00d4ff',pointRadius:5}];if(l&&a.length>=2){const xs=a.map(d=>d.cupSec);const mn=Math.min.apply(null,xs),mx=Math.max.apply(null,xs);ds.push({label:'Fit',type:'line',data:[{x:mn,y:l.fn(mn)},{x:mx,y:l.fn(mx)}],borderColor:'#00ff66',borderWidth:2,fill:false,pointRadius:0});}chartInstance=new Chart(ctx,{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,animation:false,scales:{x:{title:{display:true,text:'Cup s',color:'#aaa'},ticks:{color:'#aaa'},grid:{color:'#222'}},y:{title:{display:true,text:'Sensor cP',color:'#aaa'},ticks:{color:'#aaa'},grid:{color:'#222'}}},plugins:{legend:{labels:{color:'#fff'}}}}});}
+function setTableView(v){tableView=v;document.getElementById('tblFullBtn').classList.toggle('active',v==='full');document.getElementById('tblFiltBtn').classList.toggle('active',v==='filt');renderDataTable();}
+function getTableData(){return tableView==='filt'?activePaired:basePaired;}
+function renderDataTable(){const d=getTableData(),t=document.getElementById('dataTable'),i=document.getElementById('dataTableInfo');if(!d||!d.length){t.innerHTML='';i.textContent='No data.';return;}const ss=shifts.length>0,mx=Math.min(d.length,500);i.innerHTML='Showing '+mx+' of '+d.length+' rows.';let h='<thead><tr><th>Date/Time</th><th>Cup s</th><th>Calc cSt</th><th>Sensor cP</th><th>|Δ|</th>'+(ss?'<th>Shift</th>':'')+'</tr></thead><tbody>';for(let k=0;k<mx;k++){const p=d[k];h+='<tr><td>'+formatDateTime(p.date)+'</td><td>'+p.cupSec.toFixed(2)+'</td><td>'+p.calcCst.toFixed(2)+'</td><td>'+p.sensorCP.toFixed(2)+'</td><td>'+p.absDiff.toFixed(2)+'</td>'+(ss?'<td>'+p.shift+'</td>':'')+'</tr>';}t.innerHTML=h+'</tbody>';}
+function downloadCSV(){const d=getTableData();if(!d||!d.length){alert('No data.');return;}const ss=shifts.length>0;let c='DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated'+(ss?',Shift':'')+'\n';d.forEach(p=>{c+=formatDateTime(p.date)+','+p.cupSec.toFixed(3)+','+p.calcCst.toFixed(3)+','+p.sensorCP.toFixed(3)+','+p.absDiff.toFixed(3)+','+(p.interpolated?'Yes':'No')+(ss?(','+p.shift):'')+'\n';});const b=new Blob([c],{type:'text/csv'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='shell_control_export_'+Date.now()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
+addShift({name:'Shift 1',start:'06:00',end:'14:00'});
+addShift({name:'Shift 2',start:'14:00',end:'22:00'});
+addShift({name:'Shift 3',start:'22:00',end:'06:00'});
+
+// ============ PAGE 2 : SLURRY DASHBOARD ============
+// Material master data — extracted directly from Blank Slurry Dashboard - 2022 USA.xlsm
+const BINDERS = [
+  {name:'ESB Prime',      density:1.20, sio2:0.2881, solids:0.30},
+  {name:'ESB 6',          density:1.20, sio2:0.27,   solids:0.27},
+  {name:'ESB 1',          density:1.17, sio2:0.22,   solids:0.22},
+  {name:'ESB 10',         density:1.20, sio2:0.30,   solids:0.30},
+  {name:'ESB 11',         density:1.20, sio2:0.30,   solids:0.30},
+  {name:'6009',           density:1.20, sio2:0.30,   solids:0.30},
+  {name:'6022',           density:1.20, sio2:0.30,   solids:0.30},
+  {name:'ESB Precision',  density:1.399,sio2:0.50,   solids:0.50},
+  {name:'Etna',           density:1.20, sio2:0.30,   solids:0.30},
+  {name:'Rainier',        density:1.20, sio2:0.32,   solids:0.32},
+  {name:'Cobalt Aluminate binder', density:1.20, sio2:0.30, solids:0.30},
+  {name:'ESFA1',          density:1.20, sio2:0.30,   solids:0.30},
+  {name:'One Coat',       density:1.20, sio2:0.30,   solids:0.30},
+  {name:'ESX Additive',   density:1.20, sio2:0.30,   solids:0.30}
+];
+const REFRACTORIES = [
+  {name:'Zircon',                density:4.60,  sio2:0.33,  zircon:true,  cobalt:false},
+  {name:'Fused Silica',          density:2.203, sio2:1.00,  zircon:false, cobalt:false},
+  {name:'Alumino-Silicate M47',  density:2.65,  sio2:0.47,  zircon:false, cobalt:false},
+  {name:'Alumino-silicate M60',  density:2.85,  sio2:0.40,  zircon:false, cobalt:false},
+  {name:'Alumina',               density:3.96,  sio2:0.00,  zircon:false, cobalt:false},
+  {name:'WDS Plus',              density:2.20,  sio2:0.85,  zircon:false, cobalt:false},
+  {name:'WDS 2',                 density:2.20,  sio2:0.85,  zircon:false, cobalt:false},
+  {name:'WDS 3',                 density:2.199, sio2:0.85,  zircon:false, cobalt:false},
+  {name:'Gray Matter 1',         density:2.187, sio2:0.80,  zircon:false, cobalt:false},
+  {name:'Gray Matter 2',         density:2.186, sio2:0.80,  zircon:false, cobalt:false},
+  {name:'Cobalt Aluminate',      density:5.20,  sio2:0.00,  zircon:false, cobalt:true},
+  {name:'ESFA1',                 density:2.45,  sio2:0.40,  zircon:false, cobalt:false},
+  {name:'One Coat',              density:2.20,  sio2:0.60,  zircon:false, cobalt:false},
+  {name:'ESX Additive',          density:2.20,  sio2:0.60,  zircon:false, cobalt:false},
+  {name:'Fused Yttria',          density:5.01,  sio2:0.00,  zircon:false, cobalt:false},
+  {name:'Stabilized Zirconia',   density:5.70,  sio2:0.00,  zircon:false, cobalt:false},
+  {name:'None',                  density:0,     sio2:0,     zircon:false, cobalt:false}
+];
+const POLYMERS = [
+  {name:'6300',            density:1.05, solids:0.45},
+  {name:'6305',            density:1.05, solids:0.50},
+  {name:'HP Polymer',      density:1.05, solids:0.45},
+  {name:'Rainier Polymer', density:1.05, solids:0.50}
+];
+const WATER_DENSITY = 0.9949;
+const IN3_PER_GAL = 231, LB_TO_GAL_ML_FACTOR = 453.59237/3785.411784;
+
+function fillSel(id,list){const s=document.getElementById(id);s.innerHTML='';list.forEach((it,i)=>s.add(new Option(it.name+' ('+it.density+' g/mL)',i)));}
+['sd_binderType','dz_binderType'].forEach(id=>fillSel(id,BINDERS));
+['sd_polymerType','dz_polymerType'].forEach(id=>fillSel(id,POLYMERS));
+['sd_ref1Type','sd_ref2Type','dz_ref1Type','dz_ref2Type'].forEach(id=>fillSel(id,REFRACTORIES));
+document.getElementById('sd_ref2Type').value = REFRACTORIES.length - 1; // default 2nd to None
+document.getElementById('dz_ref2Type').value = REFRACTORIES.length - 1;
+
+// --- 2A. TANK / OPERATIONAL ---
+function calcTank(){
+  const D=parseFloat(document.getElementById('tankDia').value);
+  const H=parseFloat(document.getElementById('tankDepth').value);
+  const fH=parseFloat(document.getElementById('fillHeight').value);
+  const spr=parseFloat(document.getElementById('secPerRev').value);
+  const out=document.getElementById('tankOut');
+  let html='';
+  if(isFinite(D)&&isFinite(H)&&D>0&&H>0){
+    const maxVol=Math.PI*(D/2)**2*H/IN3_PER_GAL;
+    html+='<div class="calc-out"><div class="label">Max Slurry Volume</div><div class="val">'+maxVol.toFixed(1)+'<span class="unit">gal</span></div><div class="formula">π·(D/2)²·H / 231</div></div>';
+  }
+  if(isFinite(D)&&isFinite(fH)&&D>0&&fH>0){
+    const curVol=Math.PI*(D/2)**2*fH/IN3_PER_GAL;
+    html+='<div class="calc-out"><div class="label">Current Volume</div><div class="val">'+curVol.toFixed(1)+'<span class="unit">gal</span></div><div class="formula">at fill '+fH+' in</div></div>';
+  }
+  if(isFinite(spr)&&spr>0){
+    const rpm=60/spr;
+    html+='<div class="calc-out"><div class="label">Current RPM</div><div class="val">'+rpm.toFixed(2)+'<span class="unit">rpm</span></div><div class="formula">60 / sec-per-rev</div></div>';
+  }
+  if(isFinite(D)&&D>0){
+    const secRec=0.033*D+0.383;
+    const rpmRec=60/secRec;
+    html+='<div class="calc-out"><div class="label">Recommended RPM</div><div class="val">'+rpmRec.toFixed(2)+'<span class="unit">rpm</span></div><div class="formula">empirical fit</div></div>';
+    html+='<div class="calc-out"><div class="label">Recommended sec/rev</div><div class="val">'+secRec.toFixed(2)+'<span class="unit">s</span></div><div class="formula">0.033·D + 0.383</div></div>';
+    if(isFinite(spr)&&spr>0){
+      const dev=(60/spr-rpmRec)/rpmRec*100;
+      const col=Math.abs(dev)<10?'#00ff66':(Math.abs(dev)<25?'#fa0':'#f55');
+      html+='<div class="calc-out" style="border-color:'+col+';"><div class="label">Deviation vs Recommended</div><div class="val" style="color:'+col+';">'+(dev>=0?'+':'')+dev.toFixed(1)+'<span class="unit">%</span></div></div>';
+    }
+  }
+  if(!html)html='<div class="warning">Enter tank diameter, depth, fill height and seconds per revolution.</div>';
+  out.innerHTML=html;
+}
+
+// --- 2B. SLURRY DETAILS (Excel replica) ---
+function calcSlurryDetails(){
+  const Wb=parseFloat(document.getElementById('sd_binderWt').value)||0;
+  const Ww=parseFloat(document.getElementById('sd_waterWt').value)||0;
+  const Wp=parseFloat(document.getElementById('sd_polymerWt').value)||0;
+  const W1=parseFloat(document.getElementById('sd_ref1Wt').value)||0;
+  const W2=parseFloat(document.getElementById('sd_ref2Wt').value)||0;
+  const B=BINDERS[parseInt(document.getElementById('sd_binderType').value)]||BINDERS[0];
+  const P=POLYMERS[parseInt(document.getElementById('sd_polymerType').value)]||POLYMERS[0];
+  const R1=REFRACTORIES[parseInt(document.getElementById('sd_ref1Type').value)]||REFRACTORIES[0];
+  const R2=REFRACTORIES[parseInt(document.getElementById('sd_ref2Type').value)]||REFRACTORIES[16];
+  const wet=parseInt(document.getElementById('sd_wettingType').value);
+  const anti=parseInt(document.getElementById('sd_antifoamType').value);
+  const dose=parseInt(document.getElementById('sd_dosage').value);
+
+  const totalWt=Wb+Ww+Wp+W1+W2;
+  if(totalWt<=0){document.getElementById('sd_out').innerHTML='<div class="warning">Enter at least one weight.</div>';return;}
+
+  // Volume via density (V = Σ Wi/Di × 0.11983  where 0.11983 = 453.59/3785.41)
+  const F=LB_TO_GAL_ML_FACTOR;
+  const vB=B.density>0?Wb/B.density*F:0;
+  const vW=Ww/WATER_DENSITY*F;
+  const vP=P.density>0?Wp/P.density*F:0;
+  const v1=R1.density>0?W1/R1.density*F:0;
+  const v2=R2.density>0?W2/R2.density*F:0;
+  const V=vB+vW+vP+v1+v2;
+
+  const slurryDensity=V>0?totalWt/(V*8.345):0;
+  const totalRef=W1+W2;
+  const pctRef=totalWt>0?(totalRef/totalWt*100):0;
+  const drySolids=Wb*B.solids+Wp*P.solids+W1+W2;
+  const pctSolidsDry=totalWt>0?(drySolids/totalWt*100):0;
+  const liquid=Wb+Ww+Wp;
+  const pctSilica=liquid>0?(Wb*B.sio2/liquid*100):0;
+  const pctZircon=totalRef>0?((R1.zircon?W1:0)+(R2.zircon?W2:0))/totalRef*100:0;
+  const pctCobalt=totalRef>0?((R1.cobalt?W1:0)+(R2.cobalt?W2:0))/totalRef*100:0;
+  const pctPolymer=totalWt>0?(Wp/totalWt*100):0;
+  const pctSodium=Wb>0?(Wb*B.sio2*0.006/totalWt*100):0; // ~0.6% Na in colloidal silica typical
+
+  // Void % (from workbook 32-45% range) — approximate: relates to refractory packing
+  const solidsVol=(V>0?v1+v2:0);
+  const totalVol=V;
+  const voidDry=totalVol>0?Math.max(0,(1-solidsVol/totalVol*1.65)*100):0;
+  const voidFired=voidDry+2.5;
+
+  // Wetting agent & antifoam addition (empirical from workbook — scales with volume + dosage)
+  let wettingMl=0;
+  if(wet===1)wettingMl=V*3.72; // 7667 ~3.72 ml/gal (Cobalt Old ref)
+  let antifoamMl=0;
+  if(anti===1){
+    const doseMult=dose===1?5:(dose===2?11:20); // ml/gal
+    antifoamMl=V*doseMult;
+  } else if(anti===2)antifoamMl=V*8;
+    else if(anti===3)antifoamMl=V*6;
+    else if(anti===5)antifoamMl=V*10;
+
+  document.getElementById('sd_out').innerHTML =
+    '<div class="calc-out"><div class="label">Slurry Volume</div><div class="val">'+V.toFixed(2)+'<span class="unit">gal</span></div><div class="formula">Σ(Wᵢ/ρᵢ) × 0.11983</div></div>'+
+    '<div class="calc-out"><div class="label">Slurry Density</div><div class="val">'+slurryDensity.toFixed(3)+'<span class="unit">g/mL</span></div><div class="formula">TotalWt / (V × 8.345)</div></div>'+
+    '<div class="calc-out"><div class="label">Total Weight</div><div class="val">'+totalWt.toFixed(1)+'<span class="unit">lb</span></div></div>'+
+    '<div class="calc-out"><div class="label">% Refractory</div><div class="val">'+pctRef.toFixed(2)+'<span class="unit">%</span></div><div class="formula">(W₁+W₂)/Total</div></div>'+
+    '<div class="calc-out"><div class="label">Total % Solids (dry)</div><div class="val">'+pctSolidsDry.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">% Silica</div><div class="val">'+pctSilica.toFixed(2)+'<span class="unit">%</span></div><div class="formula">Wb·SiO₂/(Wb+Ww+Wp)</div></div>'+
+    '<div class="calc-out"><div class="label">% Zircon</div><div class="val">'+pctZircon.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">% Cobalt</div><div class="val">'+pctCobalt.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">% Polymer</div><div class="val">'+pctPolymer.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">% Sodium (est.)</div><div class="val">'+pctSodium.toFixed(3)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">Volume % Void (dry)</div><div class="val">'+voidDry.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">Volume % Void (fired)</div><div class="val">'+voidFired.toFixed(2)+'<span class="unit">%</span></div></div>'+
+    '<div class="calc-out"><div class="label">Wetting Agent Addition</div><div class="val">'+wettingMl.toFixed(1)+'<span class="unit">mL</span></div></div>'+
+    '<div class="calc-out"><div class="label">Antifoam Addition</div><div class="val">'+antifoamMl.toFixed(1)+'<span class="unit">mL</span></div></div>';
+}
+
+// --- 2C. SLURRY DESIGN (Back-Calc via 4-eq mass balance) ---
+function calcDesign(){
+  const V=parseFloat(document.getElementById('dz_vol').value);
+  const SG=parseFloat(document.getElementById('dz_sg').value);
+  const pSi=parseFloat(document.getElementById('dz_silica').value);
+  const pPoly=parseFloat(document.getElementById('dz_polymer').value);
+  const R1f=parseFloat(document.getElementById('dz_r1frac').value);
+  const R2f=parseFloat(document.getElementById('dz_r2frac').value);
+  const B=BINDERS[parseInt(document.getElementById('dz_binderType').value)]||BINDERS[0];
+  const P=POLYMERS[parseInt(document.getElementById('dz_polymerType').value)]||POLYMERS[0];
+  const R1=REFRACTORIES[parseInt(document.getElementById('dz_ref1Type').value)]||REFRACTORIES[0];
+  const R2=REFRACTORIES[parseInt(document.getElementById('dz_ref2Type').value)]||REFRACTORIES[16];
+  const out=document.getElementById('dz_out');
+  if(![V,SG,pSi,pPoly,R1f,R2f].every(x=>isFinite(x))){out.innerHTML='<div class="warning">Fill all target inputs.</div>';return;}
+  if(pSi<=0||pSi>=B.sio2){out.innerHTML='<div class="warning">Target %Silica must be between 0 and binder SiO₂ ('+(B.sio2*100).toFixed(1)+'%).</div>';return;}
+  const totalWt=SG*8.345*V;
+  const Wp=pPoly*totalWt;
+  // From workbook silica formula: Wb·SiO₂ = %Silica·(Wb+Ww+Wp) → Ww = Wb(SiO₂-%Si)/%Si − Wp
+  // From weight balance: Wb+Ww+Wp+Wref = TotalWt → Wref = TotalWt − Wb·SiO₂/%Si
+  // From volume balance: Wb/Db + Ww/Dw + Wp/Dp + Wref·(R1f/D1 + R2f/D2) = V·8.345
+  const Dref = R1f/(R1.density||1e9) + R2f/(R2.density||1e9);
+  const A = 1/B.density + (B.sio2-pSi)/(pSi*WATER_DENSITY) - (B.sio2/pSi)*Dref;
+  const rhs = V*8.345 - Wp/P.density + Wp/WATER_DENSITY - totalWt*Dref;
+  const Wb = rhs / A;
+  const Ww = Wb*(B.sio2-pSi)/pSi - Wp;
+  const Wref = totalWt - Wb*B.sio2/pSi;
+  const Wr1 = Wref*R1f, Wr2 = Wref*R2f;
+
+  // Verification
+  const vCheck = Wb/B.density*LB_TO_GAL_ML_FACTOR + Ww/WATER_DENSITY*LB_TO_GAL_ML_FACTOR + Wp/P.density*LB_TO_GAL_ML_FACTOR + Wr1/(R1.density||1e9)*LB_TO_GAL_ML_FACTOR + Wr2/(R2.density||1e9)*LB_TO_GAL_ML_FACTOR;
+  const wCheck = Wb+Ww+Wp+Wr1+Wr2;
+  const sgCheck = wCheck/(vCheck*8.345);
+  const silicaCheck = Wb*B.sio2/(Wb+Ww+Wp)*100;
+  const polyCheck = Wp/wCheck*100;
+
+  let warn='';
+  if(Wb<0||Ww<0||Wref<0)warn='<div class="warning">⚠️ Negative weight in solution — targets are infeasible with these material choices. Try different binder, refractory, or targets.</div>';
+
+  out.innerHTML = warn +
+    '<div class="calc-out"><div class="label">Weight of Binder</div><div class="val">'+Wb.toFixed(1)+'<span class="unit">lb</span></div><div class="formula">'+B.name+'</div></div>'+
+    '<div class="calc-out"><div class="label">Weight of Water</div><div class="val">'+Ww.toFixed(1)+'<span class="unit">lb</span></div></div>'+
+    '<div class="calc-out"><div class="label">Weight of Polymer</div><div class="val">'+Wp.toFixed(1)+'<span class="unit">lb</span></div><div class="formula">'+P.name+'</div></div>'+
+    '<div class="calc-out"><div class="label">Weight of 1st Refractory</div><div class="val">'+Wr1.toFixed(1)+'<span class="unit">lb</span></div><div class="formula">'+R1.name+'</div></div>'+
+    '<div class="calc-out"><div class="label">Weight of 2nd Refractory</div><div class="val">'+Wr2.toFixed(1)+'<span class="unit">lb</span></div><div class="formula">'+R2.name+'</div></div>'+
+    '<div class="calc-out"><div class="label">Total Slurry Weight</div><div class="val">'+totalWt.toFixed(1)+'<span class="unit">lb</span></div></div>'+
+    '<hr>'+
+    '<h4 style="color:#00ff66;">✓ Verification</h4>'+
+    '<div class="calc-out"><div class="label">Verified Volume</div><div class="val">'+vCheck.toFixed(2)+'<span class="unit">gal</span></div><div class="formula">target '+V+'</div></div>'+
+    '<div class="calc-out"><div class="label">Verified SG</div><div class="val">'+sgCheck.toFixed(3)+'</div><div class="formula">target '+SG+'</div></div>'+
+    '<div class="calc-out"><div class="label">Verified % Silica</div><div class="val">'+silicaCheck.toFixed(2)+'<span class="unit">%</span></div><div class="formula">target '+(pSi*100).toFixed(1)+'%</div></div>'+
+    '<div class="calc-out"><div class="label">Verified % Polymer</div><div class="val">'+polyCheck.toFixed(2)+'<span class="unit">%</span></div><div class="formula">target '+(pPoly*100).toFixed(1)+'%</div></div>';
+}
+
+// --- 2D. SLURRY DATABASE (24 curated rows extracted from workbook) ---
+const SLURRY_DB = [
+  {sec:7, cup:'8mm ISO',    sg:1.676, type:'Backup', r1:'WDS +',       r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'Light Alloy Products'},
+  {sec:7, cup:'zahn 5',     sg:1.678, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'Uni-Pol India'},
+  {sec:8, cup:'zahn 4',     sg:1.731, type:'Backup', r1:'M47 ~66%',    r2:'FS 33%', binder:'ESB11',  poly:'6305', pct:5,   comment:'EMP Powertech (old)'},
+  {sec:8, cup:'8mm ISO',    sg:1.654, type:'Backup', r1:'WDS +',       r2:'None',   binder:'ESB1',   poly:'None', pct:0,   comment:'Duflon'},
+  {sec:8, cup:'zahn 5',     sg:1.743, type:'Backup', r1:'WDS +',       r2:'None',   binder:'ESB11',  poly:'3MHP', pct:10,  comment:'Trucast IOW'},
+  {sec:8, cup:'8mm ISO',    sg:1.648, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'O-Ta'},
+  {sec:8, cup:'8mm ISO',    sg:1.675, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'SG Industries'},
+  {sec:8, cup:'zahn 5',     sg:2.967, type:'Prime',  r1:'Zr 100%',     r2:'None',   binder:'ESB Pr', poly:'None', pct:0,   comment:'O-Ta'},
+  {sec:9, cup:'8mm ISO',    sg:1.684, type:'Backup', r1:'WDS +',       r2:'None',   binder:'ESB1',   poly:'None', pct:0,   comment:'SRI India'},
+  {sec:9, cup:'8mm ISO',    sg:1.671, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'Okay Fern'},
+  {sec:9, cup:'zahn 5',     sg:2.927, type:'Prime',  r1:'Zr 100%',     r2:'None',   binder:'ESB Pr', poly:'None', pct:0,   comment:'SRI India'},
+  {sec:9, cup:'zahn 5',     sg:2.697, type:'Prime',  r1:'Zr 87%',      r2:'FS 13%', binder:'ESB Pr', poly:'None', pct:0,   comment:'HiCon'},
+  {sec:10,cup:'6mm ISO',    sg:1.661, type:'Backup', r1:'GM II',       r2:'None',   binder:'ESB10',  poly:'3MHP', pct:7.7, comment:'Northern Precision'},
+  {sec:10,cup:'6mm ISO',    sg:1.661, type:'Backup', r1:'GM II',       r2:'None',   binder:'ESB10',  poly:'6300', pct:7.7, comment:'Northern Precision'},
+  {sec:10,cup:'zahn 5',     sg:1.715, type:'Interm', r1:'WDS +',       r2:'None',   binder:'ESB1',   poly:'None', pct:0,   comment:'HiCon'},
+  {sec:10,cup:'8mm ISO',    sg:1.673, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'IPCL'},
+  {sec:10,cup:'8mm ISO',    sg:1.677, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB10',  poly:'6300', pct:8,   comment:'Pine Tree'},
+  {sec:10,cup:'EZ zahn 5',  sg:2.241, type:'Prime',  r1:'Zr 100%',     r2:'None',   binder:'ESB Pr', poly:'None', pct:0,   comment:'Impro'},
+  {sec:11,cup:'zahn 4',     sg:2.456, type:'Prime',  r1:'Alumina',     r2:'None',   binder:'ESB10',  poly:'6305', pct:6,   comment:'(source unknown)'},
+  {sec:11,cup:'6mm ISO',    sg:1.667, type:'Backup', r1:'GMII',        r2:'None',   binder:'ESB10',  poly:'3MHP', pct:8,   comment:'Carley'},
+  {sec:11,cup:'zahn 5',     sg:1.572, type:'Interm', r1:'P1 FS',       r2:'None',   binder:'ESB11',  poly:'6305', pct:6,   comment:'Becker Metal Works'},
+  {sec:11,cup:'8mm ISO',    sg:1.670, type:'Backup', r1:'WDS +',       r2:'None',   binder:'ESB1',   poly:'None', pct:0,   comment:'Shri Alka Industries'},
+  {sec:11,cup:'6mm ISO',    sg:1.660, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB10',  poly:'3MHP', pct:7.6, comment:'Aero Metals'},
+  {sec:11,cup:'8mm ISO',    sg:1.676, type:'Backup', r1:'WDS3',        r2:'None',   binder:'ESB6',   poly:'None', pct:0,   comment:'HiTech'}
+];
+
+function renderDB(){
+  const t=document.getElementById('dbType').value;
+  const c=document.getElementById('dbCup').value;
+  const q=document.getElementById('dbSearch').value.trim().toLowerCase();
+  const limit=parseInt(document.getElementById('dbLimit').value)||100;
+  let list=SLURRY_DB.slice();
+  if(t)list=list.filter(r=>r.type===t);
+  if(c)list=list.filter(r=>r.cup===c);
+  if(q)list=list.filter(r=>(r.comment+' '+r.binder+' '+r.r1+' '+r.r2+' '+r.poly).toLowerCase().includes(q));
+  const shown=list.slice(0,limit);
+  document.getElementById('dbInfo').textContent='Showing '+shown.length+' of '+SLURRY_DB.length+' records.';
+  let html='<thead><tr><th>#</th><th>Sec</th><th>Cup</th><th>SG</th><th>Type</th><th>Ref 1</th><th>Ref 2</th><th>Binder</th><th>Polymer</th><th>% Poly</th><th>Comment</th></tr></thead><tbody>';
+  shown.forEach((r,i)=>{html+='<tr><td>'+(i+1)+'</td><td>'+r.sec+'</td><td>'+r.cup+'</td><td>'+r.sg.toFixed(3)+'</td><td>'+r.type+'</td><td>'+r.r1+'</td><td>'+r.r2+'</td><td>'+r.binder+'</td><td>'+r.poly+'</td><td>'+r.pct+'</td><td style="color:#888;">'+r.comment+'</td></tr>';});
+  if(!shown.length)html='<tbody><tr><td style="padding:20px;text-align:center;color:#888;">No records match filter.</td></tr>';
+  document.getElementById('dbTable').innerHTML=html+'</tbody>';
+}
+
+// Initial render
+calcTank();
+calcSlurryDetails();
+calcDesign();
+renderDB();
+</script>
 
 </body>
 </html>
