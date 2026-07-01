@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell Control Value Calculator — CTG Tools</title>
+<style>
+:root{
+  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
+  --accent:#e87722; --green:#2e7d32; --bg:#f4f6f9;
+  --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+
+/* NAV */
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal)}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+/* PAGE HEADER */
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:#fff;padding:24px 20px}
+header.page-header h1{margin:0;font-size:24px}
+header.page-header p{margin:4px 0 0;opacity:.9;font-size:14px}
+
+main{max-width:1200px;margin:20px auto;padding:0 16px}
+
+.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+
+.field{margin-bottom:10px}
+.field label{font-size:12px;font-weight:600;display:block;margin-bottom:4px}
+.field input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px}
+.field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
+.field input[readonly]{background:#eef4fb;color:var(--blue);font-weight:600}
+
+.desc{font-size:12px;color:var(--muted);margin-bottom:10px}
+
+.result{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.result .val{font-weight:700;color:var(--green);font-size:18px}
+
+.total{margin-top:20px;background:var(--blue);color:#fff;padding:20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.total .lbl{font-size:14px;letter-spacing:1px;text-transform:uppercase;opacity:.9}
+.total .big{font-size:36px;font-weight:700;color:#ffc000}
+
+button{padding:8px 14px;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-size:13px}
+.btn{background:var(--accent);color:#fff}
+.btn2{background:#666;color:#fff}
+.toolbar{margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
+
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{padding:8px;border-bottom:1px solid var(--border);font-size:13px;text-align:left}
+th{background:#f7f9fc;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.value{text-align:right;font-weight:600;font-family:Courier New,monospace;color:var(--green)}
+tr.total-row td{font-weight:700;color:var(--blue);background:#eef4fb;font-size:14px}
+tr.total-row td.value{color:var(--blue)}
+
+footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
+
+@media print{.navbar,.toolbar{display:none}}
+@media (max-width:600px){
+  .navbar{flex-direction:column;align-items:flex-start}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
+    <li><a href="shell-control-value-calculator.html" class="active">Shell Control Value Calculator</a></li>
+    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
+  </ul>
+</nav>
+
+<header class="page-header">
+  <h1>Shell Control Value Calculator</h1>
+  <p>3D TRASAR Technology for Shell Control — powered by Rheonics SlurrySense</p>
+</header>
+
+<main>
+
+<div class="toolbar">
+  <button class="btn" onclick="window.print()">Print / Save PDF</button>
+  <button class="btn2" onclick="resetAll()">Reset</button>
+</div>
+
+<div class="global">
+  <h3>Plant Inputs</h3>
+  <div class="desc">Enter high-level production and cost inputs used across all calculations.</div>
+  <div class="grid">
+    <div class="field"><label>Annual Parts</label><input id="parts" type="number"></div>
+    <div class="field"><label>Cost per Part ($)</label><input id="cost" type="number"></div>
+    <div class="field"><label>Selling Price ($)</label><input id="price" type="number"></div>
+    <div class="field"><label>Variable Cost %</label><input id="vc" type="number"></div>
+    <div class="field"><label># Slurry Tanks</label><input id="tanks" type="number"></div>
+    <div class="field"><label>Labor Rate ($/hr)</label><input id="labor_rate" type="number"></div>
+  </div>
+</div>
+
+<div class="grid">
+
+<div class="card">
+  <h3>Scrap Reduction</h3>
+  <div class="desc">Recovered value from reducing shell-related defects and scrap.</div>
+  <div class="field"><label>Scrap %</label><input id="scrap" type="number"></div>
+  <div class="field"><label>Reduction %</label><input id="reduction" type="number"></div>
+  <div class="field"><label>Recovered Parts</label><input id="recovered" readonly></div>
+  <div class="result"><span>Value</span><span id="out_scrap" class="val">$0</span></div>
+</div>
+
+<div class="card">
+  <h3>Revenue Uplift</h3>
+  <div class="desc">Additional contribution margin from converting scrap into sellable parts.</div>
+  <div class="field"><label>Revenue (Gross)</label><input id="rev_gross" readonly></div>
+  <div class="field"><label>Contribution Margin</label><input id="cm" readonly></div>
+  <div class="result"><span>Value</span><span id="out_rev" class="val">$0</span></div>
+</div>
+
+<div class="card">
+  <h3>Labor Reduction</h3>
+  <div class="desc">Savings from eliminating manual viscosity readings and data logging.</div>
+  <div class="field"><label>Readings/day</label><input id="reads" type="number"></div>
+  <div class="field"><label>Minutes/reading</label><input id="mins" type="number"></div>
+  <div class="field"><label>Days/year</label><input id="days" type="number"></div>
+  <div class="result"><span>Value</span><span id="out_labor" class="val">$0</span></div>
+</div>
+
+<div class="card">
+  <h3>Slurry Life Extension</h3>
+  <div class="desc">Reduced material waste and disposal costs from stable slurry tank control.</div>
+  <div class="field"><label>Cost/tank ($)</label><input id="sl_cost" type="number"></div>
+  <div class="field"><label>Reduction %</label><input id="sl_red" type="number"></div>
+  <div class="result"><span>Value</span><span id="out_slurry" class="val">$0</span></div>
+</div>
+
+<div class="card">
+  <h3>Downtime Reduction</h3>
+  <div class="desc">Avoided production losses from fewer interruptions and process issues.</div>
+  <div class="field"><label>Hours/year</label><input id="dt_hours" type="number"></div>
+  <div class="field"><label>Cost/hr</label><input id="dt_cost" type="number"></div>
+  <div class="field"><label>Reduction %</label><input id="dt_red" type="number"></div>
+  <div class="result"><span>Value</span><span id="out_dt" class="val">$0</span></div>
+</div>
+
+<div class="card">
+  <h3>Safety</h3>
+  <div class="desc">Reduced risk exposure from eliminating manual tank access and sampling.</div>
+  <div class="field"><label># Operators</label><input id="ops" type="number"></div>
+  <div class="field"><label>Cost/incident</label><input id="sf_cost" type="number"></div>
+  <div class="field"><label>Reduction %</label><input id="sf_red" type="number"></div>
+  <div class="result"><span>Value</span><span id="out_sf" class="val">$0</span></div>
+</div>
+
+</div>
+
+<div class="card">
+  <h3>Summary</h3>
+  <table>
+    <tr><td>Scrap</td><td class="value" id="sum_scrap">$0</td></tr>
+    <tr><td>Revenue Uplift</td><td class="value" id="sum_rev">$0</td></tr>
+    <tr><td>Labor</td><td class="value" id="sum_labor">$0</td></tr>
+    <tr><td>Slurry</td><td class="value" id="sum_slurry">$0</td></tr>
+    <tr><td>Downtime</td><td class="value" id="sum_dt">$0</td></tr>
+    <tr><td>Safety</td><td class="value" id="sum_sf">$0</td></tr>
+    <tr class="total-row"><td>Total</td><td class="value" id="sum_total">$0</td></tr>
+  </table>
+</div>
+
+<div class="total">
+  <div class="lbl">Total Annual Value Delivered</div>
+  <div id="grand" class="big">$0</div>
+</div>
+
+</main>
+
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+</footer>
+
+<script>
+function num(id){return parseFloat(document.getElementById(id).value)||0}
+function fmt(x){return "$"+Math.round(x).toLocaleString()}
+
+function calc(){
+  let parts=num('parts')
+  let cost=num('cost')
+  let price=num('price')
+  let vc=num('vc')/100
+  let tanks=num('tanks')
+  let rate=num('labor_rate')
+
+  let scrap=num('scrap')/100
+  let red=num('reduction')/100
+  let recovered=parts*scrap*red
+
+  let scrapVal=recovered*cost
+  let revenueGross=recovered*price
+  let revenueVal=revenueGross*(1-vc)
+
+  let labor=tanks*num('reads')*num('days')*(num('mins')/60)*rate
+  let slurry=tanks*num('sl_cost')*(num('sl_red')/100)
+  let dt=num('dt_hours')*(num('dt_red')/100)*num('dt_cost')
+  let sf=num('ops')*num('sf_cost')*(num('sf_red')/100)
+
+  let total=scrapVal+revenueVal+labor+slurry+dt+sf
+
+  document.getElementById('recovered').value=Math.round(recovered)
+  document.getElementById('rev_gross').value=Math.round(revenueGross)
+  document.getElementById('cm').value=(1-vc).toFixed(2)
+
+  document.getElementById('out_scrap').textContent=fmt(scrapVal)
+  document.getElementById('out_rev').textContent=fmt(revenueVal)
+  document.getElementById('out_labor').textContent=fmt(labor)
+  document.getElementById('out_slurry').textContent=fmt(slurry)
+  document.getElementById('out_dt').textContent=fmt(dt)
+  document.getElementById('out_sf').textContent=fmt(sf)
+
+  document.getElementById('sum_scrap').textContent=fmt(scrapVal)
+  document.getElementById('sum_rev').textContent=fmt(revenueVal)
+  document.getElementById('sum_labor').textContent=fmt(labor)
+  document.getElementById('sum_slurry').textContent=fmt(slurry)
+  document.getElementById('sum_dt').textContent=fmt(dt)
+  document.getElementById('sum_sf').textContent=fmt(sf)
+  document.getElementById('sum_total').textContent=fmt(total)
+
+  document.getElementById('grand').textContent=fmt(total)
+}
+
+function resetAll(){
+  document.querySelectorAll("input").forEach(i=>i.value="")
+  calc()
+}
+
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc))
+</script>
+
+</body>
+</html>
