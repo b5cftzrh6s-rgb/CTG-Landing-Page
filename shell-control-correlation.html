@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell Control Correlation Tool — CTG Tools</title>
+<style>
+:root{
+  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
+  --accent:#e87722; --bg:#f4f6f9; --card:#fff;
+  --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal)}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:#fff;padding:24px 20px}
+header.page-header h1{margin:0;font-size:24px}
+header.page-header p{margin:4px 0 0;opacity:.9;font-size:14px}
+
+main{max-width:1000px;margin:40px auto;padding:0 20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:30px;text-align:center}
+.card .icon{font-size:60px;margin-bottom:20px}
+.card h2{margin:0 0 12px;color:var(--blue);font-size:22px}
+.card p{color:var(--muted);font-size:15px;max-width:700px;margin:0 auto 20px;line-height:1.6}
+.back{display:inline-block;margin-top:10px;padding:10px 20px;background:var(--accent);
+  color:#fff;text-decoration:none;border-radius:4px;font-weight:600;font-size:14px}
+.back:hover{background:#c65e14}
+
+.status{display:inline-block;background:#fff4e6;color:var(--accent);padding:6px 14px;
+  border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:20px}
+
+footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);margin-top:40px}
+
+@media (max-width:600px){
+  .navbar{flex-direction:column;align-items:flex-start}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="shell-control-correlation.html" class="active">Shell Control Correlation</a></li>
+    <li><a href="shell-control-value-calculator.html">Shell Control Value Calculator</a></li>
+    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
+  </ul>
+</nav>
+
+<header class="page-header">
+  <h1>Shell Control Correlation Tool</h1>
+  <p>Correlate inline SlurrySense sensor data with manual viscosity readings</p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="icon">📊</div>
+    <div class="status">COMING SOON</div>
+    <h2>Data Correlation Tool</h2>
+    <p>Upload SlurrySense inline viscometer data alongside manual viscosity cup readings from your slurry tanks to generate a real-time R² correlation. Validate sensor accuracy, confirm data quality, and build customer confidence in the 3D TRASAR Technology for Shell Control program.</p>
+    <p><strong>This tool is under active development.</strong> The correlation workflow will support CSV export from SlurrySense readings and manual entry of viscosity cup measurements per tank.</p>
+    <a class="back" href="index.html">← Back to CTG Tools Home</a>
+  </div>
+</main>
+
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+</footer>
+
+</body>
+</html>
