@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTG Tools — Colloidal Technologies Group</title>
+<style>
+:root{
+  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
+  --accent:#e87722; --bg:#f4f6f9; --card:#fff;
+  --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+
+/* NAV BAR */
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal)}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;
+  padding:50px 20px;text-align:center}
+.hero h1{margin:0 0 10px;font-size:32px}
+.hero p{margin:0;font-size:16px;opacity:.9;max-width:700px;margin-left:auto;margin-right:auto}
+
+/* TILES */
+main{max-width:1200px;margin:40px auto;padding:0 20px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:30px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;
+  transition:transform .15s,box-shadow .15s,border-color .15s;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.tile:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,58,112,.15);
+  border-color:var(--teal)}
+.tile .icon{font-size:42px;margin-bottom:16px}
+.tile h3{margin:0 0 8px;font-size:19px;color:var(--blue)}
+.tile p{margin:0 0 20px;font-size:14px;color:var(--muted);flex-grow:1}
+.tile .btn-arrow{color:var(--accent);font-weight:700;font-size:14px;letter-spacing:.5px}
+
+/* FOOTER */
+footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);margin-top:40px}
+
+@media (max-width:600px){
+  .navbar{flex-direction:column;align-items:flex-start}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
+  .hero h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
+  <ul>
+    <li>index.htmlHome</a></li>
+    <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
+    <li><a href="shell-control-value-calculator.html">Shell Control Value Calculator</a></li>
+    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <h1>CTG Digital Tools</h1>
+  <p>Sales and technical tools supporting 3D TRASAR Technology for Shell Control, Rheonics SlurrySense, and CTG investment casting programs.</p>
+</div>
+
+<main>
+  <div class="tiles">
+
+    <a class="tile" href="shell-control-correlation.html">
+      <div class="icon">📊</div>
+      <h3>Shell Control Correlation Tool</h3>
+      <p>Correlate inline SlurrySense sensor data with manual viscosity readings to validate sensor accuracy and build customer confidence.</p>
+      <div class="btn-arrow">Open Tool →</div>
+    </a>
+
+    <a class="tile" href="shell-control-value-calculator.html">
+      <div class="icon">💰</div>
+      <h3>Shell Control Value Calculator</h3>
+      <p>Quantify annual value delivered by 3D TRASAR Technology for Shell Control across scrap, revenue uplift, labor, slurry life, downtime, and safety.</p>
+      <div class="btn-arrow">Open Tool →</div>
+    </a>
+
+    <a class="tile" href="slurry-calculator.html">
+      <div class="icon">🧪</div>
+      <h3>Slurry Calculator</h3>
+      <p>Calculate slurry make-up, adjustment, and rebuild parameters for prime, intermediate, and backup slurry tanks.</p>
+      <div class="btn-arrow">Open Tool →</div>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+</footer>
+
+</body>
+</html>
