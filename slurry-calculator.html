@@ -344,7 +344,15 @@ function calc(){
   const pctCobalt     = totalRefWt > 0 ? cobaltWt   / totalRefWt * 100 : 0;
 
   // --- 9. % Polymer (binder polymer + external polymer, on total slurry basis) ---
-  const pctPolymer = totalWt > 0 ? ((b ? bw * b.polymer/100 : 0) + pw) / totalWt * 100 : 0;
+  const liquidWt = bw + ww + pw;
+
+const pctPolymer_external = liquidWt > 0
+  ? (pw / liquidWt) * 100
+  : 0;
+
+const pctPolymer_preblend = b ? b.polymer : 0;
+
+const pctPolymer = pctPolymer_external + pctPolymer_preblend;
 
   // --- 10. % Sodium ---
   const pctSodium = (b && totalWt > 0) ? bw * b.sodium/100 / totalWt * 100 : 0;
