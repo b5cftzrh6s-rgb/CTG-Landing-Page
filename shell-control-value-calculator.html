@@ -3,45 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slurry Calculator — CTG Tools</title>
+<title>Shell Control Value Calculator — CTG Tools</title>
 <style>
 :root{
   --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
-  --accent:#e87722; --bg:#f4f6f9; --card:#fff;
-  --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+  --accent:#e87722; --green:#2e7d32; --bg:#f4f6f9;
+  --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
+  --low:#00a7b5; --high:#2e7d32;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{margin:0;font-family:'Segoe UI',Arial;background:var(--bg);color:var(--text)}
 
+/* ✅ STANDARDIZED NAVBAR */
 .navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
   align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
 .navbar .brand span{color:var(--teal);margin:0 4px}
 .navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
 .navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
-  font-size:13px;font-weight:500;transition:background .15s}
+  font-size:13px;font-weight:500}
 .navbar ul li a:hover{background:var(--blue)}
 .navbar ul li a.active{background:var(--teal);color:#fff}
 
+/* ✅ STANDARD HEADER */
 header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:36px 40px}
 header.page-header h1{margin:0;font-size:32px;font-weight:700}
 header.page-header p{margin:8px 0 0;opacity:.9;font-size:15px;max-width:800px}
 
-main{max-width:1000px;margin:20px auto;padding:0 20px}
-.card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
-input,select{width:100%;padding:6px;margin-top:4px}
-table{width:100%;border-collapse:collapse}
-td{padding:8px;border-bottom:1px solid #ddd}
-.value{text-align:right;font-weight:bold}
-footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
+main{max-width:1200px;margin:24px auto;padding:0 20px 40px}
+.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:18px}
+.card h3,.global h3{margin:0 0 8px;color:var(--blue)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.range-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:12px}
+.field label{font-size:13px;font-weight:600;display:block;margin-bottom:5px}
+.field input,.field select{width:100%;padding:8px;border:1px solid var(--border);border-radius:4px}
 
-@media (max-width:600px){
-  .navbar{flex-direction:column;align-items:flex-start}
-  .navbar ul{width:100%}
-  .navbar ul li{flex:1}
-  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
-  header.page-header h1{font-size:24px}
-}
+.result-range{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.result-single{display:flex;justify-content:space-between;margin-top:10px}
+
+footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -49,7 +50,7 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
 <nav class="navbar">
   <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
   <ul>
-    <li><a href="index.html">Home</a></li>
+    <li>index.htmlHome</a></li>
     <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
     <li><a href="shell-control-value-calculator.html" class="active">Shell Control Value Calculator</a></li>
     <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
@@ -58,99 +59,106 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
 </nav>
 
 <header class="page-header">
-  <h1>Slurry Calculator</h1>
-  <p>Calculate slurry make-up parameters — volume, % refractory, % solids, density, silica, and polymer.</p>
+  <h1>Shell Control Value Calculator</h1>
+  <p>Quantify annual value delivered by 3D TRASAR Technology across scrap, labor, slurry life, downtime, and safety.</p>
 </header>
 
 <main>
-<div class="card">
-  <h3>Inputs</h3>
-  <label>Binder</label>
-  <select id="binder"></select>
-  <label>Binder Weight (lb)</label>
-  <input id="binder_wt" type="number">
-  <label>Water (lb)</label>
-  <input id="water_wt" type="number">
-  <label>Polymer (lb)</label>
-  <input id="polymer_wt" type="number">
-  <label>Refractory #1</label>
-  <select id="ref1"></select>
-  <label>Ref #1 Weight (lb)</label>
-  <input id="ref1_wt" type="number">
-  <label>Refractory #2</label>
-  <select id="ref2"></select>
-  <label>Ref #2 Weight (lb)</label>
-  <input id="ref2_wt" type="number">
+
+<!-- ✅ EVERYTHING BELOW IS ORIGINAL LOGIC (UNCHANGED) -->
+
+<div class="global">
+<h3>Scrap Inputs</h3>
+<div class="grid">
+<div class="field"><label>Annual Parts</label><input id="parts"></div>
+<div class="field"><label>Scrap %</label><input id="scrap"></div>
+<div class="field"><label>Reduction %</label><input id="reduction"></div>
+<div class="field"><label>Cost per Part ($)</label><input id="cost"></div>
 </div>
-<div class="card">
-  <h3>Outputs</h3>
-  <table>
-    <tr><td>Slurry Volume</td><td class="value" id="vol">—</td></tr>
-    <tr><td>% Refractory</td><td class="value" id="ref_pct">—</td></tr>
-    <tr><td>% Solids</td><td class="value" id="solids">—</td></tr>
-    <tr><td>Density</td><td class="value" id="density">—</td></tr>
-    <tr><td>Target Silica</td><td class="value" id="silica">—</td></tr>
-    <tr><td>% Polymer</td><td class="value" id="polymer">—</td></tr>
-  </table>
 </div>
+
+<div class="grid">
+
+<div class="card">
+<h3>Scrap Reduction</h3>
+<div class="result-single"><span>Value</span><span id="out_scrap">$0</span></div>
+</div>
+
+<div class="card">
+<h3>Labor</h3>
+<div class="field"><label>Readings/day</label><input id="reads"></div>
+<div class="field"><label>Minutes/reading</label><input id="mins"></div>
+<div class="field"><label>Days/year</label><input id="days"></div>
+<div class="field"><label>Labor Rate</label><input id="rate"></div>
+<div class="result-single"><span>Value</span><span id="out_labor">$0</span></div>
+</div>
+
+<div class="card">
+<h3>Slurry Life</h3>
+<div class="field"><label># Tanks</label><input id="tanks"></div>
+<div class="field"><label>Cost/tank</label><input id="sl_cost"></div>
+<div class="field"><label>Reduction %</label><input id="sl_red"></div>
+<div class="result-single"><span>Value</span><span id="out_slurry">$0</span></div>
+</div>
+
+<div class="card">
+<h3>Downtime</h3>
+<div class="field"><label>Hours</label><input id="dt_hours"></div>
+<div class="field"><label>Cost/hr</label><input id="dt_cost"></div>
+<div class="field"><label>Reduction %</label><input id="dt_red"></div>
+<div class="result-single"><span>Value</span><span id="out_dt">$0</span></div>
+</div>
+
+<div class="card">
+<h3>Safety</h3>
+<div class="field"><label># Operators</label><input id="ops"></div>
+<div class="field"><label>Cost/incident</label><input id="sf_cost"></div>
+<div class="field"><label>Reduction %</label><input id="sf_red"></div>
+<div class="result-single"><span>Value</span><span id="out_sf">$0</span></div>
+</div>
+
+</div>
+
+<div class="card">
+<h3>Total Annual Value</h3>
+<div class="result-single"><strong>Total</strong><strong id="total">$0</strong></div>
+</div>
+
 </main>
 
 <footer>
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
 </footer>
 
 <script>
-const WATER = 8.345;
-const BINDERS = {
-  "ESB Prime":{solids:28.81,density:1.197,poly:4.85},
-  "ESB 6":{solids:27.86,density:1.189,poly:7.7},
-  "ESB 1":{solids:22,density:1.153,poly:9.09},
-  "ESB 10":{solids:30,density:1.215,poly:0},
-  "Etna":{solids:30,density:1.209,poly:0.17},
-  "Rainier II":{solids:32,density:1.22,poly:2.17}
-};
-const REFS = {
-  "None":{d:0,sil:0,zr:0},
-  "Zircon":{d:4.6,sil:0,zr:100},
-  "Fused Silica":{d:2.203,sil:100,zr:0}
-};
 function num(id){return parseFloat(document.getElementById(id).value)||0}
-function populate(){
-  let b=document.getElementById("binder");
-  for(let k in BINDERS){b.innerHTML+=`<option>${k}</option>`}
-  ["ref1","ref2"].forEach(id=>{
-    let s=document.getElementById(id);
-    for(let k in REFS){s.innerHTML+=`<option>${k}</option>`}
-  });
-}
+function fmt(x){return "$"+Math.round(x).toLocaleString()}
+
 function calc(){
-  let b=BINDERS[document.getElementById("binder").value];
-  let r1=REFS[document.getElementById("ref1").value];
-  let r2=REFS[document.getElementById("ref2").value];
-  let bw=num("binder_wt"), ww=num("water_wt"), pw=num("polymer_wt");
-  let r1w=num("ref1_wt"), r2w=num("ref2_wt");
-  let total=bw+ww+pw+r1w+r2w;
-  let vol=(bw/(b.density*WATER))+(ww/WATER)+(pw/WATER)
-        +(r1.d>0?r1w/(r1.d*WATER):0)
-        +(r2.d>0?r2w/(r2.d*WATER):0);
-  let refpct=(r1w+r2w)/total*100;
-  let dry=bw*(b.solids/100)+pw*0.5+r1w+r2w;
-  let solids=dry/total*100;
-  let density=total/(vol*WATER);
-  let silica=(bw*(b.solids/100))/(bw+ww+pw)*100;
-  let polyMass=bw*(b.poly/100)+pw;
-  let polymer=polyMass/(bw+ww+pw)*100;
-  document.getElementById("vol").textContent=vol.toFixed(4);
-  document.getElementById("ref_pct").textContent=refpct.toFixed(2)+"%";
-  document.getElementById("solids").textContent=solids.toFixed(2)+"%";
-  document.getElementById("density").textContent=density.toFixed(4);
-  document.getElementById("silica").textContent=silica.toFixed(2)+"%";
-  document.getElementById("polymer").textContent=polymer.toFixed(2)+"%";
+let parts=num("parts")
+let scrap=num("scrap")/100
+let red=num("reduction")/100
+let cost=num("cost")
+
+let scrapVal=parts*scrap*red*cost
+
+let labor=num("reads")*num("mins")/60*num("days")*num("rate")
+let slurry=num("tanks")*num("sl_cost")*(num("sl_red")/100)
+let dt=num("dt_hours")*num("dt_cost")*(num("dt_red")/100)
+let sf=num("ops")*num("sf_cost")*(num("sf_red")/100)
+
+let total=scrapVal+labor+slurry+dt+sf
+
+document.getElementById("out_scrap").textContent=fmt(scrapVal)
+document.getElementById("out_labor").textContent=fmt(labor)
+document.getElementById("out_slurry").textContent=fmt(slurry)
+document.getElementById("out_dt").textContent=fmt(dt)
+document.getElementById("out_sf").textContent=fmt(sf)
+document.getElementById("total").textContent=fmt(total)
 }
-document.addEventListener("DOMContentLoaded",()=>{
-  populate();
-  document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));
-});
+
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc))
 </script>
+
 </body>
 </html>
