@@ -3,144 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shell Control Value Calculator — CTG Tools</title>
+<title>Slurry Calculator — CTG Tools</title>
 <style>
 :root{
   --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
-  --accent:#e87722; --green:#2e7d32; --bg:#f4f6f9;
-  --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
-  --low:#00a7b5; --high:#2e7d32;
+  --accent:#e87722; --bg:#f4f6f9; --card:#fff;
+  --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-.navbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;
-  align-items:center;justify-content:space-between;flex-wrap:wrap}
-.navbar .brand{font-weight:700;padding:20px 0;font-size:18px;letter-spacing:.3px}
-.navbar .brand span{color:var(--teal);font-weight:400;margin:0 4px}
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal);margin:0 4px}
 .navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
-.navbar ul li a{color:#fff;text-decoration:none;padding:20px 22px;display:block;
-  font-size:15px;font-weight:500;transition:background .15s}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
 .navbar ul li a:hover{background:var(--blue)}
 .navbar ul li a.active{background:var(--teal);color:#fff}
 
-header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:32px 40px}
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:36px 40px}
 header.page-header h1{margin:0;font-size:32px;font-weight:700}
-header.page-header p{margin:6px 0 0;opacity:.9;font-size:15px}
+header.page-header p{margin:8px 0 0;opacity:.9;font-size:15px;max-width:800px}
 
-main{max-width:1200px;margin:24px auto;padding:0 20px 40px}
+main{max-width:1000px;margin:20px auto;padding:0 20px}
+.card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
+input,select{width:100%;padding:6px;margin-top:4px}
+table{width:100%;border-collapse:collapse}
+td{padding:8px;border-bottom:1px solid #ddd}
+.value{text-align:right;font-weight:bold}
+footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
 
-.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.card h3,.global h3{margin:0 0 8px;color:var(--blue);font-size:19px;font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.range-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-
-.field{margin-bottom:12px}
-.field label{font-size:13px;font-weight:600;display:block;margin-bottom:5px;color:var(--text)}
-.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;background:#fff}
-.field input:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
-
-.desc{font-size:13px;color:var(--muted);margin-bottom:12px}
-.hint{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic}
-
-button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px}
-.btn{background:var(--accent);color:#fff}
-.btn:hover{background:#c65e14}
-.btn2{background:#666;color:#fff}
-.btn2:hover{background:#4d4d4d}
-.toolbar{margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap}
-
-/* Mode Toggle */
-.mode-toggle{display:flex;background:#eef1f5;padding:4px;border-radius:8px;max-width:520px;margin-bottom:14px}
-.mode-toggle button{flex:1;background:transparent;color:var(--muted);padding:10px 14px;border-radius:6px;font-size:13px;transition:all .15s}
-.mode-toggle button.active{background:var(--blue);color:#fff;box-shadow:0 2px 6px rgba(0,58,112,.25)}
-
-/* Checkbox toggle for revenue */
-.check-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#eef4fb;border-radius:6px;margin-bottom:12px;border:1px solid #cfe0ef}
-.check-toggle input{width:auto;margin:0}
-.check-toggle label{margin:0;font-weight:600;font-size:13px;color:var(--blue);cursor:pointer}
-
-.result-range{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.result-range .r-box{text-align:center;padding:10px;border-radius:6px;background:#f7f9fc}
-.result-range .r-low{border-left:3px solid var(--low)}
-.result-range .r-high{border-left:3px solid var(--high)}
-.result-range .r-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:4px}
-.result-range .r-val{font-size:18px;font-weight:800;color:var(--blue);font-family:Courier New,monospace}
-.result-range .r-low .r-val{color:var(--low)}
-.result-range .r-high .r-val{color:var(--high)}
-
-.result-single{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;align-items:baseline}
-.result-single .r-lbl{font-size:13px;color:var(--muted);font-weight:600}
-.result-single .r-val{font-size:20px;font-weight:800;color:var(--green);font-family:Courier New,monospace}
-
-.mode-panel{display:none}
-.mode-panel.active{display:block}
-
-.hidden{display:none !important}
-
-table{width:100%;border-collapse:collapse;margin-top:8px}
-td,th{padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;text-align:left}
-th{background:#f7f9fc;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.value{text-align:right;font-weight:700;font-family:Courier New,monospace;color:var(--blue);font-size:14px}
-.value.low{color:var(--low)}
-.value.high{color:var(--high)}
-tr.total-row td{font-weight:800;color:var(--blue);background:#eef4fb;font-size:15px}
-
-.total-banner{margin-top:24px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:26px 32px;border-radius:8px;box-shadow:0 6px 16px rgba(0,58,112,.25)}
-.total-banner .t-title{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:.9;margin-bottom:10px}
-.total-banner .t-range{font-size:36px;font-weight:800;color:#ffc000;line-height:1.15}
-.total-banner .t-mid{font-size:14px;opacity:.9;margin-top:8px}
-.total-banner .t-mid strong{color:#ffc000;font-weight:700}
-.total-banner .t-capture{border-top:1px solid rgba(255,255,255,.2);margin-top:16px;padding-top:14px;font-size:13px;opacity:.9;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.total-banner .t-capture strong{color:#ffc000}
-
-footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
-
-/* Print */
-.print-only{display:none}
-@media print {
-  @page { size: letter; margin: 0.5in; }
-  body { background: #fff; }
-  .navbar, .toolbar, header.page-header, footer, main > .global, main > .card, main > .total-banner { display: none !important; }
-  .print-only { display: block !important; }
-  main { max-width: 100%; margin: 0; padding: 0; }
-}
-.print-page{background:#fff;padding:30px 40px;color:#1f2a3a;font-family:Segoe UI,Arial}
-.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--blue);padding-bottom:16px;margin-bottom:24px}
-.print-logo{display:flex;align-items:center;gap:14px}
-.print-logo .logo-mark{width:60px;height:60px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px}
-.print-logo .brand-name{font-size:22px;font-weight:800;color:var(--blue);letter-spacing:.5px}
-.print-logo .brand-sub{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
-.print-title-block{text-align:right}
-.print-title-block h1{margin:0;font-size:22px;color:var(--blue)}
-.print-title-block .date{font-size:11px;color:var(--muted);margin-top:4px}
-.print-section{margin-bottom:20px;page-break-inside:avoid}
-.print-section h2{font-size:13px;color:#fff;background:var(--blue);padding:8px 14px;margin:0;letter-spacing:.5px;text-transform:uppercase;border-radius:4px 4px 0 0}
-.print-section table{width:100%;border-collapse:collapse;margin-top:0;border:1px solid var(--border)}
-.print-section td,.print-section th{padding:6px 12px;font-size:12px;border-bottom:1px solid #eef1f5}
-.print-section th{background:#f7f9fc;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:right}
-.print-section th:first-child{text-align:left}
-.print-section td:nth-child(2),.print-section td:nth-child(3){text-align:right;font-weight:700;font-family:Courier New,monospace;color:var(--blue)}
-.print-section tr:nth-child(even) td{background:#f7f9fc}
-.print-section tr:last-child td{border-bottom:none}
-.print-section tr.p-total td{background:#eef4fb;color:var(--blue);font-weight:800;font-size:13px;border-top:2px solid var(--blue)}
-.print-total-banner{background:var(--blue);color:#fff;padding:16px 20px;border-radius:6px;margin-top:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.print-total-banner .pb-title{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-bottom:6px}
-.print-total-banner .pb-range{font-size:22px;font-weight:800;color:#ffc000}
-.print-total-banner .pb-mid{font-size:12px;margin-top:6px;opacity:.9}
-.print-footer{border-top:1px solid var(--border);padding-top:10px;margin-top:20px;text-align:center;font-size:10px;color:var(--muted)}
-.print-footer .tagline{font-weight:700;color:var(--blue);margin-bottom:4px}
-
-@media (max-width:768px){
-  .navbar{flex-direction:column;align-items:flex-start;padding:0 16px}
-  .navbar .brand{padding:14px 0;font-size:16px}
+@media (max-width:600px){
+  .navbar{flex-direction:column;align-items:flex-start}
   .navbar ul{width:100%}
   .navbar ul li{flex:1}
-  .navbar ul li a{text-align:center;padding:12px 6px;font-size:12px}
-  header.page-header{padding:24px 20px}
+  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
   header.page-header h1{font-size:24px}
-  .total-banner .t-range{font-size:26px}
-  .range-row{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -149,418 +49,108 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 <nav class="navbar">
   <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
   <ul>
-    <li>index.htmlHome</a></li>
+    <li><a href="index.html">Home</a></li>
     <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
-    <li><a href="shell-control-value-calculator.html" class="active">Shell Control Value Calculator</a></li>
-    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
+    <li><a href="shell-control-value-calculator.html">Shell Control Value Calculator</a></li>
+    <li><a href="slurry-calculator.html" class="active">Slurry Calculator</a></li>
     <li><a href="tank-rpm-calculator.html">Tank RPM</a></li>
   </ul>
 </nav>
 
 <header class="page-header">
-  <h1>Shell Control Value Calculator</h1>
-  <p>3D TRASAR Technology for Shell Control — powered by Rheonics SlurrySense</p>
+  <h1>Slurry Calculator</h1>
+  <p>Calculate slurry make-up parameters — volume, % refractory, % solids, density, silica, and polymer.</p>
 </header>
 
 <main>
-
-<div class="toolbar">
-  <button class="btn" onclick="window.print()">Print / Save PDF</button>
-  <button class="btn2" onclick="resetAll()">Reset</button>
-</div>
-
-<!-- ============ SCRAP INPUT MODE TOGGLE ============ -->
-<div class="global">
-  <h3>Scrap Input Method</h3>
-  <div class="desc">Choose how you'd like to model scrap value. Toggle between Cost-per-Part or Annual Scrap Dollars.</div>
-
-  <div class="mode-toggle">
-    <button id="mode_btn_A" class="active" onclick="setMode('A')">Mode A — Cost / Selling Price per Part</button>
-    <button id="mode_btn_B" onclick="setMode('B')">Mode B — Annual Scrap $ + Scrap %</button>
-  </div>
-
-  <!-- MODE A: Cost & Price Ranges -->
-  <div id="mode_A" class="mode-panel active">
-    <div class="range-row">
-      <div class="field"><label>Annual Parts</label><input id="parts" type="number" step="any"></div>
-      <div class="field"><label>Scrap %</label><input id="scrap" type="number" step="any"></div>
-    </div>
-    <div class="range-row">
-      <div class="field"><label>Cost per Part — Low ($)</label><input id="cost_low" type="number" step="any"></div>
-      <div class="field"><label>Cost per Part — High ($)</label><input id="cost_high" type="number" step="any"></div>
-    </div>
-    <div class="hint">Low = conservative, High = optimistic. Entering only one value will treat it as a single point.</div>
-  </div>
-
-  <!-- MODE B: Annual Scrap $ -->
-  <div id="mode_B" class="mode-panel">
-    <div class="range-row">
-      <div class="field"><label>Annual Shell-Related Scrap ($)</label><input id="scrap_dollars" type="number" step="any"></div>
-      <div class="field"><label>Shell-Related Scrap Rate (%)</label><input id="scrap_rate" type="number" step="any"></div>
-    </div>
-    <div class="hint">If precise part-level cost is unknown, enter total shell-related scrap dollars for the year.</div>
-  </div>
-
-  <div class="field" style="max-width:260px;margin-top:12px">
-    <label>Expected Scrap Reduction (%)</label>
-    <input id="reduction" type="number" step="any">
-  </div>
-</div>
-
-<!-- ============ SELLING PRICE / REVENUE TOGGLE ============ -->
-<div class="global">
-  <h3>Revenue Uplift Inputs</h3>
-  <div class="check-toggle">
-    <input type="checkbox" id="enable_revenue" onchange="toggleRevenue()">
-    <label for="enable_revenue">Include Revenue Uplift (contribution margin on recovered good parts)</label>
-  </div>
-
-  <div id="revenue_inputs" class="hidden">
-    <div class="range-row">
-      <div class="field"><label>Selling Price — Low ($)</label><input id="price_low" type="number" step="any"></div>
-      <div class="field"><label>Selling Price — High ($)</label><input id="price_high" type="number" step="any"></div>
-    </div>
-    <div class="field" style="max-width:260px"><label>Variable Cost %</label><input id="vc" type="number" step="any"></div>
-    <div class="hint">Revenue Uplift = recovered parts × selling price × (1 − VC%). Requires Mode A (part-level parts count).</div>
-  </div>
-</div>
-
-<!-- ============ SHARED PLANT INPUTS ============ -->
-<div class="global">
-  <h3>Plant Inputs (shared)</h3>
-  <div class="grid">
-    <div class="field"><label># Slurry Tanks</label><input id="tanks" type="number" step="any"></div>
-    <div class="field"><label>Labor Rate ($/hr)</label><input id="labor_rate" type="number" step="any"></div>
-  </div>
-</div>
-
-<!-- ============ VALUE DRIVER CARDS ============ -->
-<div class="grid">
-
-  <div class="card">
-    <h3>Scrap Reduction</h3>
-    <div class="desc">Recovered value from reducing shell-related defects and scrap.</div>
-    <div class="field"><label>Recovered Parts (Mode A only)</label><input id="recovered" readonly></div>
-    <div class="result-range">
-      <div class="r-box r-low"><div class="r-lbl">Low</div><div class="r-val" id="scrap_low_out">$0</div></div>
-      <div class="r-box r-high"><div class="r-lbl">High</div><div class="r-val" id="scrap_high_out">$0</div></div>
-    </div>
-  </div>
-
-  <div class="card" id="revenue_card">
-    <h3>Revenue Uplift</h3>
-    <div class="desc">Additional contribution margin from converting scrap into sellable parts.</div>
-    <div class="field"><label>Revenue Gross Range ($)</label><input id="rev_gross" readonly></div>
-    <div class="field"><label>Contribution Margin</label><input id="cm" readonly></div>
-    <div class="result-range">
-      <div class="r-box r-low"><div class="r-lbl">Low</div><div class="r-val" id="rev_low_out">$0</div></div>
-      <div class="r-box r-high"><div class="r-lbl">High</div><div class="r-val" id="rev_high_out">$0</div></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Labor Reduction</h3>
-    <div class="desc">Savings from eliminating manual viscosity readings and data logging.</div>
-    <div class="field"><label>Readings/day</label><input id="reads" type="number" step="any"></div>
-    <div class="field"><label>Minutes/reading</label><input id="mins" type="number" step="any"></div>
-    <div class="field"><label>Days/year</label><input id="days" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_labor">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Slurry Life Extension</h3>
-    <div class="desc">Reduced material waste and disposal costs from stable slurry tank control.</div>
-    <div class="field"><label>Cost/tank ($)</label><input id="sl_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="sl_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_slurry">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Downtime Reduction</h3>
-    <div class="desc">Avoided production losses from fewer interruptions and process issues.</div>
-    <div class="field"><label>Hours/year</label><input id="dt_hours" type="number" step="any"></div>
-    <div class="field"><label>Cost/hr</label><input id="dt_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="dt_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_dt">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Safety</h3>
-    <div class="desc">Reduced risk exposure from eliminating manual tank access and sampling.</div>
-    <div class="field"><label># Operators</label><input id="ops" type="number" step="any"></div>
-    <div class="field"><label>Cost/incident</label><input id="sf_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="sf_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_sf">$0</span></div>
-  </div>
-
-</div>
-
-<!-- ============ SUMMARY TABLE ============ -->
 <div class="card">
-  <h3>Value Bridge Summary</h3>
+  <h3>Inputs</h3>
+  <label>Binder</label>
+  <select id="binder"></select>
+  <label>Binder Weight (lb)</label>
+  <input id="binder_wt" type="number">
+  <label>Water (lb)</label>
+  <input id="water_wt" type="number">
+  <label>Polymer (lb)</label>
+  <input id="polymer_wt" type="number">
+  <label>Refractory #1</label>
+  <select id="ref1"></select>
+  <label>Ref #1 Weight (lb)</label>
+  <input id="ref1_wt" type="number">
+  <label>Refractory #2</label>
+  <select id="ref2"></select>
+  <label>Ref #2 Weight (lb)</label>
+  <input id="ref2_wt" type="number">
+</div>
+<div class="card">
+  <h3>Outputs</h3>
   <table>
-    <thead>
-      <tr><th>Value Driver</th><th style="text-align:right">Low</th><th style="text-align:right">High</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Scrap Reduction</td><td class="value low" id="sum_scrap_low">$0</td><td class="value high" id="sum_scrap_high">$0</td></tr>
-      <tr id="sum_rev_row"><td>Revenue Uplift</td><td class="value low" id="sum_rev_low">$0</td><td class="value high" id="sum_rev_high">$0</td></tr>
-      <tr><td>Labor Reduction</td><td class="value" id="sum_labor_low">$0</td><td class="value" id="sum_labor_high">$0</td></tr>
-      <tr><td>Slurry Life Extension</td><td class="value" id="sum_slurry_low">$0</td><td class="value" id="sum_slurry_high">$0</td></tr>
-      <tr><td>Downtime Reduction</td><td class="value" id="sum_dt_low">$0</td><td class="value" id="sum_dt_high">$0</td></tr>
-      <tr><td>Safety</td><td class="value" id="sum_sf_low">$0</td><td class="value" id="sum_sf_high">$0</td></tr>
-      <tr class="total-row"><td>TOTAL</td><td class="value" id="sum_total_low">$0</td><td class="value" id="sum_total_high">$0</td></tr>
-    </tbody>
+    <tr><td>Slurry Volume</td><td class="value" id="vol">—</td></tr>
+    <tr><td>% Refractory</td><td class="value" id="ref_pct">—</td></tr>
+    <tr><td>% Solids</td><td class="value" id="solids">—</td></tr>
+    <tr><td>Density</td><td class="value" id="density">—</td></tr>
+    <tr><td>Target Silica</td><td class="value" id="silica">—</td></tr>
+    <tr><td>% Polymer</td><td class="value" id="polymer">—</td></tr>
   </table>
 </div>
-
-<!-- ============ TOTAL BANNER ============ -->
-<div class="total-banner">
-  <div class="t-title">Total Annual Value Delivered</div>
-  <div class="t-range" id="banner_range">$0 — $0</div>
-  <div class="t-mid">Midpoint (expected value): <strong id="banner_mid">$0</strong></div>
-  <div class="t-capture">
-    <span>Estimated Ecolab Value Capture (30%)</span>
-    <strong id="banner_capture">$0 — $0</strong>
-  </div>
-</div>
-
 </main>
-
-<!-- ============ PRINT EXPORT ============ -->
-<div class="print-only">
-  <div class="print-page">
-    <div class="print-header">
-      <div class="print-logo">
-        <div class="logo-mark">N</div>
-        <div>
-          <div class="brand-name">NALCO WATER</div>
-          <div class="brand-sub">An Ecolab Company</div>
-        </div>
-      </div>
-      <div class="print-title-block">
-        <h1>Shell Control Value Report</h1>
-        <div class="date" id="print_date"></div>
-      </div>
-    </div>
-
-    <div class="print-section">
-      <h2>Input Summary</h2>
-      <table>
-        <tr><td>Input Mode</td><td colspan="2" id="p_mode">—</td></tr>
-        <tr><td>Annual Parts</td><td colspan="2" id="p_parts">—</td></tr>
-        <tr><td>Cost per Part Range</td><td colspan="2" id="p_cost_range">—</td></tr>
-        <tr><td>Annual Scrap $ / Rate</td><td colspan="2" id="p_scrap_dollars">—</td></tr>
-        <tr><td>Selling Price Range</td><td colspan="2" id="p_price_range">—</td></tr>
-        <tr><td>Variable Cost %</td><td colspan="2" id="p_vc">—</td></tr>
-        <tr><td># Slurry Tanks</td><td colspan="2" id="p_tanks">—</td></tr>
-        <tr><td>Labor Rate ($/hr)</td><td colspan="2" id="p_rate">—</td></tr>
-      </table>
-    </div>
-
-    <div class="print-section">
-      <h2>Value Bridge — Full Breakdown</h2>
-      <table>
-        <thead><tr><th>Value Driver</th><th>Low</th><th>High</th></tr></thead>
-        <tbody>
-          <tr><td>Scrap Reduction</td><td id="p_scrap_low">—</td><td id="p_scrap_high">—</td></tr>
-          <tr id="p_rev_row"><td>Revenue Uplift</td><td id="p_rev_low">—</td><td id="p_rev_high">—</td></tr>
-          <tr><td>Labor Reduction</td><td id="p_labor_low">—</td><td id="p_labor_high">—</td></tr>
-          <tr><td>Slurry Life Extension</td><td id="p_slurry_low">—</td><td id="p_slurry_high">—</td></tr>
-          <tr><td>Downtime Reduction</td><td id="p_dt_low">—</td><td id="p_dt_high">—</td></tr>
-          <tr><td>Safety</td><td id="p_sf_low">—</td><td id="p_sf_high">—</td></tr>
-          <tr class="p-total"><td>TOTAL ANNUAL VALUE</td><td id="p_total_low">—</td><td id="p_total_high">—</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="print-total-banner">
-      <div class="pb-title">Total Annual Value Delivered</div>
-      <div class="pb-range" id="p_banner_range">$0 — $0</div>
-      <div class="pb-mid">Midpoint (expected): <strong id="p_banner_mid">$0</strong> · Ecolab Value Capture (30%): <strong id="p_banner_capture">$0 — $0</strong></div>
-    </div>
-
-    <div class="print-footer">
-      <div class="tagline">3D TRASAR&trade; Technology for Shell Control &nbsp;·&nbsp; Rheonics SlurrySense&trade;</div>
-      <div>3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only</div>
-    </div>
-  </div>
-</div>
 
 <footer>
   3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
 </footer>
 
 <script>
-let mode = 'A';
-
-function num(id){ const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
-function fmt(x){ return "$" + Math.round(x).toLocaleString(); }
-function fmtRange(lo, hi){ return fmt(lo) + " — " + fmt(hi); }
-
-function resolveRange(lowId, highId){
-  let lo = num(lowId), hi = num(highId);
-  if (lo === 0 && hi > 0) lo = hi;
-  if (hi === 0 && lo > 0) hi = lo;
-  if (lo > hi) { const t = lo; lo = hi; hi = t; }
-  return { low: lo, high: hi };
+const WATER = 8.345;
+const BINDERS = {
+  "ESB Prime":{solids:28.81,density:1.197,poly:4.85},
+  "ESB 6":{solids:27.86,density:1.189,poly:7.7},
+  "ESB 1":{solids:22,density:1.153,poly:9.09},
+  "ESB 10":{solids:30,density:1.215,poly:0},
+  "Etna":{solids:30,density:1.209,poly:0.17},
+  "Rainier II":{solids:32,density:1.22,poly:2.17}
+};
+const REFS = {
+  "None":{d:0,sil:0,zr:0},
+  "Zircon":{d:4.6,sil:0,zr:100},
+  "Fused Silica":{d:2.203,sil:100,zr:0}
+};
+function num(id){return parseFloat(document.getElementById(id).value)||0}
+function populate(){
+  let b=document.getElementById("binder");
+  for(let k in BINDERS){b.innerHTML+=`<option>${k}</option>`}
+  ["ref1","ref2"].forEach(id=>{
+    let s=document.getElementById(id);
+    for(let k in REFS){s.innerHTML+=`<option>${k}</option>`}
+  });
 }
-
-function setMode(m){
-  mode = m;
-  document.getElementById('mode_A').classList.toggle('active', m === 'A');
-  document.getElementById('mode_B').classList.toggle('active', m === 'B');
-  document.getElementById('mode_btn_A').classList.toggle('active', m === 'A');
-  document.getElementById('mode_btn_B').classList.toggle('active', m === 'B');
-  calc();
-}
-
-function toggleRevenue(){
-  const on = document.getElementById('enable_revenue').checked;
-  document.getElementById('revenue_inputs').classList.toggle('hidden', !on);
-  document.getElementById('revenue_card').classList.toggle('hidden', !on);
-  document.getElementById('sum_rev_row').classList.toggle('hidden', !on);
-  calc();
-}
-
 function calc(){
-  const tanks = num('tanks');
-  const rate  = num('labor_rate');
-  const revEnabled = document.getElementById('enable_revenue').checked;
-
-  // --- Scrap Calculation (mode-dependent) ---
-  let scrapLow = 0, scrapHigh = 0, recovered = 0;
-  const redFrac = num('reduction') / 100;
-
-  if (mode === 'A') {
-    const parts = num('parts');
-    const scrapFrac = num('scrap') / 100;
-    recovered = parts * scrapFrac * redFrac;
-    const cost = resolveRange('cost_low', 'cost_high');
-    scrapLow  = recovered * cost.low;
-    scrapHigh = recovered * cost.high;
-  } else {
-    // Mode B — Annual Scrap $
-    const scrapDollars = num('scrap_dollars');
-    scrapLow  = scrapDollars * redFrac;
-    scrapHigh = scrapDollars * redFrac;
-    // If user has parts info via scrap_rate, allow recovered parts back-calc for revenue
-    // recovered stays 0 → revenue disabled unless Mode A
-  }
-
-  document.getElementById('recovered').value = recovered > 0 ? Math.round(recovered) : '';
-
-  // --- Revenue Uplift (Mode A only + enabled) ---
-  let revLow = 0, revHigh = 0;
-  const price = resolveRange('price_low', 'price_high');
-  const vc = num('vc') / 100;
-
-  if (revEnabled && mode === 'A' && recovered > 0) {
-    revLow  = recovered * price.low  * (1 - vc);
-    revHigh = recovered * price.high * (1 - vc);
-    document.getElementById('rev_gross').value =
-      Math.round(recovered * price.low).toLocaleString() + " — " + Math.round(recovered * price.high).toLocaleString();
-    document.getElementById('cm').value = vc > 0 ? (1 - vc).toFixed(2) : '';
-  } else {
-    document.getElementById('rev_gross').value = '';
-    document.getElementById('cm').value = '';
-  }
-
-  // --- Fixed drivers ---
-  const labor  = tanks * num('reads') * num('days') * (num('mins')/60) * rate;
-  const slurry = tanks * num('sl_cost') * (num('sl_red')/100);
-  const dt     = num('dt_hours') * (num('dt_red')/100) * num('dt_cost');
-  const sf     = num('ops') * num('sf_cost') * (num('sf_red')/100);
-  const fixed  = labor + slurry + dt + sf;
-
-  const totalLow  = scrapLow  + revLow  + fixed;
-  const totalHigh = scrapHigh + revHigh + fixed;
-  const totalMid  = (totalLow + totalHigh) / 2;
-  const capLow    = totalLow * 0.30;
-  const capHigh   = totalHigh * 0.30;
-
-  // Card outputs
-  document.getElementById('scrap_low_out').textContent  = fmt(scrapLow);
-  document.getElementById('scrap_high_out').textContent = fmt(scrapHigh);
-  document.getElementById('rev_low_out').textContent    = fmt(revLow);
-  document.getElementById('rev_high_out').textContent   = fmt(revHigh);
-  document.getElementById('out_labor').textContent      = fmt(labor);
-  document.getElementById('out_slurry').textContent     = fmt(slurry);
-  document.getElementById('out_dt').textContent         = fmt(dt);
-  document.getElementById('out_sf').textContent         = fmt(sf);
-
-  // Summary
-  document.getElementById('sum_scrap_low').textContent   = fmt(scrapLow);
-  document.getElementById('sum_scrap_high').textContent  = fmt(scrapHigh);
-  document.getElementById('sum_rev_low').textContent     = fmt(revLow);
-  document.getElementById('sum_rev_high').textContent    = fmt(revHigh);
-  document.getElementById('sum_labor_low').textContent   = fmt(labor);
-  document.getElementById('sum_labor_high').textContent  = fmt(labor);
-  document.getElementById('sum_slurry_low').textContent  = fmt(slurry);
-  document.getElementById('sum_slurry_high').textContent = fmt(slurry);
-  document.getElementById('sum_dt_low').textContent      = fmt(dt);
-  document.getElementById('sum_dt_high').textContent     = fmt(dt);
-  document.getElementById('sum_sf_low').textContent      = fmt(sf);
-  document.getElementById('sum_sf_high').textContent     = fmt(sf);
-  document.getElementById('sum_total_low').textContent   = fmt(totalLow);
-  document.getElementById('sum_total_high').textContent  = fmt(totalHigh);
-
-  // Banner
-  document.getElementById('banner_range').textContent   = fmtRange(totalLow, totalHigh);
-  document.getElementById('banner_mid').textContent     = fmt(totalMid);
-  document.getElementById('banner_capture').textContent = fmtRange(capLow, capHigh);
-
-  // --- Print export ---
-  const dateStr = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-  document.getElementById('print_date').textContent = dateStr;
-
-  document.getElementById('p_mode').textContent = mode === 'A' ? 'Mode A — Cost per Part' : 'Mode B — Annual Scrap $';
-  document.getElementById('p_parts').textContent = mode === 'A' && num('parts') > 0 ? num('parts').toLocaleString() : '—';
-  const cost = resolveRange('cost_low', 'cost_high');
-  document.getElementById('p_cost_range').textContent = (mode === 'A' && (cost.low > 0 || cost.high > 0)) ? fmtRange(cost.low, cost.high) : '—';
-  document.getElementById('p_scrap_dollars').textContent = mode === 'B' && num('scrap_dollars') > 0
-    ? fmt(num('scrap_dollars')) + ' at ' + (num('scrap_rate') || 0) + '%' : '—';
-  document.getElementById('p_price_range').textContent = (revEnabled && (price.low > 0 || price.high > 0)) ? fmtRange(price.low, price.high) : '—';
-  document.getElementById('p_vc').textContent = revEnabled && vc > 0 ? (vc*100).toFixed(1) + '%' : '—';
-  document.getElementById('p_tanks').textContent = tanks > 0 ? tanks : '—';
-  document.getElementById('p_rate').textContent = rate > 0 ? fmt(rate) + '/hr' : '—';
-
-  document.getElementById('p_scrap_low').textContent   = fmt(scrapLow);
-  document.getElementById('p_scrap_high').textContent  = fmt(scrapHigh);
-  document.getElementById('p_rev_low').textContent     = fmt(revLow);
-  document.getElementById('p_rev_high').textContent    = fmt(revHigh);
-  document.getElementById('p_labor_low').textContent   = fmt(labor);
-  document.getElementById('p_labor_high').textContent  = fmt(labor);
-  document.getElementById('p_slurry_low').textContent  = fmt(slurry);
-  document.getElementById('p_slurry_high').textContent = fmt(slurry);
-  document.getElementById('p_dt_low').textContent      = fmt(dt);
-  document.getElementById('p_dt_high').textContent     = fmt(dt);
-  document.getElementById('p_sf_low').textContent      = fmt(sf);
-  document.getElementById('p_sf_high').textContent     = fmt(sf);
-  document.getElementById('p_total_low').textContent   = fmt(totalLow);
-  document.getElementById('p_total_high').textContent  = fmt(totalHigh);
-
-  document.getElementById('p_banner_range').textContent   = fmtRange(totalLow, totalHigh);
-  document.getElementById('p_banner_mid').textContent     = fmt(totalMid);
-  document.getElementById('p_banner_capture').textContent = fmtRange(capLow, capHigh);
-
-  // Hide revenue row in print if disabled
-  document.getElementById('p_rev_row').style.display = revEnabled ? '' : 'none';
+  let b=BINDERS[document.getElementById("binder").value];
+  let r1=REFS[document.getElementById("ref1").value];
+  let r2=REFS[document.getElementById("ref2").value];
+  let bw=num("binder_wt"), ww=num("water_wt"), pw=num("polymer_wt");
+  let r1w=num("ref1_wt"), r2w=num("ref2_wt");
+  let total=bw+ww+pw+r1w+r2w;
+  let vol=(bw/(b.density*WATER))+(ww/WATER)+(pw/WATER)
+        +(r1.d>0?r1w/(r1.d*WATER):0)
+        +(r2.d>0?r2w/(r2.d*WATER):0);
+  let refpct=(r1w+r2w)/total*100;
+  let dry=bw*(b.solids/100)+pw*0.5+r1w+r2w;
+  let solids=dry/total*100;
+  let density=total/(vol*WATER);
+  let silica=(bw*(b.solids/100))/(bw+ww+pw)*100;
+  let polyMass=bw*(b.poly/100)+pw;
+  let polymer=polyMass/(bw+ww+pw)*100;
+  document.getElementById("vol").textContent=vol.toFixed(4);
+  document.getElementById("ref_pct").textContent=refpct.toFixed(2)+"%";
+  document.getElementById("solids").textContent=solids.toFixed(2)+"%";
+  document.getElementById("density").textContent=density.toFixed(4);
+  document.getElementById("silica").textContent=silica.toFixed(2)+"%";
+  document.getElementById("polymer").textContent=polymer.toFixed(2)+"%";
 }
-
-function resetAll(){
-  document.querySelectorAll('input').forEach(i => { if (!i.readOnly && i.type !== 'checkbox') i.value = ''; });
-  document.getElementById('enable_revenue').checked = false;
-  toggleRevenue();
-  setMode('A');
-}
-
-document.querySelectorAll('input').forEach(i => i.addEventListener('input', calc));
-document.addEventListener('DOMContentLoaded', () => {
-  toggleRevenue();
-  calc();
+document.addEventListener("DOMContentLoaded",()=>{
+  populate();
+  document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));
 });
 </script>
-
 </body>
 </html>
