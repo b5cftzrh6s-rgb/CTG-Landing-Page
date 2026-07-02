@@ -144,11 +144,11 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 <nav class="navbar">
   <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
   <ul>
-    <li><a href="index.html">Home</a></li>
-    <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
-    <li><a href="shell-control-value-calculator.html" class="active">Shell Control Value Calculator</a></li>
-    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
-    <li><a href="tank-rpm-calculator.html">Tank RPM</a></li>
+    <li>index.htmlHome</a></li>
+    <li>shell-control-correlation.htmlShell Control Correlation</a></li>
+    <li>shell-control-value-calculator.htmlShell Control Value Calculator</a></li>
+    <li>slurry-calculator.htmlSlurry Calculator</a></li>
+    <li>tank-rpm-calculator.htmlTank RPM</a></li>
   </ul>
 </nav>
 
@@ -252,6 +252,16 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
   </div>
 
   <div class="card">
+    <h3>Rework Labor Reduction</h3>
+    <div class="desc">Annual labor savings from reducing rework hours through stable shell viscosity control.</div>
+    <div class="field"><label>Rework Hours per Month</label><input id="rw_hours" type="number" step="any"></div>
+    <div class="field"><label>Rework Labor Rate ($/hr)</label><input id="rw_rate" type="number" step="any"></div>
+    <div class="field"><label>Rework Reduction (%)</label><input id="rw_red" type="number" step="any"></div>
+    <div class="result-single"><span class="r-lbl">Annual Value</span><span class="r-val" id="out_rework">$0</span></div>
+    <div class="hint">Formula: monthly hours × 12 × labor rate × reduction%</div>
+  </div>
+
+  <div class="card">
     <h3>Labor Reduction</h3>
     <div class="desc">Savings from eliminating manual viscosity readings and data logging.</div>
     <div class="field"><label>Readings/day</label><input id="reads" type="number" step="any"></div>
@@ -298,6 +308,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
     <tbody>
       <tr><td>Scrap Reduction</td><td class="value low" id="sum_scrap_low">$0</td><td class="value high" id="sum_scrap_high">$0</td></tr>
       <tr id="sum_rev_row"><td>Revenue Uplift</td><td class="value low" id="sum_rev_low">$0</td><td class="value high" id="sum_rev_high">$0</td></tr>
+      <tr><td>Rework Labor Reduction</td><td class="value" id="sum_rework_low">$0</td><td class="value" id="sum_rework_high">$0</td></tr>
       <tr><td>Labor Reduction</td><td class="value" id="sum_labor_low">$0</td><td class="value" id="sum_labor_high">$0</td></tr>
       <tr><td>Slurry Life Extension</td><td class="value" id="sum_slurry_low">$0</td><td class="value" id="sum_slurry_high">$0</td></tr>
       <tr><td>Downtime Reduction</td><td class="value" id="sum_dt_low">$0</td><td class="value" id="sum_dt_high">$0</td></tr>
@@ -346,6 +357,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
         <tr><td>Annual Scrap $ / Rate</td><td colspan="2" id="p_scrap_dollars">—</td></tr>
         <tr><td>Selling Price Range</td><td colspan="2" id="p_price_range">—</td></tr>
         <tr><td>Variable Cost %</td><td colspan="2" id="p_vc">—</td></tr>
+        <tr><td>Rework Hours/Month · Rate · Reduction%</td><td colspan="2" id="p_rework_inputs">—</td></tr>
         <tr><td># Slurry Tanks</td><td colspan="2" id="p_tanks">—</td></tr>
         <tr><td>Labor Rate ($/hr)</td><td colspan="2" id="p_rate">—</td></tr>
       </table>
@@ -358,6 +370,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
         <tbody>
           <tr><td>Scrap Reduction</td><td id="p_scrap_low">—</td><td id="p_scrap_high">—</td></tr>
           <tr id="p_rev_row"><td>Revenue Uplift</td><td id="p_rev_low">—</td><td id="p_rev_high">—</td></tr>
+          <tr><td>Rework Labor Reduction</td><td id="p_rework_low">—</td><td id="p_rework_high">—</td></tr>
           <tr><td>Labor Reduction</td><td id="p_labor_low">—</td><td id="p_labor_high">—</td></tr>
           <tr><td>Slurry Life Extension</td><td id="p_slurry_low">—</td><td id="p_slurry_high">—</td></tr>
           <tr><td>Downtime Reduction</td><td id="p_dt_low">—</td><td id="p_dt_high">—</td></tr>
@@ -423,10 +436,9 @@ function calc(){
   var rate  = num('labor_rate');
   var revEnabled = document.getElementById('enable_revenue').checked;
 
-  // ---- Scrap Calculation (mode-dependent) ----
+  // Scrap
   var scrapLow = 0, scrapHigh = 0, recovered = 0;
   var redFrac = num('reduction') / 100;
-
   if (mode === 'A') {
     var parts = num('parts');
     var scrapFrac = num('scrap') / 100;
@@ -439,14 +451,12 @@ function calc(){
     scrapLow  = scrapDollars * redFrac;
     scrapHigh = scrapDollars * redFrac;
   }
-
   document.getElementById('recovered').value = recovered > 0 ? Math.round(recovered) : '';
 
-  // ---- Revenue Uplift ----
+  // Revenue
   var revLow = 0, revHigh = 0;
   var price = resolveRange('price_low', 'price_high');
   var vc = num('vc') / 100;
-
   if (revEnabled && mode === 'A' && recovered > 0) {
     revLow  = recovered * price.low  * (1 - vc);
     revHigh = recovered * price.high * (1 - vc);
@@ -458,12 +468,18 @@ function calc(){
     document.getElementById('cm').value = '';
   }
 
-  // ---- Fixed drivers ----
+  // Rework Labor Reduction
+  var rwHours = num('rw_hours');
+  var rwRate  = num('rw_rate');
+  var rwRed   = num('rw_red') / 100;
+  var rework  = rwHours * 12 * rwRate * rwRed;
+
+  // Fixed drivers
   var labor  = tanks * num('reads') * num('days') * (num('mins')/60) * rate;
   var slurry = tanks * num('sl_cost') * (num('sl_red')/100);
   var dt     = num('dt_hours') * (num('dt_red')/100) * num('dt_cost');
   var sf     = num('ops') * num('sf_cost') * (num('sf_red')/100);
-  var fixed  = labor + slurry + dt + sf;
+  var fixed  = rework + labor + slurry + dt + sf;
 
   var totalLow  = scrapLow  + revLow  + fixed;
   var totalHigh = scrapHigh + revHigh + fixed;
@@ -476,6 +492,7 @@ function calc(){
   document.getElementById('scrap_high_out').textContent = fmt(scrapHigh);
   document.getElementById('rev_low_out').textContent    = fmt(revLow);
   document.getElementById('rev_high_out').textContent   = fmt(revHigh);
+  document.getElementById('out_rework').textContent     = fmt(rework);
   document.getElementById('out_labor').textContent      = fmt(labor);
   document.getElementById('out_slurry').textContent     = fmt(slurry);
   document.getElementById('out_dt').textContent         = fmt(dt);
@@ -486,6 +503,8 @@ function calc(){
   document.getElementById('sum_scrap_high').textContent  = fmt(scrapHigh);
   document.getElementById('sum_rev_low').textContent     = fmt(revLow);
   document.getElementById('sum_rev_high').textContent    = fmt(revHigh);
+  document.getElementById('sum_rework_low').textContent  = fmt(rework);
+  document.getElementById('sum_rework_high').textContent = fmt(rework);
   document.getElementById('sum_labor_low').textContent   = fmt(labor);
   document.getElementById('sum_labor_high').textContent  = fmt(labor);
   document.getElementById('sum_slurry_low').textContent  = fmt(slurry);
@@ -502,18 +521,20 @@ function calc(){
   document.getElementById('banner_mid').textContent     = fmt(totalMid);
   document.getElementById('banner_capture').textContent = fmtRange(capLow, capHigh);
 
-  // ---- Print export ----
+  // Print export
   var dateStr = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
   document.getElementById('print_date').textContent = dateStr;
 
   document.getElementById('p_mode').textContent = mode === 'A' ? 'Mode A — Cost per Part' : 'Mode B — Annual Scrap $';
   document.getElementById('p_parts').textContent = mode === 'A' && num('parts') > 0 ? num('parts').toLocaleString() : '—';
-  var cost = resolveRange('cost_low', 'cost_high');
-  document.getElementById('p_cost_range').textContent = (mode === 'A' && (cost.low > 0 || cost.high > 0)) ? fmtRange(cost.low, cost.high) : '—';
+  var costR = resolveRange('cost_low', 'cost_high');
+  document.getElementById('p_cost_range').textContent = (mode === 'A' && (costR.low > 0 || costR.high > 0)) ? fmtRange(costR.low, costR.high) : '—';
   document.getElementById('p_scrap_dollars').textContent = mode === 'B' && num('scrap_dollars') > 0
     ? fmt(num('scrap_dollars')) + ' at ' + (num('scrap_rate') || 0) + '%' : '—';
   document.getElementById('p_price_range').textContent = (revEnabled && (price.low > 0 || price.high > 0)) ? fmtRange(price.low, price.high) : '—';
   document.getElementById('p_vc').textContent = revEnabled && vc > 0 ? (vc*100).toFixed(1) + '%' : '—';
+  document.getElementById('p_rework_inputs').textContent = (rwHours > 0 || rwRate > 0) ?
+    rwHours + ' hrs/mo · ' + fmt(rwRate) + '/hr · ' + (num('rw_red') || 0) + '%' : '—';
   document.getElementById('p_tanks').textContent = tanks > 0 ? tanks : '—';
   document.getElementById('p_rate').textContent = rate > 0 ? fmt(rate) + '/hr' : '—';
 
@@ -521,6 +542,8 @@ function calc(){
   document.getElementById('p_scrap_high').textContent  = fmt(scrapHigh);
   document.getElementById('p_rev_low').textContent     = fmt(revLow);
   document.getElementById('p_rev_high').textContent    = fmt(revHigh);
+  document.getElementById('p_rework_low').textContent  = fmt(rework);
+  document.getElementById('p_rework_high').textContent = fmt(rework);
   document.getElementById('p_labor_low').textContent   = fmt(labor);
   document.getElementById('p_labor_high').textContent  = fmt(labor);
   document.getElementById('p_slurry_low').textContent  = fmt(slurry);
@@ -553,7 +576,7 @@ document.querySelectorAll('input').forEach(function(i){ i.addEventListener('inpu
 document.addEventListener('DOMContentLoaded', function(){
   toggleRevenue();
   calc();
-  console.log('✓ Value calculator ready');
+  console.log('✓ Value calculator ready — with Rework Labor Reduction');
 });
 </script>
 
