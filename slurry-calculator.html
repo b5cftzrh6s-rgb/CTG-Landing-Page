@@ -11,84 +11,91 @@
   --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Segoe UI,Arial;background:var(--bg);color:var(--text)}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-.navbar{
-  background:var(--blue-dark);
-  color:#fff;
-  padding:0 20px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal);margin:0 4px}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:36px 40px}
+header.page-header h1{margin:0;font-size:32px;font-weight:700}
+header.page-header p{margin:8px 0 0;opacity:.9;font-size:15px;max-width:800px}
+
+main{max-width:1400px;margin:24px auto;padding:0 20px 40px}
+.toolbar{margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap}
+button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px}
+.btn{background:var(--accent);color:#fff}
+.btn:hover{background:#c65e14}
+.btn2{background:#666;color:#fff}
+.btn2:hover{background:#4d4d4d}
+
+.recipes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:1024px){.recipes-grid{grid-template-columns:1fr}}
+
+.recipe-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.recipe-name{width:100%;padding:10px;font-size:15px;font-weight:700;color:var(--blue);border:2px solid var(--blue);border-radius:6px;margin-bottom:14px;background:#eef4fb}
+.recipe-name:focus{outline:none;border-color:var(--teal);background:#fff}
+
+.field{margin-bottom:10px}
+.field label{font-size:12px;font-weight:600;display:block;margin-bottom:3px;color:var(--text)}
+.field input,.field select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:13px;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
+
+.subhead{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+
+.output-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
+.output-table td{padding:6px 8px;border-bottom:1px solid #eef1f5}
+.output-table td.lbl{color:var(--muted);font-weight:600}
+.output-table td.val{text-align:right;font-family:'Courier New',monospace;font-weight:700;color:var(--blue)}
+.output-table tr.hilite td{background:#eef4fb}
+.output-table tr.hilite td.val{color:var(--green);font-size:13px}
+
+footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
+
+.print-only{display:none}
+@media print {
+  @page{size:letter landscape;margin:0.4in}
+  body{background:#fff}
+  .navbar,.toolbar,header.page-header,footer,main>.recipes-grid{display:none !important}
+  .print-only{display:block !important}
+  main{max-width:100%;margin:0;padding:0}
 }
+.print-page{background:#fff;padding:24px 30px;color:#1f2a3a;font-family:'Segoe UI',Arial}
+.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--blue);padding-bottom:12px;margin-bottom:16px}
+.print-logo{display:flex;align-items:center;gap:12px}
+.print-logo .logo-mark{width:54px;height:54px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px}
+.print-logo .brand-name{font-size:20px;font-weight:800;color:var(--blue)}
+.print-logo .brand-sub{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.print-title-block{text-align:right}
+.print-title-block h1{margin:0;font-size:20px;color:var(--blue)}
+.print-title-block .date{font-size:10px;color:var(--muted);margin-top:3px}
+.print-comparison{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px;border:1px solid var(--border)}
+.print-comparison th{background:var(--blue);color:#fff;padding:8px 10px;text-align:center;font-size:12px}
+.print-comparison th:first-child{background:#eef4fb;color:var(--blue);text-align:left;font-size:11px}
+.print-comparison td{padding:6px 10px;border-bottom:1px solid #eef1f5;text-align:center;font-family:'Courier New',monospace;font-weight:700;color:var(--blue)}
+.print-comparison td:first-child{text-align:left;font-family:'Segoe UI',Arial;color:var(--muted);font-weight:600}
+.print-comparison tr.section-row td{background:#eef4fb;color:var(--blue);font-weight:800;text-transform:uppercase;letter-spacing:.5px;font-size:10px;text-align:left}
+.print-comparison tr:last-child td{border-bottom:none}
+.print-footer{border-top:1px solid var(--border);padding-top:8px;margin-top:12px;text-align:center;font-size:10px;color:var(--muted)}
+.print-footer .tagline{font-weight:700;color:var(--blue);margin-bottom:3px}
 
-.navbar .brand{
-  font-weight:700;
-  padding:14px 0;
-  font-size:15px;
-  letter-spacing:.5px;
+@media (max-width:600px){
+  .navbar{flex-direction:column;align-items:flex-start}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
+  header.page-header h1{font-size:24px}
 }
-
-.navbar .brand span{
-  color:var(--teal);
-  margin:0 4px;
-}
-
-.navbar ul{
-  list-style:none;
-  margin:0;
-  padding:0;
-  display:flex;
-  flex-wrap:wrap;
-}
-
-.navbar ul li a{
-  color:#fff;
-  text-decoration:none;
-  padding:14px 16px;
-  display:block;
-  font-size:13px;
-  font-weight:500;
-  transition:background .15s;
-}
-
-.navbar ul li a:hover{
-  background:var(--blue);
-}
-
-.navbar ul li a.active{
-  background:var(--teal);
-  color:#fff;
-}
-
-header.page-header{
-  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
-  color:#fff;
-  padding:36px 40px;
-}
-
-header.page-header h1{
-  margin:0;
-  font-size:32px;
-  font-weight:700;
-}
-main{max-width:1000px;margin:20px auto;padding:0 20px}
-
-.card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px}
-
-input,select{width:100%;padding:6px;margin-top:4px}
-
-table{width:100%;border-collapse:collapse}
-td{padding:8px;border-bottom:1px solid #ddd}
-.value{text-align:right;font-weight:bold}
 </style>
 </head>
-
 <body>
 
-<!-- ✅ FIXED NAVIGATION ONLY CHANGE -->
 <nav class="navbar">
   <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
   <ul>
@@ -100,120 +107,351 @@ td{padding:8px;border-bottom:1px solid #ddd}
   </ul>
 </nav>
 
-<header>
+<header class="page-header">
   <h1>Slurry Calculator</h1>
+  <p>Design and compare up to three independent slurry recipes with dosing for Nalco 7667 wetting agent and Nalco 2305 antifoam.</p>
 </header>
 
 <main>
-
-<div class="card">
-  <h3>Inputs</h3>
-  <label>Binder</label>
-  <select id="binder"></select>
-
-  <label>Binder Weight (lb)</label>
-  <input id="binder_wt" type="number">
-
-  <label>Water (lb)</label>
-  <input id="water_wt" type="number">
-
-  <label>Polymer (lb)</label>
-  <input id="polymer_wt" type="number">
-
-  <label>Refractory #1</label>
-  <select id="ref1"></select>
-
-  <label>Ref #1 Weight (lb)</label>
-  <input id="ref1_wt" type="number">
-
-  <label>Refractory #2</label>
-  <select id="ref2"></select>
-
-  <label>Ref #2 Weight (lb)</label>
-  <input id="ref2_wt" type="number">
+<div class="toolbar">
+  <button class="btn" onclick="window.print()">Print / Save PDF</button>
+  <button class="btn2" onclick="resetAll()">Reset All</button>
 </div>
 
-<div class="card">
-  <h3>Outputs</h3>
-  <table>
-    <tr><td>Slurry Volume</td><td class="value" id="vol">—</td></tr>
-    <tr><td>% Refractory</td><td class="value" id="ref_pct">—</td></tr>
-    <tr><td>% Solids</td><td class="value" id="solids">—</td></tr>
-    <tr><td>Density</td><td class="value" id="density">—</td></tr>
-    <tr><td>Target Silica</td><td class="value" id="silica">—</td></tr>
-    <tr><td>% Polymer</td><td class="value" id="polymer">—</td></tr>
-  </table>
-</div>
-
+<div class="recipes-grid" id="recipes-grid"></div>
 </main>
 
+<div class="print-only">
+  <div class="print-page">
+    <div class="print-header">
+      <div class="print-logo">
+        <div class="logo-mark">N</div>
+        <div>
+          <div class="brand-name">NALCO WATER</div>
+          <div class="brand-sub">An Ecolab Company</div>
+        </div>
+      </div>
+      <div class="print-title-block">
+        <h1>Slurry Recipe Comparison</h1>
+        <div class="date" id="print_date"></div>
+      </div>
+    </div>
+    <table class="print-comparison" id="print_table"></table>
+    <div class="print-footer">
+      <div class="tagline">3D TRASAR&trade; Technology for Shell Control &nbsp;·&nbsp; Rheonics SlurrySense&trade;</div>
+      <div>3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+</footer>
+
 <script>
-const WATER = 8.345;
+'use strict';
 
-const BINDERS = {
-  "ESB Prime":{solids:28.81,density:1.197,poly:4.85},
-  "ESB 6":{solids:27.86,density:1.189,poly:7.7},
-  "ESB 1":{solids:22,density:1.153,poly:9.09},
-  "ESB 10":{solids:30,density:1.215,poly:0},
-  "Etna":{solids:30,density:1.209,poly:0.17},
-  "Rainier II":{solids:32,density:1.22,poly:2.17}
+// ============ CONSTANTS ============
+var WATER = 8.345;             // lb/gal
+var LITERS_PER_GAL = 3.78541;
+
+// ============ MATERIAL DATABASES ============
+var BINDERS = {
+  "ESB Prime": {solids:28.81, density:1.197, poly:4.85},
+  "ESB 6":     {solids:27.86, density:1.189, poly:7.7},
+  "ESB 1":     {solids:22.00, density:1.153, poly:9.09},
+  "ESB 10":    {solids:30.00, density:1.215, poly:0.00},
+  "Etna":      {solids:30.00, density:1.209, poly:0.17},
+  "Rainier II":{solids:32.00, density:1.220, poly:2.17}
 };
 
-const REFS = {
-  "None":{d:0,sil:0,zr:0},
-  "Zircon":{d:4.6,sil:0,zr:100},
-  "Fused Silica":{d:2.203,sil:100,zr:0}
+// density only, per user
+var REFRACTORIES = {
+  "None":                    {d:0},
+  "Zircon":                  {d:4.6},
+  "Fused Silica":            {d:2.2030},
+  "Alumino-silicate M47":    {d:2.65},
+  "Alumino-silicate M60":    {d:2.85},
+  "Alumina":                 {d:3.96},
+  "WDS Plus":                {d:2.2030},
+  "WDS 2":                   {d:2.2030},
+  "WDS 3":                   {d:2.1990},
+  "Gray Matter 1":           {d:2.1870},
+  "Gray Matter 2":           {d:2.1860},
+  "Cobalt Aluminate":        {d:5.20},
+  "ESFA1":                   {d:2.45},
+  "One Coat":                {d:2.1870},
+  "Fused Yttria":            {d:5.01},
+  "Stabilized Zirconia":     {d:5.70}
 };
 
-function num(id){return parseFloat(document.getElementById(id).value)||0}
+// Nalco 7667 dosing table (from Table 1, product bulletin)
+var TABLE_7667 = [
+  {pct:0,  ml:7.0},
+  {pct:10, ml:7.3},
+  {pct:20, ml:7.6},
+  {pct:30, ml:7.9},
+  {pct:40, ml:8.2},
+  {pct:50, ml:8.5},
+  {pct:60, ml:8.8},
+  {pct:70, ml:9.1},
+  {pct:80, ml:9.4},
+  {pct:90, ml:9.7},
+  {pct:100,ml:10.0}
+];
 
-function populate(){
-  let b=document.getElementById("binder");
-  for(let k in BINDERS){b.innerHTML+=`<option>${k}</option>`}
+// Nalco 2305 antifoam dosages in mL/L of liquid
+var ANTIFOAM_DOSAGES = {
+  "None":       0,
+  "Minimum":    4,
+  "Typical":    6,
+  "Maximum":    8,
+  "Turbowheel": 16
+};
 
-  ["ref1","ref2"].forEach(id=>{
-    let s=document.getElementById(id);
-    for(let k in REFS){s.innerHTML+=`<option>${k}</option>`}
+// ============ HELPERS ============
+function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
+
+// Linear interpolation on 7667 table
+function dose7667(pctZircon){
+  if (pctZircon <= 0)   return TABLE_7667[0].ml;
+  if (pctZircon >= 100) return TABLE_7667[TABLE_7667.length-1].ml;
+  for (var i = 0; i < TABLE_7667.length - 1; i++) {
+    var a = TABLE_7667[i], b = TABLE_7667[i+1];
+    if (pctZircon >= a.pct && pctZircon <= b.pct) {
+      var frac = (pctZircon - a.pct) / (b.pct - a.pct);
+      return a.ml + frac * (b.ml - a.ml);
+    }
+  }
+  return 0;
+}
+
+// ============ BUILD RECIPE COLUMN ============
+function buildRecipe(idx, defaultName){
+  var p = 'r' + idx + '_'; // namespace prefix
+
+  var binderOptions = '';
+  for (var k in BINDERS) binderOptions += '<option>' + k + '</option>';
+
+  var refOptions = '';
+  for (var r in REFRACTORIES) refOptions += '<option>' + r + '</option>';
+
+  var wettingOptions = '<option>None</option><option>Nalco 7667</option>';
+
+  var antifoamOptions = '';
+  for (var a in ANTIFOAM_DOSAGES) antifoamOptions += '<option>' + a + '</option>';
+
+  return (
+    '<div class="recipe-card">' +
+      '<input type="text" class="recipe-name" id="' + p + 'name" value="' + defaultName + '">' +
+
+      '<div class="subhead">Liquids</div>' +
+      '<div class="field"><label>Binder Type</label><select id="' + p + 'binder">' + binderOptions + '</select></div>' +
+      '<div class="field"><label>Binder Weight (lb)</label><input id="' + p + 'binder_wt" type="number" step="any"></div>' +
+      '<div class="field"><label>Water (lb)</label><input id="' + p + 'water_wt" type="number" step="any"></div>' +
+      '<div class="field"><label>Polymer (lb)</label><input id="' + p + 'polymer_wt" type="number" step="any"></div>' +
+
+      '<div class="subhead">Solids (Refractories)</div>' +
+      '<div class="field"><label>Refractory #1</label><select id="' + p + 'ref1">' + refOptions + '</select></div>' +
+      '<div class="field"><label>Ref #1 Weight (lb)</label><input id="' + p + 'ref1_wt" type="number" step="any"></div>' +
+      '<div class="field"><label>Refractory #2</label><select id="' + p + 'ref2">' + refOptions + '</select></div>' +
+      '<div class="field"><label>Ref #2 Weight (lb)</label><input id="' + p + 'ref2_wt" type="number" step="any"></div>' +
+
+      '<div class="subhead">Additives</div>' +
+      '<div class="field"><label>Wetting Agent</label><select id="' + p + 'wetting">' + wettingOptions + '</select></div>' +
+      '<div class="field"><label>Antifoam (Nalco 2305)</label><select id="' + p + 'antifoam">' + antifoamOptions + '</select></div>' +
+
+      '<div class="subhead">Outputs</div>' +
+      '<table class="output-table">' +
+        '<tr><td class="lbl">Slurry Volume</td><td class="val" id="' + p + 'vol">—</td></tr>' +
+        '<tr><td class="lbl">Slurry Density</td><td class="val" id="' + p + 'density">—</td></tr>' +
+        '<tr><td class="lbl">Total Slurry Weight (lb)</td><td class="val" id="' + p + 'totwt">—</td></tr>' +
+        '<tr><td class="lbl">% Refractory</td><td class="val" id="' + p + 'ref_pct">—</td></tr>' +
+        '<tr><td class="lbl">% Solids (dry)</td><td class="val" id="' + p + 'solids">—</td></tr>' +
+        '<tr><td class="lbl">Target % Silica</td><td class="val" id="' + p + 'silica">—</td></tr>' +
+        '<tr><td class="lbl">% Zircon (of refractory)</td><td class="val" id="' + p + 'zircon">—</td></tr>' +
+        '<tr><td class="lbl">% Polymer</td><td class="val" id="' + p + 'polymer">—</td></tr>' +
+        '<tr class="hilite"><td class="lbl">Liquid Volume (gal)</td><td class="val" id="' + p + 'liq_gal">—</td></tr>' +
+        '<tr class="hilite"><td class="lbl">7667 Dose (mL/gal)</td><td class="val" id="' + p + 'dose_ratio">—</td></tr>' +
+        '<tr class="hilite"><td class="lbl">7667 Total Addition (mL)</td><td class="val" id="' + p + 'w7667_ml">—</td></tr>' +
+        '<tr class="hilite"><td class="lbl">Antifoam Addition (mL)</td><td class="val" id="' + p + 'af_ml">—</td></tr>' +
+      '</table>' +
+
+    '</div>'
+  );
+}
+
+// ============ CALCULATE ONE RECIPE ============
+function calcRecipe(idx){
+  var p = 'r' + idx + '_';
+
+  var b = BINDERS[document.getElementById(p + 'binder').value];
+  var r1 = REFRACTORIES[document.getElementById(p + 'ref1').value];
+  var r2 = REFRACTORIES[document.getElementById(p + 'ref2').value];
+
+  var bw  = num(p + 'binder_wt');
+  var ww  = num(p + 'water_wt');
+  var pw  = num(p + 'polymer_wt');
+  var r1w = num(p + 'ref1_wt');
+  var r2w = num(p + 'ref2_wt');
+
+  var total = bw + ww + pw + r1w + r2w;
+
+  // Slurry volume (gallons)
+  var vol =
+      (b && b.density > 0 ? bw / (b.density * WATER) : 0) +
+      (ww / WATER) +
+      (pw / WATER) +
+      (r1.d > 0 ? r1w / (r1.d * WATER) : 0) +
+      (r2.d > 0 ? r2w / (r2.d * WATER) : 0);
+
+  var totalRef = r1w + r2w;
+  var refpct   = total > 0 ? (totalRef / total) * 100 : 0;
+
+  var dry    = (b ? bw * (b.solids / 100) : 0) + pw * 0.5 + r1w + r2w;
+  var solids = total > 0 ? (dry / total) * 100 : 0;
+
+  var density = (vol > 0) ? total / (vol * WATER) : 0;
+
+  var liquidSum = bw + ww + pw;
+  var silica    = (b && liquidSum > 0) ? (bw * (b.solids / 100)) / liquidSum * 100 : 0;
+
+  var polyMass  = (b ? bw * (b.poly / 100) : 0) + pw;
+  var polymer   = liquidSum > 0 ? (polyMass / liquidSum) * 100 : 0;
+
+  // % Zircon = zircon weight / total refractory weight
+  var zirconWt = 0;
+  if (document.getElementById(p + 'ref1').value === 'Zircon') zirconWt += r1w;
+  if (document.getElementById(p + 'ref2').value === 'Zircon') zirconWt += r2w;
+  var pctZircon = totalRef > 0 ? (zirconWt / totalRef) * 100 : 0;
+
+  // Liquid volume (gal) — for both 7667 and antifoam basis
+  var liqGal = (bw + ww + pw) / WATER;
+  var liqLiters = liqGal * LITERS_PER_GAL;
+
+  // 7667 dosing (mL/gal via interpolation)
+  var wettingChoice = document.getElementById(p + 'wetting').value;
+  var doseMlPerGal = dose7667(pctZircon);
+  var total7667_mL = (wettingChoice === 'Nalco 7667' && liqGal > 0) ? doseMlPerGal * liqGal : 0;
+
+  // Antifoam
+  var afChoice   = document.getElementById(p + 'antifoam').value;
+  var afMlPerL   = ANTIFOAM_DOSAGES[afChoice] || 0;
+  var totalAf_mL = afMlPerL * liqLiters;
+
+  // Write outputs
+  document.getElementById(p + 'vol').textContent      = vol.toFixed(4);
+  document.getElementById(p + 'density').textContent  = density.toFixed(4);
+  document.getElementById(p + 'totwt').textContent    = total.toFixed(2);
+  document.getElementById(p + 'ref_pct').textContent  = refpct.toFixed(2) + '%';
+  document.getElementById(p + 'solids').textContent   = solids.toFixed(2) + '%';
+  document.getElementById(p + 'silica').textContent   = silica.toFixed(2) + '%';
+  document.getElementById(p + 'zircon').textContent   = pctZircon.toFixed(2) + '%';
+  document.getElementById(p + 'polymer').textContent  = polymer.toFixed(2) + '%';
+  document.getElementById(p + 'liq_gal').textContent  = liqGal.toFixed(3);
+  document.getElementById(p + 'dose_ratio').textContent =
+    wettingChoice === 'Nalco 7667' ? doseMlPerGal.toFixed(2) + ' mL/gal' : '—';
+  document.getElementById(p + 'w7667_ml').textContent = wettingChoice === 'Nalco 7667' ? total7667_mL.toFixed(1) + ' mL' : '—';
+  document.getElementById(p + 'af_ml').textContent    = afChoice === 'None' ? '—' : totalAf_mL.toFixed(1) + ' mL';
+}
+
+function calcAll(){
+  for (var i = 1; i <= 3; i++) calcRecipe(i);
+  buildPrintTable();
+}
+
+function resetAll(){
+  var inputs = document.querySelectorAll('#recipes-grid input');
+  for (var i = 0; i < inputs.length; i++) {
+    if (inputs[i].classList.contains('recipe-name')) continue;
+    inputs[i].value = '';
+  }
+  var selects = document.querySelectorAll('#recipes-grid select');
+  for (var j = 0; j < selects.length; j++) selects[j].selectedIndex = 0;
+  calcAll();
+}
+
+// ============ PRINT COMPARISON ============
+function buildPrintTable(){
+  var rows = [
+    ['section','Recipe Setup'],
+    ['name','Recipe Name'],
+    ['binder','Binder'],
+    ['binder_wt','Binder Weight (lb)'],
+    ['water_wt','Water (lb)'],
+    ['polymer_wt','Polymer (lb)'],
+    ['ref1','Refractory #1'],
+    ['ref1_wt','Ref #1 Weight (lb)'],
+    ['ref2','Refractory #2'],
+    ['ref2_wt','Ref #2 Weight (lb)'],
+    ['wetting','Wetting Agent'],
+    ['antifoam','Antifoam Dosage'],
+    ['section','Calculated Outputs'],
+    ['vol','Slurry Volume (gal)'],
+    ['density','Slurry Density'],
+    ['totwt','Total Slurry Weight (lb)'],
+    ['ref_pct','% Refractory'],
+    ['solids','% Solids (dry)'],
+    ['silica','Target % Silica'],
+    ['zircon','% Zircon (of refractory)'],
+    ['polymer','% Polymer'],
+    ['section','Dosing'],
+    ['liq_gal','Liquid Volume (gal)'],
+    ['dose_ratio','7667 Dose (mL/gal)'],
+    ['w7667_ml','7667 Total Addition (mL)'],
+    ['af_ml','Antifoam Addition (mL)']
+  ];
+
+  var header = '<tr><th>Parameter</th>';
+  for (var i = 1; i <= 3; i++) {
+    var nameVal = document.getElementById('r' + i + '_name').value || ('Recipe ' + i);
+    header += '<th>' + escapeHtml(nameVal) + '</th>';
+  }
+  header += '</tr>';
+
+  var body = '';
+  for (var r = 0; r < rows.length; r++) {
+    var key = rows[r][0], label = rows[r][1];
+    if (key === 'section') { body += '<tr class="section-row"><td colspan="4">' + label + '</td></tr>'; continue; }
+    body += '<tr><td>' + label + '</td>';
+    for (var c = 1; c <= 3; c++) {
+      var el = document.getElementById('r' + c + '_' + key);
+      var v = '';
+      if (el) {
+        if (el.tagName === 'INPUT' || el.tagName === 'SELECT') v = el.value;
+        else v = el.textContent;
+      }
+      if (v === '' || v == null) v = '—';
+      body += '<td>' + escapeHtml(v) + '</td>';
+    }
+    body += '</tr>';
+  }
+
+  document.getElementById('print_table').innerHTML = header + body;
+  document.getElementById('print_date').textContent = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(m){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[m];
   });
 }
 
-function calc(){
-  let b=BINDERS[document.getElementById("binder").value];
-  let r1=REFS[document.getElementById("ref1").value];
-  let r2=REFS[document.getElementById("ref2").value];
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', function(){
+  var grid = document.getElementById('recipes-grid');
+  grid.innerHTML =
+    buildRecipe(1, 'Recipe 1') +
+    buildRecipe(2, 'Recipe 2') +
+    buildRecipe(3, 'Recipe 3');
 
-  let bw=num("binder_wt"), ww=num("water_wt"), pw=num("polymer_wt");
-  let r1w=num("ref1_wt"), r2w=num("ref2_wt");
+  var all = document.querySelectorAll('#recipes-grid input, #recipes-grid select');
+  for (var i = 0; i < all.length; i++) {
+    all[i].addEventListener('input', calcAll);
+    all[i].addEventListener('change', calcAll);
+  }
 
-  let total=bw+ww+pw+r1w+r2w;
-
-  let vol=(bw/(b.density*WATER))+(ww/WATER)+(pw/WATER)
-        +(r1.d>0?r1w/(r1.d*WATER):0)
-        +(r2.d>0?r2w/(r2.d*WATER):0);
-
-  let refpct=(r1w+r2w)/total*100;
-
-  let dry=bw*(b.solids/100)+pw*0.5+r1w+r2w;
-  let solids=dry/total*100;
-
-  let density=total/(vol*WATER);
-
-  let silica=(bw*(b.solids/100))/(bw+ww+pw)*100;
-
-  let polyMass=bw*(b.poly/100)+pw;
-  let polymer=polyMass/(bw+ww+pw)*100;
-
-  document.getElementById("vol").textContent=vol.toFixed(4);
-  document.getElementById("ref_pct").textContent=refpct.toFixed(2)+"%";
-  document.getElementById("solids").textContent=solids.toFixed(2)+"%";
-  document.getElementById("density").textContent=density.toFixed(4);
-  document.getElementById("silica").textContent=silica.toFixed(2)+"%";
-  document.getElementById("polymer").textContent=polymer.toFixed(2)+"%";
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-  populate();
-  document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));
+  calcAll();
 });
 </script>
 
