@@ -399,14 +399,6 @@ body.mode-B .check-toggle{display:none !important}
   <div class="t-range range-only" id="banner_range">$0 — $0</div>
   <div class="t-range single-only" id="banner_single">$0</div>
   <div class="t-mid range-only">Midpoint (expected value): <strong id="banner_mid">$0</strong></div>
-  <div class="t-capture range-only">
-    <span>Estimated Ecolab Value Capture (30%)</span>
-    <strong id="banner_capture">$0 — $0</strong>
-  </div>
-  <div class="t-capture single-only">
-    <span>Estimated Ecolab Value Capture (30%)</span>
-    <strong id="banner_capture_single">$0</strong>
-  </div>
 </div>
 
 </main>
@@ -520,8 +512,6 @@ body.mode-B .check-toggle{display:none !important}
       <div class="pb-title">Total Annual Value Delivered</div>
       <div class="pb-range range-only" id="p_banner_range">$0 — $0</div>
       <div class="pb-range single-only" id="p_banner_single">$0</div>
-      <div class="pb-mid range-only">Midpoint (expected): <strong id="p_banner_mid">$0</strong> · Ecolab Value Capture (30%): <strong id="p_banner_capture">$0 — $0</strong></div>
-      <div class="pb-mid single-only">Ecolab Value Capture (30%): <strong id="p_banner_capture_single">$0</strong></div>
     </div>
 
     <div class="print-footer">
@@ -562,6 +552,12 @@ function setMode(m){
   document.getElementById('mode_btn_A').classList.toggle('active', m === 'A');
   document.getElementById('mode_btn_B').classList.toggle('active', m === 'B');
 
+function formatNumberInput(el){
+  let val = el.value.replace(/,/g,'');
+  if(val === '' || isNaN(val)) return;
+  el.value = Number(val).toLocaleString('en-US');
+}
+  
   // In Mode B, force revenue off
   if (m === 'B') {
     var chk = document.getElementById('enable_revenue');
@@ -636,9 +632,7 @@ function calc(){
   var totalLow  = scrapLow  + revLow  + fixed;
   var totalHigh = scrapHigh + revHigh + fixed;
   var totalMid  = (totalLow + totalHigh) / 2;
-  var capLow    = totalLow * 0.30;
-  var capHigh   = totalHigh * 0.30;
-  var capMid    = totalMid * 0.30;
+
 
   // Midpoints
   var scrapMid = (scrapLow + scrapHigh) / 2;
@@ -678,8 +672,6 @@ function calc(){
   document.getElementById('banner_range').textContent          = fmtRange(totalLow, totalHigh);
   document.getElementById('banner_single').textContent         = fmt(mode === 'B' ? totalLow : totalMid);
   document.getElementById('banner_mid').textContent            = fmt(totalMid);
-  document.getElementById('banner_capture').textContent        = fmtRange(capLow, capHigh);
-  document.getElementById('banner_capture_single').textContent = fmt(mode === 'B' ? capLow : capMid);
 
   // Print export
   var dateStr = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
@@ -716,8 +708,7 @@ function calc(){
   document.getElementById('p_banner_range').textContent          = fmtRange(totalLow, totalHigh);
   document.getElementById('p_banner_single').textContent         = fmt(mode === 'B' ? totalLow : totalMid);
   document.getElementById('p_banner_mid').textContent            = fmt(totalMid);
-  document.getElementById('p_banner_capture').textContent        = fmtRange(capLow, capHigh);
-  document.getElementById('p_banner_capture_single').textContent = fmt(mode === 'B' ? capLow : capMid);
+
 
   var pRev = document.getElementById('p_rev_row');
   if (pRev) pRev.style.display = revEnabled ? '' : 'none';
@@ -733,7 +724,14 @@ function resetAll(){
   setMode('A');
 }
 
-document.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', calc); });
+document.querySelectorAll('input').forEach(function(i){
+  i.addEventListener('input', function(){
+    if(this.type === 'number'){
+      formatNumberInput(this);
+    }
+    calc();
+  });
+});
 document.addEventListener('DOMContentLoaded', function(){
   setMode('A');
   toggleRevenue();
