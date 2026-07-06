@@ -32,6 +32,23 @@ body{margin:0;font-family:'Segoe UI',Arial;background:var(--bg);color:var(--text
   letter-spacing:.5px;
 }
 
+.navbar .brand span{
+  color:var(--teal);
+  margin:0 4px;
+}
+
+.navbar ul{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;        /* ✅ FIXES YOUR ISSUE */
+  flex-wrap:wrap;
+}
+
+.navbar ul li{
+  list-style:none;     /* ✅ removes bullets */
+}
+
 .navbar ul li a{
   color:#fff;
   text-decoration:none;
@@ -41,6 +58,15 @@ body{margin:0;font-family:'Segoe UI',Arial;background:var(--bg);color:var(--text
   font-weight:500;
   transition:background .15s;
 }
+
+.navbar ul li a:hover{
+  background:var(--blue);
+}
+
+.navbar ul li a.active{
+  background:var(--teal);
+  color:#fff;
+}}
 
 header.page-header{
   background:linear-gradient(135deg,var(--blue),var(--blue-dark));
