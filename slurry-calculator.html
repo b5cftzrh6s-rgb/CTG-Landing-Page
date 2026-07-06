@@ -381,6 +381,7 @@ function resetAll(){
 
 // ============ PRINT COMPARISON ============
 function buildPrintTable(){
+
   var rows = [
     ['section','Recipe Setup'],
     ['name','Recipe Name'],
@@ -392,57 +393,57 @@ function buildPrintTable(){
     ['ref1_wt','Ref #1 Weight (lb)'],
     ['ref2','Refractory #2'],
     ['ref2_wt','Ref #2 Weight (lb)'],
-    ['wetting','Wetting Agent'],
-    ['antifoam','Antifoam Dosage'],
-    ['section','Calculated Outputs'],
+    ['wetting','Wetting Agent (7667)'],
+    ['antifoam','Antifoam (2305)'],
+
+    ['section','Key Results'],
     ['vol','Slurry Volume (gal)'],
     ['density','Slurry Density'],
-    ['totwt','Total Slurry Weight (lb)'],
+    ['totwt','Total Weight (lb)'],
     ['ref_pct','% Refractory'],
-    ['solids','% Solids (dry)'],
-    ['silica','Target % Silica'],
-    ['zircon','% Zircon (of refractory)'],
+    ['solids','% Solids'],
+    ['silica','% Silica'],
+    ['zircon','% Zircon'],
     ['polymer','% Polymer'],
-    ['section','Dosing'],
+
+    ['section','Additives (Totals)'],
     ['liq_gal','Liquid Volume (gal)'],
-    ['dose_ratio','7667 Dose (mL/gal)'],
-    ['w7667_ml','7667 Total Addition (mL)'],
-    ['af_ml','Antifoam Addition (mL)']
+    ['w7667_ml','7667 Total (mL)'],
+    ['af_ml','Antifoam Total (mL)']
   ];
 
   var header = '<tr><th>Parameter</th>';
   for (var i = 1; i <= 3; i++) {
     var nameVal = document.getElementById('r' + i + '_name').value || ('Recipe ' + i);
-    header += '<th>' + escapeHtml(nameVal) + '</th>';
+    header += '<th>' + nameVal + '</th>';
   }
   header += '</tr>';
 
   var body = '';
+
   for (var r = 0; r < rows.length; r++) {
     var key = rows[r][0], label = rows[r][1];
-    if (key === 'section') { body += '<tr class="section-row"><td colspan="4">' + label + '</td></tr>'; continue; }
+
+    if (key === 'section') {
+      body += '<tr style="background:#eef4fb;font-weight:bold"><td colspan="4">' + label + '</td></tr>';
+      continue;
+    }
+
     body += '<tr><td>' + label + '</td>';
+
     for (var c = 1; c <= 3; c++) {
       var el = document.getElementById('r' + c + '_' + key);
-      var v = '';
-      if (el) {
-        if (el.tagName === 'INPUT' || el.tagName === 'SELECT') v = el.value;
-        else v = el.textContent;
-      }
-      if (v === '' || v == null) v = '—';
-      body += '<td>' + escapeHtml(v) + '</td>';
+      var v = el ? (el.tagName === 'INPUT' || el.tagName === 'SELECT' ? el.value : el.textContent) : '—';
+      if (!v) v = '—';
+      body += '<td>' + v + '</td>';
     }
+
     body += '</tr>';
   }
 
   document.getElementById('print_table').innerHTML = header + body;
-  document.getElementById('print_date').textContent = new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
-}
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, function(m){
-    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];
-  });
+  document.getElementById('print_date').textContent =
+    new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 }
 
 // ============ INIT ============
