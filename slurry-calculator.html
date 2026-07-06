@@ -59,31 +59,67 @@ button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weigh
 footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
 .print-only{display:none}
-@media print {
+
+@media print{
   @page{size:letter landscape;margin:0.4in}
   body{background:#fff}
-  .navbar,.toolbar,header.page-header,footer,main>.recipes-grid{display:none !important}
+
+  .navbar,.toolbar,header.page-header,footer,main > .recipes-grid{
+    display:none !important;
+  }
+
   .print-only{display:block !important}
-  main{max-width:100%;margin:0;padding:0}
 }
-.print-page{background:#fff;padding:24px 30px;color:#1f2a3a;font-family:'Segoe UI',Arial}
-.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--blue);padding-bottom:12px;margin-bottom:16px}
-.print-logo{display:flex;align-items:center;gap:12px}
-.print-logo .logo-mark{width:54px;height:54px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px}
-.print-logo .brand-name{font-size:20px;font-weight:800;color:var(--blue)}
-.print-logo .brand-sub{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
-.print-title-block{text-align:right}
-.print-title-block h1{margin:0;font-size:20px;color:var(--blue)}
-.print-title-block .date{font-size:10px;color:var(--muted);margin-top:3px}
-.print-comparison{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px;border:1px solid var(--border)}
-.print-comparison th{background:var(--blue);color:#fff;padding:8px 10px;text-align:center;font-size:12px}
-.print-comparison th:first-child{background:#eef4fb;color:var(--blue);text-align:left;font-size:11px}
-.print-comparison td{padding:6px 10px;border-bottom:1px solid #eef1f5;text-align:center;font-family:'Courier New',monospace;font-weight:700;color:var(--blue)}
-.print-comparison td:first-child{text-align:left;font-family:'Segoe UI',Arial;color:var(--muted);font-weight:600}
-.print-comparison tr.section-row td{background:#eef4fb;color:var(--blue);font-weight:800;text-transform:uppercase;letter-spacing:.5px;font-size:10px;text-align:left}
-.print-comparison tr:last-child td{border-bottom:none}
-.print-footer{border-top:1px solid var(--border);padding-top:8px;margin-top:12px;text-align:center;font-size:10px;color:var(--muted)}
-.print-footer .tagline{font-weight:700;color:var(--blue);margin-bottom:3px}
+
+.print-page{
+  padding:16px 20px;
+  transform:scale(0.9);
+  transform-origin:top left;
+}
+
+.print-header{
+  display:flex;
+  justify-content:space-between;
+  border-bottom:3px solid #003a70;
+  margin-bottom:10px;
+  padding-bottom:8px;
+}
+
+.print-comparison{
+  width:100%;
+  border-collapse:collapse;
+  font-size:11px;
+}
+
+.print-comparison th{
+  background:#003a70;
+  color:#fff;
+  padding:6px;
+}
+
+.print-comparison td{
+  padding:6px;
+  border-bottom:1px solid #ddd;
+  text-align:center;
+  font-family:'Courier New',monospace;
+  font-weight:700;
+}
+
+.print-comparison td:first-child{
+  text-align:left;
+  font-family:'Segoe UI';
+  color:#5b6b80;
+}
+
+/* ✅ BLUE SECTION BARS */
+.section-row td{
+  background:#003a70;
+  color:#fff;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  text-align:left;
+}
 
 @media (max-width:600px){
   .navbar{flex-direction:column;align-items:flex-start}
@@ -123,26 +159,21 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
 <div class="print-only">
   <div class="print-page">
+
     <div class="print-header">
-      <div class="print-logo">
-        <div class="logo-mark">N</div>
-        <div>
-          <div class="brand-name">NALCO WATER</div>
-          <div class="brand-sub">An Ecolab Company</div>
-        </div>
+      <div>
+        <strong>NALCO WATER</strong><br>
+        <small>An Ecolab Company</small>
       </div>
-      <div class="print-title-block">
-        <h1>Slurry Recipe Comparison</h1>
-        <div class="date" id="print_date"></div>
+      <div>
+        <strong>Slurry Recipe Comparison</strong><br>
+        <small id="print_date"></small>
       </div>
     </div>
+
     <table class="print-comparison" id="print_table"></table>
-    <div class="print-footer">
-      <div class="tagline">3D TRASAR&trade; Technology for Shell Control &nbsp;·&nbsp; Rheonics SlurrySense&trade;</div>
-      <div>3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only</div>
-    </div>
+
   </div>
-</div>
 
 <footer>
   3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
@@ -382,23 +413,24 @@ function resetAll(){
 // ============ PRINT COMPARISON ============
 function buildPrintTable(){
 
-  var rows = [
+  const rows = [
+
     ['section','Recipe Setup'],
     ['name','Recipe Name'],
     ['binder','Binder'],
-    ['binder_wt','Binder Weight (lb)'],
+    ['binder_wt','Binder (lb)'],
     ['water_wt','Water (lb)'],
     ['polymer_wt','Polymer (lb)'],
     ['ref1','Refractory #1'],
-    ['ref1_wt','Ref #1 Weight (lb)'],
+    ['ref1_wt','Ref #1 (lb)'],
     ['ref2','Refractory #2'],
-    ['ref2_wt','Ref #2 Weight (lb)'],
-    ['wetting','Wetting Agent (7667)'],
-    ['antifoam','Antifoam (2305)'],
+    ['ref2_wt','Ref #2 (lb)'],
+    ['wetting','7667 Selection'],
+    ['antifoam','2305 Selection'],
 
     ['section','Key Results'],
-    ['vol','Slurry Volume (gal)'],
-    ['density','Slurry Density'],
+    ['vol','Volume (gal)'],
+    ['density','Density'],
     ['totwt','Total Weight (lb)'],
     ['ref_pct','% Refractory'],
     ['solids','% Solids'],
@@ -406,44 +438,48 @@ function buildPrintTable(){
     ['zircon','% Zircon'],
     ['polymer','% Polymer'],
 
-    ['section','Additives (Totals)'],
-    ['liq_gal','Liquid Volume (gal)'],
+    ['section','Additives Totals'],
+    ['liq_gal','Liquid (gal)'],
     ['w7667_ml','7667 Total (mL)'],
-    ['af_ml','Antifoam Total (mL)']
+    ['af_ml','2305 Total (mL)']
   ];
 
-  var header = '<tr><th>Parameter</th>';
-  for (var i = 1; i <= 3; i++) {
-    var nameVal = document.getElementById('r' + i + '_name').value || ('Recipe ' + i);
-    header += '<th>' + nameVal + '</th>';
+  let header = '<tr><th>Parameter</th>';
+
+  for(let i=1;i<=3;i++){
+    let name = document.getElementById('r'+i+'_name').value || ('Recipe '+i);
+    header += '<th>'+name+'</th>';
   }
+
   header += '</tr>';
 
-  var body = '';
+  let body = '';
 
-  for (var r = 0; r < rows.length; r++) {
-    var key = rows[r][0], label = rows[r][1];
+  rows.forEach(r=>{
 
-    if (key === 'section') {
-      body += '<tr style="background:#eef4fb;font-weight:bold"><td colspan="4">' + label + '</td></tr>';
-      continue;
+    if(r[0]==='section'){
+      body += `<tr class="section-row"><td colspan="4">${r[1]}</td></tr>`;
+      return;
     }
 
-    body += '<tr><td>' + label + '</td>';
+    body += '<tr><td>'+r[1]+'</td>';
 
-    for (var c = 1; c <= 3; c++) {
-      var el = document.getElementById('r' + c + '_' + key);
-      var v = el ? (el.tagName === 'INPUT' || el.tagName === 'SELECT' ? el.value : el.textContent) : '—';
-      if (!v) v = '—';
-      body += '<td>' + v + '</td>';
+    for(let i=1;i<=3;i++){
+      let el = document.getElementById('r'+i+'_'+r[0]);
+      let val = el ? (el.tagName==='INPUT'||el.tagName==='SELECT' ? el.value : el.textContent) : '—';
+      if(!val) val = '—';
+      body += '<td>'+val+'</td>';
     }
 
     body += '</tr>';
-  }
+  });
 
   document.getElementById('print_table').innerHTML = header + body;
+
   document.getElementById('print_date').textContent =
-    new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    new Date().toLocaleDateString('en-US',{
+      year:'numeric', month:'long', day:'numeric'
+    });
 }
 
 // ============ INIT ============
