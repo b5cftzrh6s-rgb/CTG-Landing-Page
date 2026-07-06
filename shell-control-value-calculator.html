@@ -14,18 +14,52 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:'Segoe UI',Arial;background:var(--bg);color:var(--text)}
 
-.navbar{background:var(--blue-dark);color:#fff;padding:0 24px;display:flex;
-  align-items:center;justify-content:space-between;flex-wrap:wrap}
-.navbar .brand{font-weight:700;padding:20px 0;font-size:18px}
-.navbar .brand span{color:var(--teal);margin:0 4px}
-.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
-.navbar ul li a{color:#fff;text-decoration:none;padding:20px 22px;display:block;font-size:15px;font-weight:500}
-.navbar ul li a:hover{background:var(--blue)}
-.navbar ul li a.active{background:var(--teal)}
+.navbar{
+  background:var(--blue-dark);
+  color:#fff;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
 
-header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:32px 40px}
-header.page-header h1{margin:0;font-size:32px;font-weight:700}
-header.page-header p{margin:6px 0 0;opacity:.9;font-size:15px}
+.navbar .brand{
+  font-weight:700;
+  padding:14px 0;
+  font-size:15px;
+  letter-spacing:.5px;
+}
+
+.navbar ul li a{
+  color:#fff;
+  text-decoration:none;
+  padding:14px 16px;
+  display:block;
+  font-size:13px;
+  font-weight:500;
+  transition:background .15s;
+}
+
+header.page-header{
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  color:#fff;
+  padding:36px 40px;
+}
+
+header.page-header h1{
+  margin:0;
+  font-size:32px;
+  font-weight:700;
+}
+
+header.page-header p{
+  margin:8px 0 0;
+  opacity:.9;
+  font-size:15px;
+  max-width:800px;
+}
 
 main{max-width:1200px;margin:24px auto;padding:0 20px 40px}
 
