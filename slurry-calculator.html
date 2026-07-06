@@ -326,8 +326,12 @@ function calcRecipe(idx){
   var pctZircon = totalRef > 0 ? (zirconWt / totalRef) * 100 : 0;
 
   // Liquid volume (gal) — for both 7667 and antifoam basis
-  var liqGal = (bw + ww + pw) / WATER;
-  var liqLiters = liqGal * LITERS_PER_GAL;
+  var binderVol  = (b && b.density > 0) ? bw / (b.density * WATER) : 0;
+  var waterVol   = ww / WATER;
+  var polymerVol = pw / WATER;               // polymer treated as ~water density
+  var liqGal     = binderVol + waterVol + polymerVol;
+  var liqLiters  = liqGal * LITERS_PER_GAL;
+
 
   // 7667 dosing (mL/gal via interpolation)
   var wettingChoice = document.getElementById(p + 'wetting').value;
