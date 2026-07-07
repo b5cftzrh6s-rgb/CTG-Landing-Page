@@ -1,8 +1,8 @@
 const NAV_LINKS = [
   { label: 'Home', href: 'index.html' },
   { label: 'Shell Control Correlation', href: 'shell-control-correlation.html' },
-  { label: 'Shell Control Value Calculator', href: 'shell-control-value-calculator.html' },
-  { label: 'Slurry Calculator', href: 'slurry-calculator.html' },
+  { label: 'Value Calculator', href: 'shell-control-value-calculator.html' },
+  { label: 'Slurry Recipe Calculator', href: 'slurry-calculator.html' },
   { label: 'Tank RPM', href: 'tank-rpm-calculator.html' }
 ];
 
