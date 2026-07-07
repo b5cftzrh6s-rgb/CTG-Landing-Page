@@ -13,16 +13,6 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
-  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
-.navbar .brand span{color:var(--teal);margin:0 4px}
-.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
-.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
-  font-size:13px;font-weight:500;transition:background .15s}
-.navbar ul li a:hover{background:var(--blue)}
-.navbar ul li a.active{background:var(--teal);color:#fff}
-
 header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:36px 40px}
 header.page-header h1{margin:0;font-size:32px;font-weight:700}
 header.page-header p{margin:8px 0 0;opacity:.9;font-size:15px;max-width:800px}
@@ -54,28 +44,15 @@ button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weigh
 .rpm-block.highlight .rpm-sub{color:#dbe1ea}
 .notes{font-size:11px;color:var(--muted);margin-top:10px;padding:10px 12px;background:#f7f9fc;border-left:3px solid var(--teal);border-radius:4px;line-height:1.5}
 footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
-@media print{.navbar,.toolbar{display:none}}
+@media print{#navbar-container,.toolbar{display:none}}
 @media (max-width:600px){
-  .navbar{flex-direction:column;align-items:flex-start}
-  .navbar ul{width:100%}
-  .navbar ul li{flex:1}
-  .navbar ul li a{text-align:center;padding:12px 8px;font-size:12px}
   header.page-header h1{font-size:24px}
 }
 </style>
 </head>
 <body>
 
-<nav class="navbar">
-  <div class="brand">CTG <span>|</span> Colloidal Technologies Group</div>
-  <ul>
-    <li><a href="index.html">Home</a></li>
-    <li><a href="shell-control-correlation.html">Shell Control Correlation</a></li>
-    <li><a href="shell-control-value-calculator.html">Shell Control Value Calculator</a></li>
-    <li><a href="slurry-calculator.html">Slurry Calculator</a></li>
-    <li><a href="tank-rpm-calculator.html" class="active">Tank RPM</a></li>
-  </ul>
-</nav>
+<div id="navbar-container"></div>
 
 <header class="page-header">
   <h1>Tank RPM Calculator</h1>
@@ -165,6 +142,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
   3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
 </footer>
 
+<script src="navbar.js"></script>
 <script>
 const IN_TO_M = 0.0254;
 const PI = Math.PI;
