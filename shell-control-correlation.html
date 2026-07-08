@@ -3,275 +3,858 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shell Control Correlation Tool — CTG</title>
-
+<title>Shell Control Correlation Tool — CTG Tools</title>
 <style>
 :root{
   --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
-  --bg:#f4f6f9; --text:#1f2a3a;
+  --accent:#e87722; --bg:#f4f6f9; --card:#fff;
+  --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
 }
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
 
-body{
-  margin:0;
-  font-family:'Segoe UI',Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
+.navbar{background:var(--blue-dark);color:#fff;padding:0 20px;display:flex;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.navbar .brand{font-weight:700;padding:14px 0;font-size:15px;letter-spacing:.5px}
+.navbar .brand span{color:var(--teal);margin:0 4px}
+.navbar ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap}
+.navbar ul li a{color:#fff;text-decoration:none;padding:14px 16px;display:block;
+  font-size:13px;font-weight:500;transition:background .15s}
+.navbar ul li a:hover{background:var(--blue)}
+.navbar ul li a.active{background:var(--teal);color:#fff}
+
+header.page-header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:36px 40px}
+header.page-header h1{margin:0;font-size:32px;font-weight:700}
+header.page-header p{margin:8px 0 0;opacity:.9;font-size:15px;max-width:800px}
+
+main{max-width:1400px;margin:24px auto;padding:0 20px 40px}
+footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
+
+.tool-app{background:#0a0a0a;color:#fff;padding:24px;border-radius:12px;border:1px solid #222;font-family:system-ui,sans-serif}
+.tool-app .card{background:#111;padding:20px;border-radius:16px;margin-bottom:20px;border:1px solid #222}
+.tool-app .section-title{color:#00d4ff;font-weight:600;margin-bottom:10px;font-size:18px}
+.tool-app button{background:#00d4ff;color:#000;padding:10px 20px;border-radius:999px;border:none;cursor:pointer;font-weight:600;margin-top:10px}
+.tool-app button:hover{background:#00b8d9}
+.tool-app select,.tool-app input[type="number"],.tool-app input[type="text"]{width:100%;padding:8px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;margin:5px 0}
+.tool-app input[type="file"]{padding:8px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px}
+.tool-app label{display:block;margin-top:10px;color:#aaa;font-size:14px}
+.tool-app .chart-container{height:500px;margin-top:20px;background:#0a0a0a;border-radius:8px;padding:12px}
+.tool-app .status{color:#0f0;margin-top:10px;font-size:14px}
+.tool-app .error{color:#f55;margin-top:10px;font-size:14px}
+.tool-app .warning{color:#fa0;margin-top:10px;font-size:14px}
+.tool-app .metric{display:inline-block;background:#1a1a1a;padding:12px 18px;border-radius:8px;margin:5px;border:1px solid #00d4ff;min-width:140px;vertical-align:top}
+.tool-app .metric-label{color:#888;font-size:12px}
+.tool-app .metric-value{color:#00d4ff;font-size:22px;font-weight:600}
+.tool-app .row{display:flex;gap:15px;flex-wrap:wrap}
+.tool-app .col{flex:1;min-width:200px}
+.tool-app .slider-row{display:flex;align-items:center;gap:15px;margin-top:15px}
+.tool-app .slider-row input[type="range"]{flex:1;accent-color:#00d4ff;height:6px}
+.tool-app .slider-value{color:#00d4ff;font-weight:600;min-width:140px;text-align:right}
+.tool-app hr{border:none;border-top:1px solid #222;margin:25px 0}
+.tool-app .range-container{position:relative;height:50px;margin-top:15px;padding:0 11px}
+.tool-app .range-track{position:absolute;left:11px;right:11px;height:6px;background:#333;border-radius:3px;top:22px}
+.tool-app .range-selected{position:absolute;height:6px;background:#00d4ff;border-radius:3px;top:22px}
+.tool-app .range-container input[type="range"]{position:absolute;left:0;right:0;width:100%;height:6px;top:22px;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;margin:0;}
+.tool-app .range-container input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;background:#00d4ff;border-radius:50%;cursor:pointer;border:2px solid #0a0a0a}
+.tool-app .range-container input[type="range"]::-moz-range-thumb{pointer-events:auto;width:22px;height:22px;background:#00d4ff;border-radius:50%;cursor:pointer;border:2px solid #0a0a0a}
+.tool-app .date-labels{display:flex;justify-content:space-between;margin-top:8px;color:#00d4ff;font-weight:600;padding:0 11px}
+.tool-app .limit-card{padding:15px;border-radius:8px}
+.tool-app .limit-card.all{background:#0a1a1f;border:1px solid #00d4ff}
+.tool-app .limit-card.active{background:#0a1f0f;border:1px solid #00ff66}
+.tool-app .limit-card h4{margin:0 0 8px 0}
+.tool-app .shift-row{display:flex;gap:10px;align-items:center;margin:5px 0}
+.tool-app .shift-row input{flex:1;margin:0}
+.tool-app .btn-small{padding:6px 14px;font-size:13px;margin:0;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.tool-app .btn-remove{background:#f55;color:#fff}
+.tool-app .btn-add{background:#00ff66;color:#000}
+.tool-app .shift-card{background:#1a1a1a;padding:15px;border-radius:8px;border:1px solid #333;margin:10px 0}
+.tool-app .shift-card h4{color:#00d4ff;margin:0 0 10px 0}
+.tool-app .data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.tool-app .data-table th{background:#1a1a1a;color:#00d4ff;padding:8px;text-align:left;border-bottom:2px solid #00d4ff;position:sticky;top:0}
+.tool-app .data-table td{padding:6px 8px;border-bottom:1px solid #222;color:#ccc}
+.tool-app .toggle-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.tool-app .toggle-btn{background:#1a1a1a;border:1px solid #333;color:#aaa;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600}
+.tool-app .toggle-btn.active{background:#00d4ff;color:#000;border-color:#00d4ff}
+.tool-app .info-badge{display:inline-block;background:#0a1a1f;color:#00d4ff;padding:4px 10px;border-radius:4px;font-size:11px;margin-left:8px;border:1px solid #00d4ff;font-weight:600}
+
+@media (max-width:768px){
+  .navbar{flex-direction:column;align-items:flex-start;padding:0 16px}
+  .navbar ul{width:100%}
+  .navbar ul li{flex:1}
+  .navbar ul li a{text-align:center;padding:12px 6px;font-size:12px}
+  header.page-header{padding:24px 20px}
+  header.page-header h1{font-size:24px}
 }
-
-main{
-  max-width:1400px;
-  margin:24px auto;
-  padding:20px;
-}
-
-/* KEEP CTG LOOK */
-.card{
-  background:#111;
-  color:#fff;
-  padding:20px;
-  border-radius:12px;
-  margin-bottom:20px;
-}
-
-.metric{
-  display:inline-block;
-  background:#1a1a1a;
-  padding:12px;
-  margin:5px;
-  border-radius:8px;
-  border:1px solid #00d4ff;
-}
-
-.metric.good{border-color:#00ff66}
-.metric.warn{border-color:#fa0}
-.metric.bad{border-color:#f55}
-
-.insight-box{
-  background:#0a1a1f;
-  border:1px solid #00d4ff;
-  padding:12px;
-  border-radius:8px;
-  margin-bottom:10px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
-td,th{
-  padding:6px;
-  border-bottom:1px solid #333;
-}
-.flagged{background:rgba(255,165,0,0.1)}
-.flag-cell{color:#fa0;font-weight:700}
-
-button{
-  background:#00d4ff;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  font-weight:600;
-}
-button:hover{background:#00b8d9}
-
-input{padding:6px;margin:5px}
 </style>
 </head>
-
 <body>
 
-<!-- ✅ NAVBAR -->
 <div id="navbar-container"></div>
 
+<header class="page-header">
+  <h1>Shell Control Correlation Tool</h1>
+  <p>Correlate inline SlurrySense sensor data with manual viscosity readings — 100% offline, no external dependencies</p>
+</header>
+
 <main>
+<div class="tool-app">
 
 <div class="card">
-  <h2>Upload CSV</h2>
-  <input type="file" id="fileInput">
-  <br><br>
-  <button onclick="processData()">Run Analysis</button>
+  <div class="section-title">
+    1. Upload CSV File
+    <span class="info-badge">Header row 15 &middot; Data starts row 16</span>
+  </div>
+  <input type="file" id="fileInput" accept=".csv">
+  <div id="loadStatus" class="status"></div>
 </div>
 
-<div id="results"></div>
+<div id="controls" class="card" style="display:none;">
+  <div class="section-title">2. Column Mapping &amp; Cup Type</div>
+  <div class="row">
+    <div class="col"><label>Date/Time Column:</label><select id="dateCol"></select></div>
+    <div class="col"><label>Manual Viscosity (Cup Seconds):</label><select id="manualCol"></select></div>
+    <div class="col"><label>Sensor Viscosity (cP):</label><select id="sensorCol"></select></div>
+    <div class="col"><label>Cup Type:</label>
+      <select id="cupType">
+        <option value="">-- Select --</option>
+        <option value="EZ-Zahn4">EZ-Zahn #4</option>
+        <option value="EZ-Zahn5">EZ-Zahn #5</option>
+        <option value="ISO6">ISO #6</option>
+        <option value="ISO8">ISO #8</option>
+      </select>
+    </div>
+  </div>
+  <hr>
+  <div class="section-title" style="font-size:16px;">Spec Limits on Cup Seconds</div>
+  <div class="row">
+    <div class="col"><label>LSL:</label><input type="number" id="lsl" step="any" placeholder="e.g., 25"></div>
+    <div class="col"><label>USL:</label><input type="number" id="usl" step="any" placeholder="e.g., 45"></div>
+  </div>
+  <hr>
+  <div class="section-title" style="font-size:16px;">Shifts (Optional)</div>
+  <div id="shiftConfig"></div>
+  <button class="btn-small btn-add" onclick="addShift()">+ Add Shift</button>
+  <br><br>
+  <button onclick="processData()">Process Data</button>
+</div>
 
+<div id="results" class="card" style="display:none;">
+  <div class="section-title">3. Pairing Summary</div>
+  <div id="pairingMetrics"></div>
+  <hr>
+  <div class="section-title">4. Date Range Filter</div>
+  <div class="range-container">
+    <div class="range-track"></div>
+    <div class="range-selected" id="rangeSelected"></div>
+    <input type="range" id="dateSliderMin">
+    <input type="range" id="dateSliderMax">
+  </div>
+  <div class="date-labels"><span id="dateMinLabel">--</span><span id="dateMaxLabel">--</span></div>
+  <hr>
+  <div class="section-title">5. Quality Filter |Calc cSt &minus; Sensor cP|</div>
+  <div class="slider-row">
+    <span style="color:#aaa;">Max |&Delta;|:</span>
+    <input type="range" id="diffSlider" min="0" max="100" step="1" value="100">
+    <span class="slider-value" id="sliderValue">--</span>
+  </div>
+  <hr>
+  <div class="section-title">6. Cup &rarr; Sensor Regression</div>
+  <div id="regressionMetrics"></div>
+  <hr>
+  <div class="section-title">7. Recommended Sensor LSL / USL</div>
+  <div id="recommendedLimits"></div>
+  <hr>
+  <div class="section-title">8. Per-Shift Analysis</div>
+  <div id="shiftAnalysis"></div>
+  <div class="chart-container"><canvas id="chart" width="1200" height="500"></canvas></div>
+  <hr>
+  <div class="section-title">9. Data Table &amp; Export</div>
+  <div class="toggle-row">
+    <button class="toggle-btn active" id="tblFullBtn" onclick="setTableView('full')">All</button>
+    <button class="toggle-btn" id="tblFiltBtn" onclick="setTableView('filt')">Filtered</button>
+    <button class="btn-small btn-add" onclick="downloadCSV()" style="margin-left:auto;">&#x2B07; Download CSV</button>
+  </div>
+  <div id="dataTableInfo" style="color:#aaa;font-size:13px;margin-bottom:8px;"></div>
+  <div style="max-height:400px;overflow:auto;border:1px solid #222;border-radius:8px;">
+    <table class="data-table" id="dataTable"></table>
+  </div>
+</div>
+
+</div>
 </main>
 
+<footer>
+  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only
+</footer>
+
 <script src="navbar.js"></script>
-
 <script>
+(function(){
+  'use strict';
 
-/* ===============================
-   DATA
-================================= */
-let data = [];
+  var HEADER_ROW_INDEX = 14;
+  var DATA_START_INDEX = 15;
 
-document.getElementById('fileInput').addEventListener('change', function(e){
-  const reader = new FileReader();
-  reader.onload = function(){
-    const rows = reader.result.split("\n").map(r=>r.split(","));
-    data = rows.slice(1).map(r=>({
-      cup: parseFloat(r[0]),
-      sensor: parseFloat(r[1])
-    })).filter(r=>!isNaN(r.cup)&&!isNaN(r.sensor));
+  var state = {
+    rawRows: [], headers: [], pairedDataAll: [], basePaired: [], activePaired: [],
+    cupLSL: NaN, cupUSL: NaN, minDay: 0, maxDay: 0, maxAbsDiff: 0,
+    shifts: [], shiftCounter: 0, tableView: 'full'
+  };
 
-    alert("Loaded "+data.length+" rows");
-  }
-  reader.readAsText(e.target.files[0]);
-});
+  window.addShift = addShift;
+  window.removeShift = removeShift;
+  window.processData = processData;
+  window.setTableView = setTableView;
+  window.downloadCSV = downloadCSV;
 
-/* ===============================
-   STATS
-================================= */
-function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
-function std(a){let m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))}
-
-function pearson(x,y){
-  let mx=mean(x), my=mean(y);
-  let num=0,dx=0,dy=0;
-  for(let i=0;i<x.length;i++){
-    num+=(x[i]-mx)*(y[i]-my);
-    dx+=(x[i]-mx)**2;
-    dy+=(y[i]-my)**2;
-  }
-  return num/Math.sqrt(dx*dy);
-}
-
-/* ===============================
-   REGRESSION
-================================= */
-function linear(x,y){
-  let mx=mean(x), my=mean(y);
-  let num=0,den=0;
-
-  for(let i=0;i<x.length;i++){
-    num+=(x[i]-mx)*(y[i]-my);
-    den+=(x[i]-mx)**2;
+  function parseCSV(text){
+    var rows = [], row = [], field = '', inQuotes = false, i = 0, len = text.length;
+    while(i < len){
+      var c = text.charAt(i);
+      if(inQuotes){
+        if(c === '"'){
+          if(text.charAt(i+1) === '"'){ field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if(c === '"'){ inQuotes = true; i++; continue; }
+      if(c === ','){ row.push(field); field = ''; i++; continue; }
+      if(c === '\r'){ i++; continue; }
+      if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+      field += c; i++;
+    }
+    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows;
   }
 
-  let m=num/den;
-  let b=my-m*mx;
-
-  let pred=x.map(v=>m*v+b);
-  let res=y.map((v,i)=>v-pred[i]);
-
-  let rmse=Math.sqrt(res.reduce((s,v)=>s+v*v,0)/y.length);
-  let mae=mean(res.map(Math.abs));
-
-  let r2=1-(res.reduce((s,v)=>s+v*v,0)/y.reduce((s,v)=>s+(v-my)**2,0));
-
-  return {m,b,pred,res,rmse,mae,r2};
-}
-
-/* ===============================
-   CAPABILITY
-================================= */
-function capability(values,lsl,usl){
-  let mu=mean(values);
-  let s=std(values);
-
-  return {
-    cp:(usl-lsl)/(6*s),
-    cpk:Math.min((usl-mu)/(3*s),(mu-lsl)/(3*s))
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function parseDateTime(str){
+    if(str === null || str === undefined) return null;
+    var s = String(str).trim();
+    if(!s) return null;
+    var d = new Date(s);
+    if(!isNaN(d.getTime())) return d;
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if(m){
+      var mm = parseInt(m[1],10)-1;
+      var dd = parseInt(m[2],10);
+      var yyyy = parseInt(m[3].length===2 ? '20'+m[3] : m[3], 10);
+      var HH = m[4] ? parseInt(m[4],10) : 0;
+      var MM = m[5] ? parseInt(m[5],10) : 0;
+      var SS = m[6] ? parseInt(m[6],10) : 0;
+      var dt = new Date(yyyy,mm,dd,HH,MM,SS);
+      return isNaN(dt.getTime()) ? null : dt;
+    }
+    return null;
   }
-}
+  function dateToDay(d){ return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000); }
+  function dayToDate(d){ return new Date(d*86400000); }
+  function formatDate(d){ return pad2(d.getUTCMonth()+1)+'/'+pad2(d.getUTCDate())+'/'+d.getUTCFullYear(); }
+  function formatDateTime(d){ return pad2(d.getMonth()+1)+'/'+pad2(d.getDate())+'/'+d.getFullYear()+' '+pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  function timeToMinutes(t){
+    if(!t) return null;
+    var m = String(t).trim().match(/^(\d{1,2}):(\d{2})$/);
+    if(!m) return null;
+    var h = parseInt(m[1],10), mi = parseInt(m[2],10);
+    if(h<0 || h>23 || mi<0 || mi>59) return null;
+    return h*60+mi;
+  }
+  function dateToMinutes(d){ return d.getHours()*60+d.getMinutes(); }
+  function isInShift(t,s,e){
+    if(s===null || e===null || s===e) return false;
+    if(e>s) return t>=s && t<e;
+    return t>=s || t<e;
+  }
+  function calculateCst(sec, type){
+    if(!sec || sec<=0) return null;
+    switch(type){
+      case "EZ-Zahn4": return 13.26*sec - (673/sec);
+      case "EZ-Zahn5": return 23.56*sec - (744/sec);
+      case "ISO6":     return 6.9*sec  - (570/sec);
+      case "ISO8":     return 21.78*sec - (306/sec);
+    }
+    return null;
+  }
+  function isValidSensor(v){ return isFinite(v) && v>0 && v!==-999 && Math.abs(v)<1e10; }
+  function getInterpolatedSensor(arr,i){
+    var c = arr[i];
+    if(isValidSensor(c)) return {value:c, interpolated:false};
+    var b = null, f = null;
+    for(var j=i-1; j>=0; j--) if(isValidSensor(arr[j])){ b = arr[j]; break; }
+    for(var k=i+1; k<arr.length; k++) if(isValidSensor(arr[k])){ f = arr[k]; break; }
+    if(b!==null && f!==null) return {value:(b+f)/2, interpolated:true};
+    if(b!==null) return {value:b, interpolated:true};
+    if(f!==null) return {value:f, interpolated:true};
+    return {value:null, interpolated:false};
+  }
 
-/* ===============================
-   OUTLIERS
-================================= */
-function detect(model){
-  let s=std(model.res);
+  function addShift(d){
+    state.shiftCounter++;
+    var id = 'shift_' + state.shiftCounter;
+    d = d || {};
+    var div = document.createElement('div');
+    div.className = 'shift-row';
+    div.id = id;
+    div.innerHTML =
+      '<input type="text" placeholder="Name" value="' + (d.name || '') + '" data-field="name">' +
+      '<input type="text" placeholder="Start HH:MM" value="' + (d.start || '') + '" data-field="start" style="max-width:140px;">' +
+      '<input type="text" placeholder="End HH:MM" value="' + (d.end || '') + '" data-field="end" style="max-width:140px;">' +
+      '<button class="btn-small btn-remove" onclick="removeShift(\'' + id + '\')">&times;</button>';
+    var host = document.getElementById('shiftConfig');
+    if(host) host.appendChild(div);
+  }
+  function removeShift(id){ var el = document.getElementById(id); if(el) el.remove(); }
+  function readShifts(){
+    var out = [];
+    var rows = document.querySelectorAll('#shiftConfig .shift-row');
+    for(var i=0; i<rows.length; i++){
+      var r = rows[i];
+      var nEl = r.querySelector('[data-field="name"]');
+      var sEl = r.querySelector('[data-field="start"]');
+      var eEl = r.querySelector('[data-field="end"]');
+      if(!nEl || !sEl || !eEl) continue;
+      var n = nEl.value.trim();
+      var s = sEl.value.trim();
+      var e = eEl.value.trim();
+      var sm = timeToMinutes(s);
+      var em = timeToMinutes(e);
+      if(n && sm!==null && em!==null){
+        out.push({name:n, startMin:sm, endMin:em, startStr:s, endStr:e});
+      }
+    }
+    return out;
+  }
+  function assignShift(d, sl){
+    if(!sl || !sl.length) return '';
+    var t = dateToMinutes(d);
+    for(var i=0; i<sl.length; i++){
+      if(isInShift(t, sl[i].startMin, sl[i].endMin)) return sl[i].name;
+    }
+    return 'Unassigned';
+  }
 
-  data.forEach((d,i)=>{
-    d.pred=model.pred[i];
-    d.res=model.res[i];
-    d.flag = Math.abs(d.res/s)>3;
-  });
-}
+  function populateColumnSelectors(headersList){
+    var ids = ['dateCol','manualCol','sensorCol'];
+    for(var s=0; s<ids.length; s++){
+      var sel = document.getElementById(ids[s]);
+      if(!sel) continue;
+      sel.innerHTML = '';
+      sel.add(new Option('-- Select column --', ''));
+      for(var hi=0; hi<headersList.length; hi++){
+        var name = String(headersList[hi] == null ? '' : headersList[hi]).trim();
+        var label = name.length ? name : ('Column ' + (hi+1));
+        sel.add(new Option(label, String(hi)));
+      }
+    }
+  }
 
-/* ===============================
-   MAIN
-================================= */
-function processData(){
+  function autoDetectColumns(headersList){
+    var dateSel = document.getElementById('dateCol');
+    var manSel = document.getElementById('manualCol');
+    var sensSel = document.getElementById('sensorCol');
+    if(!dateSel || !manSel || !sensSel) return;
+    for(var i=0; i<headersList.length; i++){
+      var hl = String(headersList[i] || '').toLowerCase();
+      if(hl.indexOf('date') !== -1 || hl.indexOf('time') !== -1){
+        if(dateSel.value === '') dateSel.value = String(i);
+      }
+      if(hl.indexOf('zahn') !== -1 || hl.indexOf('efflux') !== -1 || hl.indexOf('cup') !== -1 || hl.indexOf('sec') !== -1){
+        if(manSel.value === '') manSel.value = String(i);
+      }
+      if(hl.indexOf('viscosity') !== -1 || (hl.indexOf('cp') !== -1 && hl.indexOf('cup') === -1)){
+        if(sensSel.value === '') sensSel.value = String(i);
+      }
+    }
+  }
 
-  let x=data.map(d=>d.cup);
-  let y=data.map(d=>d.sensor);
+  function handleFileUpload(e){
+    var f = e && e.target && e.target.files && e.target.files[0];
+    var ls = document.getElementById('loadStatus');
+    if(!f){
+      if(ls){ ls.className = 'error'; ls.textContent = 'No file selected.'; }
+      return;
+    }
+    if(ls){ ls.className = 'status'; ls.textContent = 'Reading ' + f.name + ' ...'; }
 
-  let model=linear(x,y);
-  detect(model);
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var text = ev.target.result;
+        var parsed = parseCSV(text);
+        if(!parsed || !parsed.length) throw new Error('CSV file is empty.');
+        if(parsed.length <= HEADER_ROW_INDEX){
+          throw new Error('CSV must contain at least 15 rows. Header is expected on Excel row 15.');
+        }
 
-  let cap=capability(x,25,45); // you can hook to UI later
+        var headerRow = parsed[HEADER_ROW_INDEX];
+        if(!headerRow || !headerRow.length){
+          throw new Error('Header row (Excel row 15) is missing or empty.');
+        }
+        var hasHeaderText = false;
+        for(var hh=0; hh<headerRow.length; hh++){
+          if(String(headerRow[hh]||'').trim().length > 0){ hasHeaderText = true; break; }
+        }
+        if(!hasHeaderText){
+          throw new Error('Header row (Excel row 15) has no column names.');
+        }
+        if(parsed.length <= DATA_START_INDEX){
+          throw new Error('No data rows found. Data must begin on Excel row 16.');
+        }
 
-  render(model,cap);
-}
+        var localHeaders = [];
+        for(var i=0; i<headerRow.length; i++){
+          localHeaders.push(String(headerRow[i]==null?'':headerRow[i]).trim());
+        }
 
-/* ===============================
-   RENDER
-================================= */
-function render(model,cap){
+        var localRawRows = [];
+        for(var j=DATA_START_INDEX; j<parsed.length; j++){
+          var row = parsed[j];
+          if(!row) continue;
+          var hasContent = false;
+          for(var kk=0; kk<row.length; kk++){
+            if(String(row[kk]||'').trim().length > 0){ hasContent = true; break; }
+          }
+          if(hasContent) localRawRows.push(row);
+        }
+        if(localRawRows.length === 0){
+          throw new Error('No non-empty data rows found starting at Excel row 16.');
+        }
 
-  let anomalies=data.filter(d=>d.flag).length;
+        state.headers = localHeaders;
+        state.rawRows = localRawRows;
 
-  document.getElementById('results').innerHTML = `
-  <div class="card">
+        populateColumnSelectors(state.headers);
+        autoDetectColumns(state.headers);
 
-  <div class="insight-box">
-  <b>Executive Summary</b><br>
-  R²: ${model.r2.toFixed(3)}<br>
-  RMSE: ${model.rmse.toFixed(2)}<br>
-  MAE: ${model.mae.toFixed(2)}<br>
-  Anomalies: ${anomalies}
-  </div>
+        var controlsDiv = document.getElementById('controls');
+        if(controlsDiv) controlsDiv.style.display = 'block';
 
-  <div class="metric">R²<br>${model.r2.toFixed(3)}</div>
-  <div class="metric">RMSE<br>${model.rmse.toFixed(2)}</div>
-  <div class="metric">Cpk<br>${cap.cpk.toFixed(2)}</div>
+        if(ls){
+          ls.className = 'status';
+          ls.textContent = '\u2713 Loaded ' + state.rawRows.length + ' data rows | ' + state.headers.length + ' columns | Header row: 15 / Data row: 16';
+        }
+        try { console.log('Loaded headers:', state.headers); } catch(_e){}
+      } catch(err){
+        if(ls){
+          ls.className = 'error';
+          ls.textContent = '\u2717 ' + (err && err.message ? err.message : String(err));
+        }
+        try { console.error(err); } catch(_e){}
+      }
+    };
+    reader.onerror = function(err){
+      if(ls){
+        ls.className = 'error';
+        ls.textContent = '\u2717 File read error';
+      }
+      try { console.error(err); } catch(_e){}
+    };
+    reader.readAsText(f);
+  }
 
-  <hr>
+  function processData(){
+    if(!state.headers || !state.headers.length || !state.rawRows || !state.rawRows.length){
+      alert('Please upload a valid CSV first.');
+      return;
+    }
+    var manVal = document.getElementById('manualCol').value;
+    var senVal = document.getElementById('sensorCol').value;
+    var datVal = document.getElementById('dateCol').value;
+    if(manVal === '' || senVal === '' || datVal === ''){
+      alert('Please select Date/Time, Manual Viscosity and Sensor Viscosity columns.');
+      return;
+    }
+    var m = parseInt(manVal, 10);
+    var s = parseInt(senVal, 10);
+    var dCol = parseInt(datVal, 10);
+    if(isNaN(m) || isNaN(s) || isNaN(dCol)){
+      alert('Column selection is invalid.'); return;
+    }
 
-  <h3>Predict</h3>
-  Cup: <input id="cupInput">
-  <button onclick="predict()">Predict Sensor</button>
-  <div id="pred"></div>
+    var cupType = document.getElementById('cupType').value;
+    if(!cupType){ alert('Select a Cup Type.'); return; }
 
-  <hr>
+    state.cupLSL = parseFloat(document.getElementById('lsl').value);
+    state.cupUSL = parseFloat(document.getElementById('usl').value);
+    if(isFinite(state.cupLSL) && isFinite(state.cupUSL) && state.cupLSL > state.cupUSL){
+      var t = state.cupLSL; state.cupLSL = state.cupUSL; state.cupUSL = t;
+    }
 
-  <h3>Data</h3>
-  <table>
-  <tr><th>Cup</th><th>Sensor</th><th>Pred</th><th>Residual</th><th>Flag</th></tr>
+    state.shifts = readShifts();
 
-  ${data.map(d=>`
-  <tr class="${d.flag?'flagged':''}">
-    <td>${d.cup}</td>
-    <td>${d.sensor}</td>
-    <td>${d.pred.toFixed(2)}</td>
-    <td>${d.res.toFixed(2)}</td>
-    <td class="flag-cell">${d.flag?'⚠':''}</td>
-  </tr>
-  `).join("")}
+    var sensorArr = [];
+    for(var i=0; i<state.rawRows.length; i++){
+      var row = state.rawRows[i];
+      sensorArr.push(row ? parseFloat(row[s]) : NaN);
+    }
 
-  </table>
+    state.pairedDataAll = [];
+    var totalManual = 0, interpCount = 0, badDates = 0;
 
-  </div>
-  `;
-}
+    for(var r=0; r<state.rawRows.length; r++){
+      var rr = state.rawRows[r];
+      if(!rr) continue;
+      var cs = parseFloat(rr[m]);
+      if(!isFinite(cs) || cs <= 0) continue;
+      totalManual++;
+      var dt = parseDateTime(rr[dCol]);
+      if(!dt){ badDates++; continue; }
+      var ip = getInterpolatedSensor(sensorArr, r);
+      if(ip.value === null) continue;
+      var cc = calculateCst(cs, cupType);
+      if(cc === null || !isFinite(cc)) continue;
+      var ad = Math.abs(cc - ip.value);
+      if(ip.interpolated) interpCount++;
+      state.pairedDataAll.push({
+        date: dt, day: dateToDay(dt), cupSec: cs, sensorCP: ip.value,
+        calcCst: cc, absDiff: ad, interpolated: ip.interpolated,
+        shift: assignShift(dt, state.shifts)
+      });
+    }
 
-/* ===============================
-   PREDICT
-================================= */
-function predict(){
-  let v=parseFloat(document.getElementById("cupInput").value);
-  let x=data.map(d=>d.cup);
-  let y=data.map(d=>d.sensor);
-  let m=linear(x,y);
+    if(state.pairedDataAll.length < 3){
+      alert('Not enough pairs (' + state.pairedDataAll.length + '). Check column selections.');
+      return;
+    }
 
-  let pred=m.m*v+m.b;
+    var days = state.pairedDataAll.map(function(p){ return p.day; });
+    state.minDay = Math.min.apply(null, days);
+    state.maxDay = Math.max.apply(null, days);
+    if(state.minDay === state.maxDay) state.maxDay = state.minDay + 1;
 
-  document.getElementById("pred").innerHTML =
-    "Predicted Sensor: "+pred.toFixed(2);
-}
+    var dMin = document.getElementById('dateSliderMin');
+    var dMax = document.getElementById('dateSliderMax');
+    dMin.min = state.minDay; dMin.max = state.maxDay; dMin.step = 1; dMin.value = state.minDay;
+    dMax.min = state.minDay; dMax.max = state.maxDay; dMax.step = 1; dMax.value = state.maxDay;
+    dMin.oninput = onDateSliderChange;
+    dMax.oninput = onDateSliderChange;
 
+    var inSpecPct = null;
+    if(isFinite(state.cupLSL) && isFinite(state.cupUSL) && state.cupUSL > state.cupLSL){
+      var okCount = 0;
+      for(var pp=0; pp<state.pairedDataAll.length; pp++){
+        var p = state.pairedDataAll[pp];
+        if(p.cupSec >= state.cupLSL && p.cupSec <= state.cupUSL) okCount++;
+      }
+      inSpecPct = (okCount / state.pairedDataAll.length) * 100;
+    }
+
+    document.getElementById('pairingMetrics').innerHTML =
+      '<div class="metric"><div class="metric-label">Total Manual</div><div class="metric-value">' + totalManual + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Paired</div><div class="metric-value">' + state.pairedDataAll.length + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Interpolated</div><div class="metric-value">' + interpCount + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Bad Dates</div><div class="metric-value">' + badDates + '</div></div>' +
+      (inSpecPct !== null ? '<div class="metric"><div class="metric-label">% In Spec</div><div class="metric-value">' + inSpecPct.toFixed(1) + '%</div></div>' : '');
+
+    document.getElementById('results').style.display = 'block';
+    updateDateSliderVisuals();
+    applyDateFilter();
+  }
+
+  function onDateSliderChange(e){
+    var dMin = document.getElementById('dateSliderMin');
+    var dMax = document.getElementById('dateSliderMax');
+    var lo = parseInt(dMin.value,10), hi = parseInt(dMax.value,10);
+    if(lo > hi){
+      if(e && e.target && e.target.id === 'dateSliderMin'){ lo = hi; dMin.value = lo; }
+      else { hi = lo; dMax.value = hi; }
+    }
+    updateDateSliderVisuals();
+    applyDateFilter();
+  }
+
+  function updateDateSliderVisuals(){
+    var lo = parseInt(document.getElementById('dateSliderMin').value,10);
+    var hi = parseInt(document.getElementById('dateSliderMax').value,10);
+    var t = (state.maxDay - state.minDay) || 1;
+    document.getElementById('rangeSelected').style.left = (((lo - state.minDay) / t) * 100) + '%';
+    document.getElementById('rangeSelected').style.width = (((hi - lo) / t) * 100) + '%';
+    document.getElementById('dateMinLabel').textContent = formatDate(dayToDate(lo));
+    document.getElementById('dateMaxLabel').textContent = formatDate(dayToDate(hi));
+  }
+
+  function applyDateFilter(){
+    var lo = parseInt(document.getElementById('dateSliderMin').value,10);
+    var hi = parseInt(document.getElementById('dateSliderMax').value,10);
+    state.basePaired = state.pairedDataAll.filter(function(p){ return p.day >= lo && p.day <= hi; });
+
+    if(state.basePaired.length < 3){
+      document.getElementById('regressionMetrics').innerHTML = '<div class="warning">Not enough points in date range.</div>';
+      document.getElementById('recommendedLimits').innerHTML = '';
+      document.getElementById('shiftAnalysis').innerHTML = '';
+      drawChart([], [], null);
+      renderDataTable();
+      return;
+    }
+
+    var abs = state.basePaired.map(function(p){ return p.absDiff; }).slice().sort(function(a,b){ return a - b; });
+    state.maxAbsDiff = abs[abs.length - 1] || 1;
+    if(state.maxAbsDiff === 0) state.maxAbsDiff = 1;
+
+    var sl = document.getElementById('diffSlider');
+    sl.min = 0;
+    sl.max = state.maxAbsDiff;
+    sl.step = state.maxAbsDiff / 200;
+    sl.value = state.maxAbsDiff;
+    sl.oninput = updateFromSlider;
+    updateFromSlider();
+  }
+
+  function computeStats(d){
+    if(!d || d.length < 2) return null;
+    var xs = d.map(function(p){ return p.cupSec; });
+    var ys = d.map(function(p){ return p.sensorCP; });
+    var l = linearRegression(xs, ys);
+    var r = computeR2(xs, ys, l.fn);
+    var meanAbs = 0;
+    for(var i=0; i<d.length; i++) meanAbs += d[i].absDiff;
+    meanAbs = meanAbs / d.length;
+    return {lin: l, r2: r, meanAbsDiff: meanAbs, n: d.length};
+  }
+  function computeLimits(m, d){
+    var l = m.fn(state.cupLSL), h = m.fn(state.cupUSL);
+    if(l > h){ var t = l; l = h; h = t; }
+    var okCount = 0;
+    for(var i=0; i<d.length; i++){
+      var p = d[i];
+      if(p.sensorCP >= l && p.sensorCP <= h) okCount++;
+    }
+    var c = d.length ? (okCount / d.length * 100) : 0;
+    return {lsl: l, usl: h, coverage: c};
+  }
+  function linearRegression(x, y){
+    var n = x.length;
+    var sx = 0, sy = 0, sxy = 0, sx2 = 0;
+    for(var i=0; i<n; i++){ sx += x[i]; sy += y[i]; sxy += x[i]*y[i]; sx2 += x[i]*x[i]; }
+    var d = (n*sx2 - sx*sx);
+    var m = d === 0 ? 0 : (n*sxy - sx*sy) / d;
+    var b = (sy - m*sx) / n;
+    return {m: m, b: b, fn: function(xi){ return m*xi + b; }};
+  }
+  function computeR2(x, y, fn){
+    var mean = 0;
+    for(var i=0; i<y.length; i++) mean += y[i];
+    mean = mean / y.length;
+    var ssr = 0, sst = 0;
+    for(var j=0; j<x.length; j++){
+      var p = fn(x[j]);
+      ssr += (y[j] - p) * (y[j] - p);
+      sst += (y[j] - mean) * (y[j] - mean);
+    }
+    return sst === 0 ? 0 : 1 - ssr/sst;
+  }
+
+  function updateFromSlider(){
+    var tol = parseFloat(document.getElementById('diffSlider').value);
+    document.getElementById('sliderValue').textContent = '\u2264 ' + tol.toFixed(2) + ' cP';
+    state.activePaired = state.basePaired.filter(function(p){ return p.absDiff <= tol; });
+    var ex = state.basePaired.filter(function(p){ return p.absDiff > tol; });
+
+    if(state.activePaired.length < 2){
+      document.getElementById('regressionMetrics').innerHTML = '<div class="error">Not enough points.</div>';
+      document.getElementById('recommendedLimits').innerHTML = '';
+      document.getElementById('shiftAnalysis').innerHTML = '';
+      drawChart(state.activePaired, ex, null);
+      renderDataTable();
+      return;
+    }
+
+    var st = computeStats(state.activePaired);
+    document.getElementById('regressionMetrics').innerHTML =
+      '<div class="metric"><div class="metric-label">Pts</div><div class="metric-value">' + state.activePaired.length + '/' + state.basePaired.length + '</div></div>' +
+      '<div class="metric"><div class="metric-label">R\u00b2</div><div class="metric-value">' + st.r2.toFixed(4) + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Mean|\u0394|</div><div class="metric-value">' + st.meanAbsDiff.toFixed(2) + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Slope</div><div class="metric-value">' + st.lin.m.toFixed(3) + '</div></div>' +
+      '<div class="metric"><div class="metric-label">Intercept</div><div class="metric-value">' + st.lin.b.toFixed(2) + '</div></div>';
+
+    if(isFinite(state.cupLSL) && isFinite(state.cupUSL) && state.cupUSL > state.cupLSL){
+      var bs = computeStats(state.basePaired);
+      var bl = computeLimits(bs.lin, state.basePaired);
+      var al = computeLimits(st.lin, state.activePaired);
+      document.getElementById('recommendedLimits').innerHTML =
+        '<div class="row">' +
+          '<div class="col"><div class="limit-card all"><h4 style="color:#00d4ff;">A) All Data</h4>' +
+            '<div>LSL <strong style="color:#00d4ff;">' + bl.lsl.toFixed(1) + '</strong>, USL <strong style="color:#00d4ff;">' + bl.usl.toFixed(1) + '</strong> cP</div>' +
+            '<div style="color:#0f0;">' + bl.coverage.toFixed(1) + '% coverage</div></div></div>' +
+          '<div class="col"><div class="limit-card active"><h4 style="color:#00ff66;">B) Quality-Filtered</h4>' +
+            '<div>LSL <strong style="color:#00ff66;">' + al.lsl.toFixed(1) + '</strong>, USL <strong style="color:#00ff66;">' + al.usl.toFixed(1) + '</strong> cP</div>' +
+            '<div style="color:#0f0;">' + al.coverage.toFixed(1) + '% coverage</div></div></div>' +
+        '</div>';
+    } else {
+      document.getElementById('recommendedLimits').innerHTML = '<div class="warning">Enter Cup LSL & USL to see recommended sensor limits.</div>';
+    }
+
+    renderShiftAnalysis();
+    drawChart(state.activePaired, ex, st.lin);
+    renderDataTable();
+  }
+
+  function renderShiftAnalysis(){
+    var t = document.getElementById('shiftAnalysis');
+    if(!t) return;
+    if(state.shifts.length === 0){ t.innerHTML = '<div style="color:#aaa;">No shifts defined.</div>'; return; }
+    var h = '';
+    for(var i=0; i<state.shifts.length; i++){
+      var sh = state.shifts[i];
+      var bs = state.basePaired.filter(function(p){ return p.shift === sh.name; });
+      var as = state.activePaired.filter(function(p){ return p.shift === sh.name; });
+      var lb = String.fromCharCode(65 + i);
+      if(bs.length < 2 || as.length < 2){
+        h += '<div class="shift-card"><h4>8' + lb + ') ' + sh.name + '</h4><div class="warning">Not enough data.</div></div>';
+        continue;
+      }
+      var bst = computeStats(bs);
+      var ast = computeStats(as);
+      h += '<div class="shift-card"><h4>8' + lb + ') ' + sh.name + ' (' + sh.startStr + '\u2192' + sh.endStr + ')</h4>' +
+        '<div class="metric"><div class="metric-label">Pts</div><div class="metric-value">' + ast.n + '/' + bst.n + '</div></div>' +
+        '<div class="metric"><div class="metric-label">R\u00b2</div><div class="metric-value">' + ast.r2.toFixed(4) + '</div></div>' +
+        '<div class="metric"><div class="metric-label">Mean|\u0394|</div><div class="metric-value">' + ast.meanAbsDiff.toFixed(2) + '</div></div></div>';
+    }
+    t.innerHTML = h;
+  }
+
+  function drawChart(inPts, exPts, line){
+    var canvas = document.getElementById('chart');
+    if(!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+
+    var all = inPts.concat(exPts);
+    if(all.length === 0){
+      ctx.fillStyle = '#666'; ctx.font = '14px Arial'; ctx.fillText('No data', W/2 - 30, H/2);
+      return;
+    }
+
+    var xs = all.map(function(p){ return p.cupSec; });
+    var ys = all.map(function(p){ return p.sensorCP; });
+    var xMin = Math.min.apply(null, xs), xMax = Math.max.apply(null, xs);
+    var yMin = Math.min.apply(null, ys), yMax = Math.max.apply(null, ys);
+    var xPad = (xMax - xMin) * 0.05 || 1;
+    var yPad = (yMax - yMin) * 0.05 || 1;
+    xMin -= xPad; xMax += xPad; yMin -= yPad; yMax += yPad;
+
+    var padL = 60, padR = 30, padT = 30, padB = 50;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    function xPx(v){ return padL + (v - xMin) / (xMax - xMin) * plotW; }
+    function yPx(v){ return padT + plotH - (v - yMin) / (yMax - yMin) * plotH; }
+
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#aaa'; ctx.font = '11px Arial';
+    var gx = 8, gy = 6;
+    for(var i=0; i<=gx; i++){
+      var xv = xMin + (xMax - xMin) * i / gx;
+      var px = xPx(xv);
+      ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, padT + plotH); ctx.stroke();
+      ctx.fillText(xv.toFixed(1), px - 12, H - 20);
+    }
+    for(var j=0; j<=gy; j++){
+      var yv = yMin + (yMax - yMin) * j / gy;
+      var py = yPx(yv);
+      ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(padL + plotW, py); ctx.stroke();
+      ctx.fillText(yv.toFixed(1), 8, py + 4);
+    }
+
+    ctx.fillStyle = '#aaa'; ctx.font = 'bold 13px Arial';
+    ctx.fillText('Cup Seconds', W/2 - 40, H - 6);
+    ctx.save();
+    ctx.translate(15, H/2 + 30);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText('Sensor cP', 0, 0);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(150,150,150,0.5)';
+    for(var e=0; e<exPts.length; e++){
+      var pe = exPts[e];
+      ctx.beginPath(); ctx.arc(xPx(pe.cupSec), yPx(pe.sensorCP), 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#00d4ff';
+    for(var n=0; n<inPts.length; n++){
+      var pi = inPts[n];
+      ctx.beginPath(); ctx.arc(xPx(pi.cupSec), yPx(pi.sensorCP), 5, 0, Math.PI*2); ctx.fill();
+    }
+
+    if(line && inPts.length >= 2){
+      var xsIn = inPts.map(function(p){ return p.cupSec; });
+      var xMn = Math.min.apply(null, xsIn), xMx = Math.max.apply(null, xsIn);
+      ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(xPx(xMn), yPx(line.fn(xMn)));
+      ctx.lineTo(xPx(xMx), yPx(line.fn(xMx)));
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#00d4ff'; ctx.beginPath(); ctx.arc(padL + 10, padT + 12, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '12px Arial'; ctx.fillText('In window', padL + 22, padT + 16);
+    ctx.fillStyle = 'rgba(150,150,150,0.7)'; ctx.beginPath(); ctx.arc(padL + 110, padT + 12, 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText('Excluded', padL + 122, padT + 16);
+    if(line){
+      ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(padL + 200, padT + 12); ctx.lineTo(padL + 220, padT + 12); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.fillText('Fit', padL + 226, padT + 16);
+    }
+  }
+
+  function setTableView(v){
+    state.tableView = v;
+    document.getElementById('tblFullBtn').classList.toggle('active', v === 'full');
+    document.getElementById('tblFiltBtn').classList.toggle('active', v === 'filt');
+    renderDataTable();
+  }
+  function getTableData(){ return state.tableView === 'filt' ? state.activePaired : state.basePaired; }
+  function renderDataTable(){
+    var d = getTableData();
+    var t = document.getElementById('dataTable');
+    var i = document.getElementById('dataTableInfo');
+    if(!t || !i) return;
+    if(!d || !d.length){ t.innerHTML = ''; i.textContent = 'No data.'; return; }
+    var ss = state.shifts.length > 0;
+    var mx = Math.min(d.length, 500);
+    i.innerHTML = 'Showing ' + mx + ' of ' + d.length + ' rows.';
+    var h = '<thead><tr><th>Date/Time</th><th>Cup s</th><th>Calc cSt</th><th>Sensor cP</th><th>|\u0394|</th>' + (ss ? '<th>Shift</th>' : '') + '</tr></thead><tbody>';
+    for(var k=0; k<mx; k++){
+      var p = d[k];
+      h += '<tr><td>' + formatDateTime(p.date) + '</td><td>' + p.cupSec.toFixed(2) + '</td><td>' + p.calcCst.toFixed(2) + '</td><td>' + p.sensorCP.toFixed(2) + '</td><td>' + p.absDiff.toFixed(2) + '</td>' + (ss ? '<td>' + p.shift + '</td>' : '') + '</tr>';
+    }
+    t.innerHTML = h + '</tbody>';
+  }
+  function downloadCSV(){
+    var d = getTableData();
+    if(!d || !d.length){ alert('No data to download.'); return; }
+    var ss = state.shifts.length > 0;
+    var c = 'DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated' + (ss ? ',Shift' : '') + '\n';
+    for(var i=0; i<d.length; i++){
+      var p = d[i];
+      c += formatDateTime(p.date) + ',' + p.cupSec.toFixed(3) + ',' + p.calcCst.toFixed(3) + ',' + p.sensorCP.toFixed(3) + ',' + p.absDiff.toFixed(3) + ',' + (p.interpolated ? 'Yes' : 'No') + (ss ? ',' + p.shift : '') + '\n';
+    }
+    var b = new Blob([c], {type: 'text/csv'});
+    var u = URL.createObjectURL(b);
+    var a = document.createElement('a');
+    a.href = u;
+    a.download = 'shell_control_export_' + Date.now() + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(u);
+  }
+
+  function init(){
+    var input = document.getElementById('fileInput');
+    if(input) input.addEventListener('change', handleFileUpload);
+    addShift({name: 'Shift 1', start: '06:00', end: '14:00'});
+    addShift({name: 'Shift 2', start: '14:00', end: '22:00'});
+    addShift({name: 'Shift 3', start: '22:00', end: '06:00'});
+    try { console.log('\u2713 Correlation tool initialized (Header row 15 / Data row 16, offline)'); } catch(_e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 
 </body>
