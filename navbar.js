@@ -146,8 +146,16 @@
     var list = el('ul', { class: 'ctg-nav-list', id: 'ctg-nav-list' });
     for (var i = 0; i < NAV_LINKS.length; i++) {
       var link = NAV_LINKS[i];
-      var isActive = (here === link.href);
-      var a = el('a', { href: link.href, text: link.label });
+      var isActive = !link.target && (here === link.href);
+      var attrs = {
+  href: link.href,
+  text: link.label
+};
+
+if (link.target) attrs.target = link.target;
+if (link.rel) attrs.rel = link.rel;
+
+var a = el('a', attrs);
       if (isActive) {
         a.className = 'active';
         a.setAttribute('aria-current', 'page');
