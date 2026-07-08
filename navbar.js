@@ -13,12 +13,18 @@
 
   /* ---------- 1. Link registry (edit this once for all pages) ---------- */
   var NAV_LINKS = [
-    { label: 'Home',                           href: 'index.html' },
-    { label: 'Shell Control Correlation',      href: 'shell-control-correlation.html' },
-    { label: 'Shell Control Value Calculator', href: 'shell-control-value-calculator.html' },
-    { label: 'Slurry Calculator',              href: 'slurry-calculator.html' },
-    { label: 'Tank RPM',                       href: 'tank-rpm-calculator.html' }
-  ];
+  { label: 'Home', href: 'index.html' },
+  { label: 'Shell Control Correlation', href: 'shell-control-correlation.html' },
+  { label: 'Shell Control Value Calculator', href: 'shell-control-value-calculator.html' },
+  { label: 'Slurry Calculator', href: 'slurry-calculator.html' },
+  { label: 'Tank RPM', href: 'tank-rpm-calculator.html' },
+  {
+    label: 'E3D',
+    href: 'https://e3d.ecolab.com/',
+    target: '_blank',
+    rel: 'noopener noreferrer'
+  }
+];
 
   var BRAND_TEXT     = 'CTG';
   var BRAND_SUBTITLE = 'Colloidal Technologies Group';
