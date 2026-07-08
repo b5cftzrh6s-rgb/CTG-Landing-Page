@@ -3,58 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shell Control Correlation Tool — Advanced Analytics</title>
+<title>Shell Control Correlation Tool — CTG</title>
 
 <style>
-/* KEEP YOUR EXISTING STYLES — ADD BELOW */
+:root{
+  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
+  --bg:#f4f6f9; --text:#1f2a3a;
+}
+
+body{
+  margin:0;
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+main{
+  max-width:1400px;
+  margin:24px auto;
+  padding:20px;
+}
+
+/* KEEP CTG LOOK */
+.card{
+  background:#111;
+  color:#fff;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+.metric{
+  display:inline-block;
+  background:#1a1a1a;
+  padding:12px;
+  margin:5px;
+  border-radius:8px;
+  border:1px solid #00d4ff;
+}
 
 .metric.good{border-color:#00ff66}
 .metric.warn{border-color:#fa0}
 .metric.bad{border-color:#f55}
-.metric-value.good{color:#00ff66}
-.metric-value.warn{color:#fa0}
-.metric-value.bad{color:#f55}
 
 .insight-box{
   background:#0a1a1f;
   border:1px solid #00d4ff;
   padding:12px;
   border-radius:8px;
-  margin:10px 0;
+  margin-bottom:10px;
 }
 
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+td,th{
+  padding:6px;
+  border-bottom:1px solid #333;
+}
 .flagged{background:rgba(255,165,0,0.1)}
 .flag-cell{color:#fa0;font-weight:700}
 
-.chart-container{
-  height:300px;
-  margin-top:10px;
+button{
+  background:#00d4ff;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
 }
+button:hover{background:#00b8d9}
+
+input{padding:6px;margin:5px}
 </style>
 </head>
 
 <body>
 
-<h1 style="text-align:center">Shell Control Correlation — Advanced Engine</h1>
+<!-- ✅ NAVBAR -->
+<div id="navbar-container"></div>
 
-<div style="padding:20px">
+<main>
 
-<input type="file" id="fileInput"><br><br>
-<button onclick="processData()">Run Analysis</button>
-
-<hr>
+<div class="card">
+  <h2>Upload CSV</h2>
+  <input type="file" id="fileInput">
+  <br><br>
+  <button onclick="processData()">Run Analysis</button>
+</div>
 
 <div id="results"></div>
 
-</div>
+</main>
+
+<script src="navbar.js"></script>
 
 <script>
 
 /* ===============================
-   BASIC PARSE + DATA
+   DATA
 ================================= */
-
-var data = [];
+let data = [];
 
 document.getElementById('fileInput').addEventListener('change', function(e){
   const reader = new FileReader();
@@ -64,6 +115,7 @@ document.getElementById('fileInput').addEventListener('change', function(e){
       cup: parseFloat(r[0]),
       sensor: parseFloat(r[1])
     })).filter(r=>!isNaN(r.cup)&&!isNaN(r.sensor));
+
     alert("Loaded "+data.length+" rows");
   }
   reader.readAsText(e.target.files[0]);
@@ -72,9 +124,9 @@ document.getElementById('fileInput').addEventListener('change', function(e){
 /* ===============================
    STATS
 ================================= */
-
 function mean(a){return a.reduce((s,v)=>s+v,0)/a.length}
 function std(a){let m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))}
+
 function pearson(x,y){
   let mx=mean(x), my=mean(y);
   let num=0,dx=0,dy=0;
@@ -89,34 +141,32 @@ function pearson(x,y){
 /* ===============================
    REGRESSION
 ================================= */
-
 function linear(x,y){
   let mx=mean(x), my=mean(y);
   let num=0,den=0;
+
   for(let i=0;i<x.length;i++){
     num+=(x[i]-mx)*(y[i]-my);
     den+=(x[i]-mx)**2;
   }
+
   let m=num/den;
   let b=my-m*mx;
 
-  let preds=x.map(v=>m*v+b);
-  let res=y.map((v,i)=>v-preds[i]);
+  let pred=x.map(v=>m*v+b);
+  let res=y.map((v,i)=>v-pred[i]);
 
-  return {
-    m,b,
-    pred:preds,
-    res,
-    r2:1-(res.reduce((s,v)=>s+v*v,0)/y.reduce((s,v)=>s+(v-my)**2,0)),
-    rmse:Math.sqrt(res.reduce((s,v)=>s+v*v,0)/y.length),
-    mae:mean(res.map(Math.abs))
-  }
+  let rmse=Math.sqrt(res.reduce((s,v)=>s+v*v,0)/y.length);
+  let mae=mean(res.map(Math.abs));
+
+  let r2=1-(res.reduce((s,v)=>s+v*v,0)/y.reduce((s,v)=>s+(v-my)**2,0));
+
+  return {m,b,pred,res,rmse,mae,r2};
 }
 
 /* ===============================
    CAPABILITY
 ================================= */
-
 function capability(values,lsl,usl){
   let mu=mean(values);
   let s=std(values);
@@ -130,8 +180,7 @@ function capability(values,lsl,usl){
 /* ===============================
    OUTLIERS
 ================================= */
-
-function detect(data,model){
+function detect(model){
   let s=std(model.res);
 
   data.forEach((d,i)=>{
@@ -144,16 +193,15 @@ function detect(data,model){
 /* ===============================
    MAIN
 ================================= */
-
 function processData(){
 
   let x=data.map(d=>d.cup);
   let y=data.map(d=>d.sensor);
 
   let model=linear(x,y);
-  detect(data,model);
+  detect(model);
 
-  let cap=capability(x,25,45); // example limits
+  let cap=capability(x,25,45); // you can hook to UI later
 
   render(model,cap);
 }
@@ -161,76 +209,57 @@ function processData(){
 /* ===============================
    RENDER
 ================================= */
-
 function render(model,cap){
 
-  let anomalies = data.filter(d=>d.flag).length;
+  let anomalies=data.filter(d=>d.flag).length;
 
   document.getElementById('results').innerHTML = `
+  <div class="card">
 
   <div class="insight-box">
   <b>Executive Summary</b><br>
-  Correlation (r²): ${model.r2.toFixed(3)}<br>
+  R²: ${model.r2.toFixed(3)}<br>
   RMSE: ${model.rmse.toFixed(2)}<br>
   MAE: ${model.mae.toFixed(2)}<br>
   Anomalies: ${anomalies}
   </div>
 
-  <div class="metric">
-    <div>R²</div>
-    <div>${model.r2.toFixed(3)}</div>
-  </div>
-
-  <div class="metric">
-    <div>RMSE</div>
-    <div>${model.rmse.toFixed(2)}</div>
-  </div>
-
-  <div class="metric">
-    <div>Cpk</div>
-    <div>${cap.cpk.toFixed(2)}</div>
-  </div>
+  <div class="metric">R²<br>${model.r2.toFixed(3)}</div>
+  <div class="metric">RMSE<br>${model.rmse.toFixed(2)}</div>
+  <div class="metric">Cpk<br>${cap.cpk.toFixed(2)}</div>
 
   <hr>
 
-  <h3>What-if Predictor</h3>
-
+  <h3>Predict</h3>
   Cup: <input id="cupInput">
   <button onclick="predict()">Predict Sensor</button>
-
   <div id="pred"></div>
 
   <hr>
 
-  <h3>Data Table</h3>
-
-  <table border="1" cellpadding="5">
-  <tr>
-    <th>Cup</th>
-    <th>Sensor</th>
-    <th>Pred</th>
-    <th>Residual</th>
-    <th>Flag</th>
-  </tr>
+  <h3>Data</h3>
+  <table>
+  <tr><th>Cup</th><th>Sensor</th><th>Pred</th><th>Residual</th><th>Flag</th></tr>
 
   ${data.map(d=>`
-    <tr class="${d.flag?'flagged':''}">
-      <td>${d.cup}</td>
-      <td>${d.sensor}</td>
-      <td>${d.pred.toFixed(2)}</td>
-      <td>${d.res.toFixed(2)}</td>
-      <td class="flag-cell">${d.flag?'⚠':''}</td>
-    </tr>
+  <tr class="${d.flag?'flagged':''}">
+    <td>${d.cup}</td>
+    <td>${d.sensor}</td>
+    <td>${d.pred.toFixed(2)}</td>
+    <td>${d.res.toFixed(2)}</td>
+    <td class="flag-cell">${d.flag?'⚠':''}</td>
+  </tr>
   `).join("")}
 
   </table>
+
+  </div>
   `;
 }
 
 /* ===============================
-   PREDICTOR
+   PREDICT
 ================================= */
-
 function predict(){
   let v=parseFloat(document.getElementById("cupInput").value);
   let x=data.map(d=>d.cup);
