@@ -506,12 +506,265 @@ body.mode-B .check-toggle{display:none !important}
 
 <script>
 'use strict';
-var mode = 'A';
-function num(id){ var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
-function fmt(x){ return "$" + Math.round(x).toLocaleString(); }
+
+/* ============================================================
+   Shell Control Value Calculator — full logic
+   ============================================================ */
+
+var mode = 'A';   // 'A' = cost-per-part range, 'B' = annual scrap $
+
+/* ---------- tiny helpers ---------- */
+function num(id){
+  var el = document.getElementById(id);
+  if (!el) return 0;
+  var v = parseFloat(el.value);
+  return isNaN(v) ? 0 : v;
+}
+function fmt(x){
+  if (!isFinite(x)) x = 0;
+  return "$" + Math.round(x).toLocaleString();
+}
 function fmtRange(lo, hi){ return fmt(lo) + " — " + fmt(hi); }
+function setText(id, txt){
+  var el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+function setVal(id, val){
+  var el = document.getElementById(id);
+  if (el) el.value = val;
+}
+
+/* Resolve a low/high pair: if only one is entered, mirror it.
+   If they were entered in the wrong order, swap. */
 function resolveRange(lowId, highId){
   var lo = num(lowId), hi = num(highId);
   if (lo === 0 && hi > 0) lo = hi;
   if (hi === 0 && lo > 0) hi = lo;
-  if (lo > hi) { var t = lo; lo = h
+  if (lo > hi) { var t = lo; lo = hi; hi = t; }
+  return { lo: lo, hi: hi };
+}
+
+/* ---------- mode switching ---------- */
+function setMode(m){
+  mode = m;
+  document.body.classList.remove('mode-A', 'mode-B');
+  document.body.classList.add('mode-' + m);
+
+  var btnA   = document.getElementById('mode_btn_A');
+  var btnB   = document.getElementById('mode_btn_B');
+  var panelA = document.getElementById('mode_A');
+  var panelB = document.getElementById('mode_B');
+
+  if (m === 'A'){
+    btnA.classList.add('active');    btnB.classList.remove('active');
+    panelA.classList.add('active');  panelB.classList.remove('active');
+  } else {
+    btnB.classList.add('active');    btnA.classList.remove('active');
+    panelB.classList.add('active');  panelA.classList.remove('active');
+    // Revenue Uplift requires Mode A — force-uncheck when leaving A
+    var chk = document.getElementById('enable_revenue');
+    if (chk && chk.checked){
+      chk.checked = false;
+      document.getElementById('revenue_inputs').classList.add('hidden');
+    }
+  }
+  calc();
+}
+
+/* ---------- revenue uplift checkbox ---------- */
+function toggleRevenue(){
+  var chk = document.getElementById('enable_revenue');
+  var box = document.getElementById('revenue_inputs');
+  if (chk.checked) box.classList.remove('hidden');
+  else             box.classList.add('hidden');
+  calc();
+}
+
+/* ---------- reset ---------- */
+function resetAll(){
+  var inputs = document.querySelectorAll('input[type="number"]');
+  inputs.forEach(function(i){ i.value = ''; });
+  var chk = document.getElementById('enable_revenue');
+  if (chk) chk.checked = false;
+  document.getElementById('revenue_inputs').classList.add('hidden');
+  setMode('A');
+}
+
+/* ============================================================
+   Main calculation
+   ============================================================ */
+function calc(){
+  /* -------- shared inputs -------- */
+  var reductionPct = num('reduction') / 100;
+  var tanks        = num('tanks');
+  var laborRate    = num('labor_rate');
+  var revChk       = document.getElementById('enable_revenue');
+  var revenueOn    = !!(revChk && revChk.checked) && mode === 'A';
+
+  /* -------- SCRAP REDUCTION -------- */
+  var scrapLow = 0, scrapHigh = 0, scrapSingle = 0;
+  var recoveredParts = 0;
+
+  if (mode === 'A'){
+    var parts    = num('parts');
+    var scrapPct = num('scrap') / 100;
+    var cost     = resolveRange('cost_low', 'cost_high');
+    recoveredParts = parts * scrapPct * reductionPct;
+    scrapLow  = recoveredParts * cost.lo;
+    scrapHigh = recoveredParts * cost.hi;
+  } else {
+    // Mode B: annual scrap dollars × reduction%
+    scrapSingle = num('scrap_dollars') * reductionPct;
+  }
+
+  setVal('recovered',
+    mode === 'A' ? Math.round(recoveredParts).toLocaleString() : '—');
+  setText('scrap_low_out',    fmt(scrapLow));
+  setText('scrap_high_out',   fmt(scrapHigh));
+  setText('scrap_single_out', fmt(scrapSingle));
+
+  /* -------- REVENUE UPLIFT (Mode A only) -------- */
+  var revLow = 0, revHigh = 0;
+  var revGrossLow = 0, revGrossHigh = 0, cmPct = 0;
+
+  if (revenueOn){
+    var price = resolveRange('price_low', 'price_high');
+    var vcPct = num('vc') / 100;
+    cmPct = 1 - vcPct;
+    revGrossLow  = recoveredParts * price.lo;
+    revGrossHigh = recoveredParts * price.hi;
+    revLow  = revGrossLow  * cmPct;
+    revHigh = revGrossHigh * cmPct;
+  }
+  setVal('rev_gross', fmtRange(revGrossLow, revGrossHigh));
+  setVal('cm', (cmPct * 100).toFixed(1) + '%');
+  setText('rev_low_out',  fmt(revLow));
+  setText('rev_high_out', fmt(revHigh));
+
+  /* -------- SINGLE-VALUE DRIVERS -------- */
+  var rework   = num('rw_hours') * 12 * num('rw_rate') * (num('rw_red') / 100);
+  var labor    = tanks * num('reads') * num('mins') * num('days') / 60 * laborRate;
+  var slurry   = tanks * num('sl_cost') * (num('sl_red') / 100);
+  var downtime = num('dt_hours') * num('dt_cost') * (num('dt_red') / 100);
+  var safety   = num('ops') * num('sf_cost') * (num('sf_red') / 100);
+
+  setText('out_rework', fmt(rework));
+  setText('out_labor',  fmt(labor));
+  setText('out_slurry', fmt(slurry));
+  setText('out_dt',     fmt(downtime));
+  setText('out_sf',     fmt(safety));
+
+  /* -------- SUMMARY TABLE -------- */
+  var scrapMid = (scrapLow + scrapHigh) / 2;
+  var revMid   = (revLow   + revHigh)   / 2;
+
+  setText('sum_scrap_low',    fmt(scrapLow));
+  setText('sum_scrap_mid',    fmt(scrapMid));
+  setText('sum_scrap_high',   fmt(scrapHigh));
+  setText('sum_scrap_single', fmt(scrapSingle));
+
+  setText('sum_rev_low',      fmt(revLow));
+  setText('sum_rev_mid',      fmt(revMid));
+  setText('sum_rev_high',     fmt(revHigh));
+  setText('sum_rev_single',   fmt(0));   // revenue is Mode-A only
+
+  // Single-value drivers appear identically in Low/Mid/High and Single columns
+  [
+    { k:'rework', v: rework   },
+    { k:'labor',  v: labor    },
+    { k:'slurry', v: slurry   },
+    { k:'dt',     v: downtime },
+    { k:'sf',     v: safety   }
+  ].forEach(function(d){
+    setText('sum_' + d.k + '_low',    fmt(d.v));
+    setText('sum_' + d.k + '_mid',    fmt(d.v));
+    setText('sum_' + d.k + '_high',   fmt(d.v));
+    setText('sum_' + d.k + '_single', fmt(d.v));
+  });
+
+  /* -------- TOTALS -------- */
+  var driverSum = rework + labor + slurry + downtime + safety;
+  var totalLow    = scrapLow  + revLow  + driverSum;
+  var totalHigh   = scrapHigh + revHigh + driverSum;
+  var totalMid    = (totalLow + totalHigh) / 2;
+  var totalSingle = scrapSingle + driverSum;
+
+  setText('sum_total_low',    fmt(totalLow));
+  setText('sum_total_mid',    fmt(totalMid));
+  setText('sum_total_high',   fmt(totalHigh));
+  setText('sum_total_single', fmt(totalSingle));
+
+  /* -------- TOTAL BANNER -------- */
+  setText('banner_range',  fmtRange(totalLow, totalHigh));
+  setText('banner_single', fmt(totalSingle));
+  setText('banner_mid',    fmt(totalMid));
+
+  /* -------- PRINT / PDF EXPORT -------- */
+  updatePrint({
+    scrapLow: scrapLow, scrapHigh: scrapHigh, scrapMid: scrapMid, scrapSingle: scrapSingle,
+    revLow: revLow, revHigh: revHigh, revMid: revMid,
+    rework: rework, labor: labor, slurry: slurry, downtime: downtime, safety: safety,
+    totalLow: totalLow, totalHigh: totalHigh, totalMid: totalMid, totalSingle: totalSingle
+  });
+}
+
+/* ============================================================
+   Print-only mirror
+   ============================================================ */
+function updatePrint(r){
+  var now = new Date();
+  setText('print_date', now.toLocaleDateString('en-US',
+          { year:'numeric', month:'long', day:'numeric' }));
+
+  setText('p_mode', mode === 'A'
+    ? 'Mode A — Cost / Selling Price per Part'
+    : 'Mode B — Annual Scrap $ + Scrap %');
+  setText('p_parts',
+    num('parts').toLocaleString() + '  (scrap ' + num('scrap') + '%)');
+
+  var cost  = resolveRange('cost_low','cost_high');
+  var price = resolveRange('price_low','price_high');
+
+  setText('p_cost_range',     fmtRange(cost.lo, cost.hi));
+  setText('p_scrap_dollars',  fmt(num('scrap_dollars')) + ' @ ' + num('scrap_rate') + '%');
+  setText('p_price_range',    fmtRange(price.lo, price.hi));
+  setText('p_vc',             num('vc') + '%');
+  setText('p_rework_inputs',
+    num('rw_hours') + ' hrs/mo · $' + num('rw_rate') + '/hr · ' + num('rw_red') + '%');
+  setText('p_tanks',          num('tanks'));
+  setText('p_rate',           '$' + num('labor_rate'));
+
+  var pairs = [
+    ['scrap',  r.scrapLow,  r.scrapMid,  r.scrapHigh,  r.scrapSingle],
+    ['rev',    r.revLow,    r.revMid,    r.revHigh,    0],
+    ['rework', r.rework,    r.rework,    r.rework,     r.rework],
+    ['labor',  r.labor,     r.labor,     r.labor,      r.labor],
+    ['slurry', r.slurry,    r.slurry,    r.slurry,     r.slurry],
+    ['dt',     r.downtime,  r.downtime,  r.downtime,   r.downtime],
+    ['sf',     r.safety,    r.safety,    r.safety,     r.safety],
+    ['total',  r.totalLow,  r.totalMid,  r.totalHigh,  r.totalSingle]
+  ];
+  pairs.forEach(function(p){
+    setText('p_' + p[0] + '_low',    fmt(p[1]));
+    setText('p_' + p[0] + '_mid',    fmt(p[2]));
+    setText('p_' + p[0] + '_high',   fmt(p[3]));
+    setText('p_' + p[0] + '_single', fmt(p[4]));
+  });
+
+  setText('p_banner_range',  fmtRange(r.totalLow, r.totalHigh));
+  setText('p_banner_single', fmt(r.totalSingle));
+}
+
+/* ============================================================
+   Wire up live recalculation + initial render
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function(){
+  // Recalc on any numeric input change
+  document.querySelectorAll('input[type="number"]').forEach(function(i){
+    i.addEventListener('input', calc);
+  });
+  // Initial state
+  setMode('A');
+  calc();
+});
+</script>
