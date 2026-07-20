@@ -1,0 +1,1 @@
+command: ["python", "-m", "http.server", "$DATABRICKS_APP_PORT"]
