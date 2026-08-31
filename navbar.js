@@ -18,7 +18,6 @@
   { label: 'Shell Control Value Calculator', href: 'shell-control-value-calculator.html' },
   { label: 'Slurry Calculator', href: 'slurry-calculator.html' },
   { label: 'Tank RPM', href: 'tank-rpm-calculator.html' },
-  { label: 'CTG CET', href: 'ctg-cet.html' },
   {
     label: 'E3D',
     href: 'https://e3d.ecolab.com/',
