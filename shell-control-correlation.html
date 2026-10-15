@@ -151,8 +151,9 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
   </div>
   <div class="date-labels"><span id="dateMinLabel">--</span><span id="dateMaxLabel">--</span></div>
   <hr>
-  <div class="section-title">5. Quality Filter |Calc cSt &minus; Sensor cP|</div>
-  <p style="color:#aaa;font-size:12px;margin:4px 0 8px;">Note: cup formulas give kinematic viscosity (cSt); the sensor reports dynamic viscosity (cP = cSt &times; density in g/mL). This filter compares the two values directly, without a density conversion, so |&Delta;| is a raw number, not a true cP difference.</p>
+  <div class="section-title">5. Quality Filter |Calc cP &minus; Sensor cP|</div>
+  <div class="col"><label>Slurry Density / SG (g/cm&sup3;):</label><input type="number" id="slurryDensity" min="0.01" step="0.001" value="1.0"></div>
+  <p style="color:#aaa;font-size:12px;margin:4px 0 8px;">Cup formulas give kinematic viscosity (cSt). The sensor reports dynamic viscosity (cP). Calc cP = Calc cSt &times; density, so |&Delta;| is a true cP difference. Enter your measured slurry density; ceramic shell slurries typically run ~1.6&ndash;3.0 g/cm&sup3;. Default 1.0 = no conversion.</p>
   <div class="slider-row">
     <span style="color:#aaa;">Max |&Delta;|:</span>
     <input type="range" id="diffSlider" min="0" max="100" step="1" value="100">
@@ -205,6 +206,10 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
   window.addShift = addShift;
   window.removeShift = removeShift;
   window.processData = processData;
+  document.getElementById('slurryDensity').addEventListener('change', function(){
+    if(getDensity() === null){ alert('Slurry density must be a number greater than 0.'); return; }
+    if(state.pairedDataAll && state.pairedDataAll.length) processData();
+  });
   window.setTableView = setTableView;
   window.downloadCSV = downloadCSV;
 
@@ -454,7 +459,13 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
     reader.readAsText(f);
   }
 
+  function getDensity(){
+    var v = parseFloat(document.getElementById('slurryDensity').value);
+    return (isFinite(v) && v > 0) ? v : null;
+  }
   function processData(){
+    var density = getDensity();
+    if(density === null){ alert('Slurry density must be a number greater than 0.'); return; }
     if(!state.headers || !state.headers.length || !state.rawRows || !state.rawRows.length){
       alert('Please upload a valid CSV first.');
       return;
@@ -505,11 +516,12 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
       if(ip.value === null) continue;
       var cc = calculateCst(cs, cupType);
       if(cc === null || !isFinite(cc)) continue;
-      var ad = Math.abs(cc - ip.value);
+      var ccp = cc * density;
+      var ad = Math.abs(ccp - ip.value);
       if(ip.interpolated) interpCount++;
       state.pairedDataAll.push({
         date: dt, day: dateToDay(dt), cupSec: cs, sensorCP: ip.value,
-        calcCst: cc, absDiff: ad, interpolated: ip.interpolated,
+        calcCst: cc, calcCP: ccp, absDiff: ad, interpolated: ip.interpolated,
         shift: assignShift(dt, state.shifts)
       });
     }
@@ -648,7 +660,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
   function updateFromSlider(){
     var tol = parseFloat(document.getElementById('diffSlider').value);
-    document.getElementById('sliderValue').textContent = '\u2264 ' + tol.toFixed(2) + ' (raw cSt\u2212cP)';
+    document.getElementById('sliderValue').textContent = '\u2264 ' + tol.toFixed(2) + ' cP';
     state.activePaired = state.basePaired.filter(function(p){ return p.absDiff <= tol; });
     var ex = state.basePaired.filter(function(p){ return p.absDiff > tol; });
 
@@ -816,10 +828,10 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
     var ss = state.shifts.length > 0;
     var mx = Math.min(d.length, 500);
     i.innerHTML = 'Showing ' + mx + ' of ' + d.length + ' rows.';
-    var h = '<thead><tr><th>Date/Time</th><th>Cup s</th><th>Calc cSt</th><th>Sensor cP</th><th>|\u0394|</th>' + (ss ? '<th>Shift</th>' : '') + '</tr></thead><tbody>';
+    var h = '<thead><tr><th>Date/Time</th><th>Cup s</th><th>Calc cSt</th><th>Calc cP</th><th>Sensor cP</th><th>|\u0394| cP</th>' + (ss ? '<th>Shift</th>' : '') + '</tr></thead><tbody>';
     for(var k=0; k<mx; k++){
       var p = d[k];
-      h += '<tr><td>' + formatDateTime(p.date) + '</td><td>' + p.cupSec.toFixed(2) + '</td><td>' + p.calcCst.toFixed(2) + '</td><td>' + p.sensorCP.toFixed(2) + '</td><td>' + p.absDiff.toFixed(2) + '</td>' + (ss ? '<td>' + p.shift + '</td>' : '') + '</tr>';
+      h += '<tr><td>' + formatDateTime(p.date) + '</td><td>' + p.cupSec.toFixed(2) + '</td><td>' + p.calcCst.toFixed(2) + '</td><td>' + p.calcCP.toFixed(2) + '</td><td>' + p.sensorCP.toFixed(2) + '</td><td>' + p.absDiff.toFixed(2) + '</td>' + (ss ? '<td>' + p.shift + '</td>' : '') + '</tr>';
     }
     t.innerHTML = h + '</tbody>';
   }
@@ -827,10 +839,10 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
     var d = getTableData();
     if(!d || !d.length){ alert('No data to download.'); return; }
     var ss = state.shifts.length > 0;
-    var c = 'DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated' + (ss ? ',Shift' : '') + '\n';
+    var c = 'DateTime,CupSec,CalcCst,CalcCP,SensorCP,AbsDiff,Interpolated' + (ss ? ',Shift' : '') + '\n';
     for(var i=0; i<d.length; i++){
       var p = d[i];
-      c += formatDateTime(p.date) + ',' + p.cupSec.toFixed(3) + ',' + p.calcCst.toFixed(3) + ',' + p.sensorCP.toFixed(3) + ',' + p.absDiff.toFixed(3) + ',' + (p.interpolated ? 'Yes' : 'No') + (ss ? ',' + p.shift : '') + '\n';
+      c += formatDateTime(p.date) + ',' + p.cupSec.toFixed(3) + ',' + p.calcCst.toFixed(3) + ',' + p.calcCP.toFixed(3) + ',' + p.sensorCP.toFixed(3) + ',' + p.absDiff.toFixed(3) + ',' + (p.interpolated ? 'Yes' : 'No') + (ss ? ',' + p.shift : '') + '\n';
     }
     var b = new Blob([c], {type: 'text/csv'});
     var u = URL.createObjectURL(b);
