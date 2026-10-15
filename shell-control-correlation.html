@@ -152,6 +152,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
   <div class="date-labels"><span id="dateMinLabel">--</span><span id="dateMaxLabel">--</span></div>
   <hr>
   <div class="section-title">5. Quality Filter |Calc cSt &minus; Sensor cP|</div>
+  <p style="color:#aaa;font-size:12px;margin:4px 0 8px;">Note: cup formulas give kinematic viscosity (cSt); the sensor reports dynamic viscosity (cP = cSt &times; density in g/mL). This filter compares the two values directly, without a density conversion, so |&Delta;| is a raw number, not a true cP difference.</p>
   <div class="slider-row">
     <span style="color:#aaa;">Max |&Delta;|:</span>
     <input type="range" id="diffSlider" min="0" max="100" step="1" value="100">
@@ -647,7 +648,7 @@ footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
 
   function updateFromSlider(){
     var tol = parseFloat(document.getElementById('diffSlider').value);
-    document.getElementById('sliderValue').textContent = '\u2264 ' + tol.toFixed(2) + ' cP';
+    document.getElementById('sliderValue').textContent = '\u2264 ' + tol.toFixed(2) + ' (raw cSt\u2212cP)';
     state.activePaired = state.basePaired.filter(function(p){ return p.absDiff <= tol; });
     var ex = state.basePaired.filter(function(p){ return p.absDiff > tol; });
 
