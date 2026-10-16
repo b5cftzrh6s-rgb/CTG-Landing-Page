@@ -412,12 +412,153 @@
       pctSolids: total > 0 ? dry / total * 100 : 0,
       pctSilicaInLiquid: liquidLb > 0 ? silicaLb / liquidLb * 100 : 0,
       pctPolymerInLiquid: liquidLb > 0 ? activePoly / liquidLb * 100 : 0,
+      pctPolymer: total > 0 ? activePoly / total * 100 : 0,
       pctZircon: pctZ, liquidGal: liqGal, liquidL: liqGal * L_PER_GAL,
       dose7667MlPerGal: inp.wetting ? dosePerGal : null,
       total7667Ml: inp.wetting ? dosePerGal * liqGal : null,
       antifoamMl: inp.antifoamMlPerL > 0 ? inp.antifoamMlPerL * liqGal * L_PER_GAL : null,
       warnings: warnings
     };
+  }
+
+  /* ---------------- slurry adjust / rebuild solver ----------------
+     Four components (all lb), volumes additive, volume carried as
+     water-equivalent lb (gal × 8.345):
+       B binder as supplied (colloidal silica: solids sb, SG rb, polymer pb from table)
+       W added water (SG 1)
+       P polymer as supplied (solids ps, default 50 %; SG rp, default 1.0)
+       R refractory flour (dry, SG rr)
+     SG = whole-slurry density = (B+W+P+R) ÷ volume, i.e. liquid + colloidal
+       silica solids + polymer solids + flour.
+     Same definitions as the recipe cards:
+       liquid lb      = B + W + P
+       % silica (liq) = B·sb ÷ liquid
+       % polymer      = (B·pb + P·ps) ÷ total slurry (whole-slurry basis)
+       % solids       = (B·sb + P·ps + R) ÷ total
+     Measuring weight, SG and % solids gives 3 balances; the 4th comes from
+     the current % polymer (of whole slurry), which the user must supply.
+     Viscosity is NOT modelled. */
+  function solveN(A, b) {
+    var n = b.length, M = A.map(function (r, i) { return r.slice().concat([b[i]]); });
+    for (var c = 0; c < n; c++) {
+      var piv = c; for (var r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+      if (Math.abs(M[piv][c]) < 1e-12) return null;
+      var t = M[c]; M[c] = M[piv]; M[piv] = t;
+      for (var r2 = 0; r2 < n; r2++) if (r2 !== c) { var f = M[r2][c] / M[c][c]; for (var k = c; k <= n; k++) M[r2][k] -= f * M[c][k]; }
+    }
+    return M.map(function (row, i) { return row[n] / row[i]; });
+  }
+  var COMP = ['binder', 'water', 'polymer', 'flour'];
+  function mats(inp) {
+    var b = inp.binder || {}, ps = inp.polymerSolidsPct, psg = inp.polymerSG;
+    ps = (ps === '' || ps == null) ? 50 : Number(ps); psg = (psg === '' || psg == null) ? 1.0 : Number(psg);
+    return { sb: b.solids / 100, rb: b.density, pb: (b.poly || 0) / 100, ps: ps / 100, rp: psg, rr: Number(inp.refSG), binderSolids: b.solids };
+  }
+  function matCheck(inp, m) {
+    var e = [];
+    if (!inp.binder || !(m.sb > 0) || !(m.rb > 0)) e.push('Select a binder.');
+    if (!(m.rr > 0)) e.push('Select a refractory flour.');
+    if (!(m.ps >= 0 && m.ps <= 1)) e.push('Polymer solids must be 0-100 %.');
+    if (!(m.rp > 0)) e.push('Polymer SG must be greater than 0.');
+    return e;
+  }
+  // rows: [mass, volume, silica-in-liquid, polymer-of-whole-slurry] coefficient helpers
+  function volRow(m) { return [1 / m.rb, 1, 1 / m.rp, 1 / m.rr]; }
+  function silRow(m, q) { return [m.sb - q, -q, -q, 0]; }
+  function polRow(m, q) { return [m.pb - q, -q, m.ps - q, -q]; }
+  function describeComp(m, x) {
+    var B = x[0], W = x[1], P = x[2], R = x[3], tot = B + W + P + R, liq = B + W + P;
+    var v = B / m.rb + W + P / m.rp + R / m.rr;
+    return { totalLb: tot, volumeGal: v / LB_PER_GAL_WATER, sg: v > 0 ? tot / v : 0,
+      pctSolids: tot > 0 ? (B * m.sb + P * m.ps + R) / tot * 100 : 0,
+      pctSilicaInLiquid: liq > 0 ? B * m.sb / liq * 100 : 0,
+      pctPolymer: tot > 0 ? (B * m.pb + P * m.ps) / tot * 100 : 0,
+      pctPolymerInLiquid: liq > 0 ? (B * m.pb + P * m.ps) / liq * 100 : 0 };
+  }
+  /* Split a measured slurry into binder / water / polymer / flour lb. */
+  function slurryDecompose(inp, massLb, sg, solidsPct, polymerPct) {
+    var m = mats(inp);
+    var x = solveN([[1, 1, 1, 1], volRow(m), [m.sb, 0, m.ps, 1], polRow(m, polymerPct / 100)],
+      [massLb, massLb / sg, massLb * solidsPct / 100, 0]);
+    return x ? { binderLb: x[0], waterLb: x[1], polymerLb: x[2], flourLb: x[3] } : null;
+  }
+  function targetFractions(inp, sg, silicaPct, polymerPct) {
+    var m = mats(inp);
+    return solveN([[1, 1, 1, 1], volRow(m), silRow(m, silicaPct / 100), polRow(m, polymerPct / 100)], [1, 1 / sg, 0, 0]);
+  }
+  function checkTargets(inp, m, sg, silicaPct, polymerPct, errs) {
+    if (!(sg > 1)) errs.push('Target SG must be greater than 1.0.');
+    if (!(silicaPct > 0) || silicaPct >= m.binderSolids) errs.push('Target % silica in liquid must be above 0 and below the binder’s own solids (' + m.binderSolids + ' %).');
+    if (!(polymerPct >= 0)) errs.push('Target % polymer (of whole slurry) must be 0 or more.');
+    if (errs.length) return null;
+    var f = targetFractions(inp, sg, silicaPct, polymerPct);
+    if (f && f[2] < -1e-9) { errs.push('Target % polymer is below what the binder alone brings at this SG and silica level. Raise the polymer target or choose a binder with less polymer.'); return null; }
+    if (!f || f.some(function (v) { return v < -1e-9; })) {
+      if (f && f[3] < 0) {
+        var liqOnly = describeComp(m, [silicaPct / 100 / m.sb, 0, 0, 0]); // placeholder, recomputed below
+        var lf = solveN([[1, 1, 1], [m.sb - silicaPct / 100, -silicaPct / 100, -silicaPct / 100], [m.pb - polymerPct / 100, -polymerPct / 100, m.ps - polymerPct / 100]], [1, 0, 0]);
+        liqOnly = lf ? describeComp(m, [lf[0], lf[1], lf[2], 0]) : liqOnly;
+        errs.push('Target SG is below what the liquid alone gives at these silica and polymer levels (SG ' + liqOnly.sg.toFixed(3) + '); it cannot be reached by adding flour. Lower the silica/polymer targets or raise the SG target.');
+      } else errs.push('These targets are not reachable with the selected binder, polymer and flour (one component would be negative). Check the SG, silica and polymer targets.');
+      return null;
+    }
+    return f.map(function (v) { return Math.max(0, v); });
+  }
+  function pack(prefix, x) { var o = {}; COMP.forEach(function (c, i) { o[prefix ? prefix + c.charAt(0).toUpperCase() + c.slice(1) + 'Lb' : c + 'Lb'] = x[i]; }); return o; }
+  /* inp: {binder, refSG, polymerSolidsPct, polymerSG, volumeGal, targetSG, targetSilicaPct, targetPolymerPct} */
+  function slurryRebuild(inp) {
+    var m = mats(inp), errs = matCheck(inp, m);
+    if (!(Number(inp.volumeGal) > 0)) errs.push('Batch volume must be greater than 0 gal.');
+    if (errs.length) return { ok: false, errors: errs };
+    var f = checkTargets(inp, m, Number(inp.targetSG), Number(inp.targetSilicaPct), Number(inp.targetPolymerPct || 0), errs);
+    if (!f) return { ok: false, errors: errs };
+    var M = Number(inp.volumeGal) * LB_PER_GAL_WATER * Number(inp.targetSG), x = f.map(function (v) { return v * M; });
+    var out = pack('', x); out.ok = true; out.errors = []; out.result = describeComp(m, x);
+    return out;
+  }
+  /* inp: {binder, refSG, polymerSolidsPct, polymerSG,
+           current:{volumeGal | massLb, sg, solidsPct, polymerPct},
+           targetSG, targetSilicaPct, targetPolymerPct, targetVolumeGal?, maxVolumeGal?} */
+  function slurryAdjust(inp) {
+    var m = mats(inp), errs = matCheck(inp, m), warns = [];
+    var c = inp.current || {}, sg = Number(c.sg), sol = Number(c.solidsPct);
+    var cpp = (c.polymerPct === '' || c.polymerPct == null) ? NaN : Number(c.polymerPct);
+    if (!(sg > 1)) errs.push('Current SG must be greater than 1.0.');
+    if (!(sol > 0 && sol < 100)) errs.push('Current % solids must be between 0 and 100.');
+    if (!(cpp >= 0)) errs.push('Enter the current % polymer (of whole slurry). SG and % solids cannot separate polymer from silica, so use the last measured or recipe value.');
+    var mass = Number(c.massLb) > 0 ? Number(c.massLb) : (Number(c.volumeGal) > 0 ? Number(c.volumeGal) * LB_PER_GAL_WATER * sg : NaN);
+    if (!(mass > 0)) errs.push('Enter the current tank volume (gal) or slurry weight (lb).');
+    if (errs.length) return { ok: false, errors: errs };
+    var d = slurryDecompose(inp, mass, sg, sol, cpp);
+    var C0 = d ? [d.binderLb, d.waterLb, d.polymerLb, d.flourLb] : null;
+    if (!C0 || C0.some(function (v) { return v < -1e-6; })) {
+      var bad = !C0 ? 'a component' : COMP[C0.findIndex(function (v) { return v < -1e-6; })];
+      return { ok: false, errors: ['The measured SG, % solids and % polymer are not consistent with the selected binder, polymer and flour (the balance gives a negative amount of ' + bad + '). Check the measurements and material selections.'] };
+    }
+    C0 = C0.map(function (v) { return Math.max(0, v); });
+    var curDesc = describeComp(m, C0);
+    var F = checkTargets(inp, m, Number(inp.targetSG), Number(inp.targetSilicaPct), Number(inp.targetPolymerPct || 0), errs);
+    if (!F) return { ok: false, errors: errs, current: curDesc, currentLb: d };
+    var lbPerGal = Number(inp.targetSG) * LB_PER_GAL_WATER, kMin = 0;
+    for (var i = 0; i < 4; i++) if (C0[i] > 1e-9) { if (F[i] <= 1e-12) { kMin = Infinity; break; } kMin = Math.max(kMin, C0[i] / F[i]); }
+    var tv = Number(inp.targetVolumeGal), mv = Number(inp.maxVolumeGal), k, removeFrac = 0;
+    k = tv > 0 ? tv * lbPerGal : kMin;
+    if (!(tv > 0) && mv > 0 && kMin / lbPerGal > mv) { k = mv * lbPerGal; warns.push('Reaching the target with additions only would need ' + (kMin / lbPerGal).toFixed(1) + ' gal, over the tank maximum of ' + mv + ' gal. Plan below removes slurry first.'); }
+    if (k < kMin - 1e-6) {
+      var keep = Infinity;
+      for (var j = 0; j < 4; j++) if (C0[j] > 1e-9) keep = Math.min(keep, k * F[j] / C0[j]);
+      removeFrac = Math.max(0, 1 - keep);
+      if (kMin === Infinity) warns.push('The target cannot be reached by adding material alone: the tank contains a component the target has none of. Remove slurry first (below), then add.');
+      else if (tv > 0) warns.push('At the chosen final volume (' + tv + ' gal) the target needs less of a component than the tank already has (' + (kMin / lbPerGal).toFixed(1) + ' gal would be needed with additions only). Remove slurry first (below), then add.');
+    }
+    var after = C0.map(function (x) { return x * (1 - removeFrac); });
+    var add = [0, 1, 2, 3].map(function (i) { var a = k * F[i] - after[i]; return Math.abs(a) < 1e-6 ? 0 : a; });
+    var res = describeComp(m, after.map(function (x, i) { return x + add[i]; }));
+    if (mv > 0 && res.volumeGal > mv + 1e-6) warns.push('Final volume ' + res.volumeGal.toFixed(1) + ' gal exceeds the tank maximum (' + mv + ' gal).');
+    var out = pack('add', add);
+    out.ok = true; out.errors = []; out.warnings = warns; out.current = curDesc; out.currentLb = d;
+    out.removeGal = removeFrac * curDesc.volumeGal; out.removeLb = removeFrac * curDesc.totalLb; out.removeFrac = removeFrac; out.result = res;
+    return out;
   }
 
   /* ---------------- biocide addition (6451) ----------------
@@ -476,6 +617,7 @@
     timeToMinutes: timeToMinutes, inShift: inShift,
     VALUE_LIMITS: VALUE_LIMITS, validateValueInputs: validateValueInputs, computeValue: computeValue,
     TABLE_7667: TABLE_7667, dose7667: dose7667, slurryRecipe: slurryRecipe, LB_PER_GAL_WATER: LB_PER_GAL_WATER,
+    slurryDecompose: slurryDecompose, targetFractions: targetFractions, slurryRebuild: slurryRebuild, slurryAdjust: slurryAdjust,
     BIOCIDE_DEFAULTS: BIOCIDE_DEFAULTS, biocideDose: biocideDose, BIOCIDE_TIERS: BIOCIDE_TIERS, biocideTiers: biocideTiers,
     IN_TO_M: IN_TO_M, tankRpm: tankRpm
   };

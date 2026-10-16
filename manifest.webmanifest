@@ -1,0 +1,31 @@
+{
+  "name": "CTG Tools",
+  "short_name": "CTG Tools",
+  "description": "Shell control and slurry tools for investment casting: correlation, value worksheet, slurry recipes and adjust/rebuild, tank RPM, biocide addition.",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1420",
+  "theme_color": "#0a4a8a",
+  "icons": [
+    { "src": "icons/icon-48.png", "sizes": "48x48", "type": "image/png" },
+    { "src": "icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Correlation", "url": "./shell-control-correlation.html" },
+    { "name": "Slurry", "url": "./slurry-calculator.html" },
+    { "name": "Biocide", "url": "./biocide-calculator.html" }
+  ]
+}
