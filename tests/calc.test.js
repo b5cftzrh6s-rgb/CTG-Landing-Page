@@ -138,7 +138,7 @@ t('model A keeps Low/High and ignores B-only annual scrap $', function () {
 
 t('value report: results are the summary table only (no assumptions, warnings or formulas)', function () {
   var h = fs.readFileSync(path.join(__dirname, '..', 'shell-control-value-calculator.html'), 'utf8');
-  var reg = h.slice(h.indexOf("CTGPrint.register({ id: 'value'")); reg = reg.slice(reg.indexOf('results: function'), reg.indexOf('});'));
+  var reg = h.slice(h.indexOf("CTGPrint.register({ id: 'value'")); reg = reg.slice(reg.indexOf('results: function'), reg.indexOf('});', reg.indexOf('results: function')));
   assert.ok(reg.indexOf("$('sumTable')") !== -1 && !/assumptions|warnings|Assumptions/.test(reg.replace(/\/\/.*\n/g, '')), reg);
   assert.ok(/class="formula no-report"/.test(h));
 });
