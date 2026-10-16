@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
+<script src="print.js" defer></script>
 <style>
 .drop{border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;background:var(--surface-2);cursor:pointer}
 .drop.over{border-color:var(--brand)}
@@ -369,6 +370,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var u = URL.createObjectURL(new Blob([c], { type: 'text/csv' })), a = document.createElement('a');
     a.href = u; a.download = 'shell_control_export_' + Date.now() + '.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
   });
+  CTGPrint.register({ id: 'correlation', title: 'Shell Control Correlation Tool',
+    inputs: function () {
+      var g = CTGPrint.collectInputs(['#main'], { skip: function (c) { return c.id === 'fileInput'; } });
+      g.unshift({ group: 'Data file', rows: [{ label: 'Load status', value: $('loadStatus').textContent.trim() || 'No file loaded', unit: '' }] });
+      return g;
+    },
+    results: function () { return [
+      { title: 'Pairing summary', nodes: ['pairingMetrics', 'pairNote'] },
+      { title: 'Correlation (fit and R²)', nodes: ['regressionMetrics', 'chart', 'chartSummary'] },
+      { title: 'Recommended sensor LSL / USL', node: 'recommendedLimits' },
+      { title: 'Per-shift analysis', node: 'shiftAnalysis' },
+      { title: 'Data', node: 'dataTableInfo' }
+    ]; } });
 });
 </script>
 </body>

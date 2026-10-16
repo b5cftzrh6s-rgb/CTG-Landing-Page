@@ -117,6 +117,32 @@ t('totals sum drivers', function () {
   near(r.total.lo, 51000); near(r.total.hi, 51000);
 });
 
+t('model B: single consolidated values (value per line, single total, no revenue driver)', function () {
+  var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 50, reductionPct: 10, tanks: 4, readsPerDay: 6, minsPerReading: 10, daysPerYear: 250, laborRate: 40, laborReductionPct: 50,
+    parts: 100000, scrapPct: 10, costLow: 100, costHigh: 200, capacityConstrained: true, priceLow: 500, vcPct: 60 });
+  assert.ok(r.single && r.mode === 'B'); assert.ok(!('revenue' in r.drivers));
+  near(r.drivers.scrap.value, 50000); near(r.drivers.labor.value, 4 * 6 * 10 / 60 * 250 * 40 * 0.5);
+  Object.keys(r.drivers).forEach(function (k) { near(r.drivers[k].lo, r.drivers[k].hi); near(r.drivers[k].value, r.drivers[k].lo); });
+  near(r.total.value, 50000 + 20000); near(r.total.lo, r.total.value); near(r.total.hi, r.total.value);
+});
+t('model B ignores Model A-only inputs, even invalid ones', function () {
+  var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 50, reductionPct: 10, costHigh: -5, vcPct: 150, parts: -1 });
+  assert.ok(!r.errors.costHigh && !r.errors.vcPct && !r.errors.parts); near(r.drivers.scrap.value, 50000); assert.strictEqual(r.warnings.length, 0);
+});
+t('model A keeps Low/High and ignores B-only annual scrap $', function () {
+  var r = C.computeValue({ mode: 'A', parts: 100000, scrapPct: 10, shellShare: 50, reductionPct: 20, costLow: 100, costHigh: 200, scrapDollars: -1, capacityConstrained: true, priceLow: 500, priceHigh: 600, vcPct: 60 });
+  assert.ok(!r.single && !r.errors.scrapDollars && r.total.value === undefined && 'revenue' in r.drivers);
+  near(r.drivers.scrap.lo, 100000); near(r.drivers.scrap.hi, 200000); near(r.drivers.revenue.lo, 200000); near(r.drivers.revenue.hi, 240000);
+  near(r.total.lo, 300000); near(r.total.hi, 440000);
+});
+
+t('value report: results are the summary table only (no assumptions, warnings or formulas)', function () {
+  var h = fs.readFileSync(path.join(__dirname, '..', 'shell-control-value-calculator.html'), 'utf8');
+  var reg = h.slice(h.indexOf("CTGPrint.register({ id: 'value'")); reg = reg.slice(reg.indexOf('results: function'), reg.indexOf('});', reg.indexOf('results: function')));
+  assert.ok(reg.indexOf("$('sumTable')") !== -1 && !/assumptions|warnings|Assumptions/.test(reg.replace(/\/\/.*\n/g, '')), reg);
+  assert.ok(/class="formula no-report"/.test(h));
+});
+
 console.log('slurry');
 t('7667 interpolation', function () { near(C.dose7667(25), 7.75); near(C.dose7667(0), 7); near(C.dose7667(150), 10); });
 t('water only is SG 1', function () { var r = C.slurryRecipe({ binder: null, waterLb: 83.45, refs: [] }); near(r.sg, 1); near(r.volumeGal, 10); });
@@ -245,7 +271,7 @@ t('sw cache version matches CTG_VERSION', function () {
 t('every page and asset is precached and exists', function () {
   var L = swList().list;
   fs.readdirSync(ROOT).filter(function (f) { return /\.html$/.test(f); }).forEach(function (f) { assert.ok(L.indexOf(f) !== -1, f + ' not precached'); });
-  ['ctg.css', 'calc.js', 'navbar.js', 'manifest.webmanifest'].forEach(function (f) { assert.ok(L.indexOf(f) !== -1, f); });
+  ['ctg.css', 'calc.js', 'navbar.js', 'print.js', 'manifest.webmanifest'].forEach(function (f) { assert.ok(L.indexOf(f) !== -1, f); });
   L.filter(function (u) { return u !== './'; }).forEach(function (u) { assert.ok(fs.existsSync(path.join(ROOT, u)), u + ' missing'); });
 });
 t('manifest icons exist with correct pixel sizes, incl. maskable; relative scope', function () {
@@ -267,6 +293,50 @@ t('every page links manifest, apple-touch-icon and theme-color', function () {
 console.log('tank rpm');
 t('48 in @ 80 m/min = 20.89 rpm', function () { near(C.tankRpm(48, 80), 80 / (Math.PI * 48 * 0.0254)); near(C.tankRpm(48, 80), 20.89, 0.01); });
 t('invalid -> null', function () { assert.strictEqual(C.tankRpm(0, 80), null); assert.strictEqual(C.tankRpm(48, -1), null); });
+
+console.log('print report');
+var P = require('../print.js');
+var TOOLS = { 'shell-control-correlation.html': 'correlation', 'shell-control-value-calculator.html': 'value', 'slurry-calculator.html': 'slurry', 'tank-rpm-calculator.html': 'rpm', 'biocide-calculator.html': 'biocide' };
+var SAMPLE = P.buildReport({ id: 'rpm', tool: 'Tank RPM Calculator', version: 'v9', generated: 'Oct 16, 2026', customer: 'ACME <Plant 2>', site: 'Line 1', notes: 'n1' },
+  [{ group: 'Tank inputs', rows: [{ label: 'Tank diameter', value: '48', unit: 'in' }, { label: 'Vp', value: '', unit: 'm/min' }] }],
+  [{ title: 'Recommended RPM', html: '<div class="metrics">20.89</div>' }, { title: 'Empty', html: '' }]);
+t('report: header, then inputs, then results (ordering)', function () {
+  var iH = SAMPLE.indexOf('rp-head'), iIn = SAMPLE.indexOf('Inputs (as applied)'), iRow = SAMPLE.indexOf('Tank diameter'), iRes = SAMPLE.indexOf('>Results<'), iOut = SAMPLE.indexOf('20.89');
+  assert.ok(iH >= 0 && iH < iIn && iIn < iRow && iRow < iRes && iRes < iOut, [iH, iIn, iRow, iRes, iOut].join(','));
+});
+t('report: header has CTG Tools, tool, date, version, customer/site/notes (escaped)', function () {
+  ['CTG Tools', 'Tank RPM Calculator', 'Oct 16, 2026', 'v9', 'ACME &lt;Plant 2&gt;', 'Line 1', 'n1'].forEach(function (x) { assert.ok(SAMPLE.indexOf(x) !== -1, x); });
+  assert.ok(SAMPLE.indexOf('<Plant 2>') === -1);
+});
+t('report: label + value + unit per input; blank shows a dash; empty results skipped', function () {
+  assert.ok(/Tank diameter<\/td><td class="v">48<\/td><td class="u">in</.test(SAMPLE));
+  assert.ok(/Vp<\/td><td class="v">—<\/td><td class="u">m\/min</.test(SAMPLE));
+  assert.ok(SAMPLE.indexOf('>Empty<') === -1);
+});
+t('report: no inputs -> says so; no header meta block when meta blank', function () {
+  var h = P.buildReport({ tool: 'X' }, [], []); assert.ok(/No inputs entered/.test(h) && h.indexOf('rp-meta') === -1);
+});
+t('report: unit split from labels', function () {
+  assert.deepStrictEqual(P.splitUnit('Tank diameter (in)'), { label: 'Tank diameter', unit: 'in' });
+  assert.deepStrictEqual(P.splitUnit('Current polymer (% of whole slurry) — required'), { label: 'Current polymer — required', unit: '% of whole slurry' });
+  assert.deepStrictEqual(P.splitUnit('Binder type'), { label: 'Binder type', unit: '' });
+});
+t('standalone HTML report embeds CSS and forces light colours', function () {
+  var d = P.standaloneHtml({ tool: 'X' }, SAMPLE); assert.ok(/^<!DOCTYPE html>/.test(d) && d.indexOf('.ctg-report{') !== -1 && /color-scheme:light/.test(d) && d.indexOf(SAMPLE) !== -1);
+});
+t('every tool page loads print.js and registers inputs + results with the shared module', function () {
+  Object.keys(TOOLS).forEach(function (f) {
+    var h = fs.readFileSync(path.join(ROOT, f), 'utf8');
+    assert.ok(/<script src="print.js" defer><\/script>/.test(h), f + ' print.js');
+    var m = h.match(/CTGPrint\.register\(\{ id: '(\w+)'[\s\S]*?results: function/); assert.ok(m && m[1] === TOOLS[f], f + ' register');
+    assert.ok(h.indexOf('window.print()') === -1 && h.indexOf('print-only') === -1, f + ' still has an ad-hoc print path');
+  });
+  var idx = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'); assert.ok(idx.indexOf('CTGPrint.register') === -1);
+});
+t('print CSS: only the report prints, nav/buttons hidden', function () {
+  var css = fs.readFileSync(path.join(ROOT, 'ctg.css'), 'utf8');
+  assert.ok(/body\.ctg-printing > \*:not\(#ctg-report\)\{display:none !important\}/.test(css) && /#ctg-report\{display:none\}/.test(css));
+});
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

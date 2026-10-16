@@ -2,12 +2,12 @@
    (tests check it matches CTG_VERSION in navbar.js). All paths are
    relative to this file, so it works at a domain root, a Databricks
    app path, or a GitHub Pages sub-path. */
-var CACHE_VERSION = 'v2.3.2';
+var CACHE_VERSION = 'v2.4.2';
 var CACHE = 'ctg-tools-' + CACHE_VERSION;
 var PRECACHE = [
   './', 'index.html', 'shell-control-correlation.html', 'shell-control-value-calculator.html',
   'slurry-calculator.html', 'tank-rpm-calculator.html', 'biocide-calculator.html',
-  'ctg.css', 'calc.js', 'navbar.js', 'manifest.webmanifest',
+  'ctg.css', 'calc.js', 'navbar.js', 'print.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png',
   'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ];

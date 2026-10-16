@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
+<script src="print.js" defer></script>
 <style>
 .recipe-name{font-weight:700;color:var(--brand);border-width:2px;margin-bottom:10px}
 .subhead{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
@@ -27,12 +28,6 @@ table.out tr.hl td{background:var(--surface-2)}
 .print-comparison td{padding:4px 6px;border-bottom:1px solid #ddd;text-align:center;font-family:var(--mono)}
 .print-comparison td:first-child{text-align:left;font-family:var(--font);color:#5b6b80}
 .print-comparison tr.section-row td{background:#003a70;color:#fff;font-weight:800;text-transform:uppercase;text-align:left}
-@media print{
-  @page{size:letter landscape;margin:.4in}
-  .page-header,#recipes-grid,#defs,.ctg-footer,#solver{display:none !important}
-  body.print-solver #solver{display:block !important}
-  body.print-solver .print-only{display:none !important}
-}
 .sol-out td.num{font-weight:700;color:var(--brand)}
 </style>
 </head>
@@ -49,7 +44,6 @@ table.out tr.hl td{background:var(--surface-2)}
 
 <main id="main">
   <div class="toolbar no-print">
-    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
     <button class="btn secondary" type="button" id="resetBtn">Reset all</button>
     <a class="btn secondary" href="#solver">Adjust / rebuild solver ↓</a>
   </div>
@@ -80,7 +74,6 @@ table.out tr.hl td{background:var(--surface-2)}
     <div class="row-flex no-print" role="group" aria-label="Solver mode" style="margin-bottom:12px">
       <button type="button" class="btn secondary" data-solmode="adjust" aria-pressed="true">Adjust an existing tank</button>
       <button type="button" class="btn secondary" data-solmode="rebuild" aria-pressed="false">Rebuild a fresh batch</button>
-      <button type="button" class="btn small" id="printSolver">Print solver</button>
     </div>
     <div class="grid">
       <div class="field"><label for="s_binder">Binder (colloidal silica)</label><select id="s_binder"></select></div>
@@ -121,13 +114,6 @@ table.out tr.hl td{background:var(--surface-2)}
     </details>
   </section>
 
-  <div class="print-only">
-    <div class="print-header">
-      <div><strong>CTG Tools</strong><br><small>Colloidal Technologies Group</small></div>
-      <div><strong>Slurry Recipe Comparison</strong><br><small id="print_date"></small></div>
-    </div>
-    <table class="print-comparison" id="print_table"></table>
-  </div>
 </main>
 
 <footer class="ctg-footer">
@@ -204,10 +190,9 @@ document.addEventListener('DOMContentLoaded', function () {
     set(p + 'dose', fx(r.dose7667MlPerGal, 2)); set(p + 'w7667', fx(r.total7667Ml, 0)); set(p + 'af', fx(r.antifoamMl, 0));
     document.getElementById(p + 'warn').innerHTML = r.warnings.map(function (w) { return '<div class="notice warn">' + esc(w) + '</div>'; }).join('');
   }
-  function printTable() {
-    var rows = [['section', 'Recipe setup'], ['binder', 'Binder'], ['binder_wt', 'Binder (lb)'], ['water_wt', 'Water (lb)'], ['polymer_wt', 'Polymer (lb)'],
-      ['poly_solids', 'Polymer solids (%)'], ['ref1', 'Refractory #1'], ['ref1_wt', 'Ref #1 (lb)'], ['ref2', 'Refractory #2'], ['ref2_wt', 'Ref #2 (lb)'],
-      ['wetting', 'Wetting agent'], ['antifoam', 'Antifoam'], ['section', 'Key results']]
+  // Results-only comparison table for the shared print report (inputs are listed separately above it).
+  function comparisonTable() {
+    var rows = [['section', 'Key results']]
       .concat(OUT.slice(0, 9).map(function (o) { return [o[0], o[1] + ' (' + o[2] + ')']; }))
       .concat([['section', 'Additive totals']]).concat(OUT.slice(9).map(function (o) { return [o[0], o[1] + ' (' + o[2] + ')']; }));
     var h = '<tr><th>Parameter</th>' + [1, 2, 3].map(function (i) { return '<th>' + esc(v('r' + i + '_name') || 'Recipe ' + i) + '</th>'; }).join('') + '</tr>';
@@ -219,10 +204,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return '<td>' + esc(val || '—') + '</td>';
       }).join('') + '</tr>';
     });
-    document.getElementById('print_table').innerHTML = h;
-    set('print_date', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+    return '<table class="print-comparison">' + h + '</table>';
   }
-  function calcAll() { for (var i = 1; i <= 3; i++) calcOne(i); printTable(); }
+  function calcAll() { for (var i = 1; i <= 3; i++) calcOne(i); }
   grid.addEventListener('input', calcAll); grid.addEventListener('change', calcAll);
   document.getElementById('resetBtn').addEventListener('click', function () {
     grid.querySelectorAll('input:not(.recipe-name)').forEach(function (i) { i.value = i.defaultValue; });
@@ -277,9 +261,25 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   sec.addEventListener('input', solve); sec.addEventListener('change', solve);
   sec.addEventListener('click', function (e) { var b = e.target.closest('[data-solmode]'); if (b) { solMode = b.dataset.solmode; solve(); } });
-  document.getElementById('printSolver').addEventListener('click', function () { document.body.classList.add('print-solver'); window.print(); });
-  window.addEventListener('afterprint', function () { document.body.classList.remove('print-solver'); });
   solve();
+  CTGPrint.register({ id: 'slurry', title: 'Slurry Recipe Calculator',
+    inputs: function () {
+      var g = CTGPrint.collectInputs(['#recipes-grid', '#solver']);
+      g.forEach(function (x) {
+        var m = x.group.match(/^Recipe (\d)(.*)$/);
+        if (m) x.group = (v('r' + m[1] + '_name') || 'Recipe ' + m[1]) + m[2];
+        if (/^Adjust \/ rebuild solver$/.test(x.group)) x.rows.unshift({ label: 'Solver mode', value: solMode === 'adjust' ? 'Adjust an existing tank' : 'Rebuild a fresh batch', unit: '' });
+      });
+      // leave out recipe cards with no weights entered
+      return g.filter(function (x) { return !x.rows.length || !/^r\d_/.test(x.rows[0].id) || ['binder_wt', 'water_wt', 'polymer_wt', 'ref1_wt', 'ref2_wt'].some(function (k) { return v(x.rows[0].id.slice(0, 3) + k) !== ''; }); });
+    },
+    results: function () {
+      var w = [1, 2, 3].map(function (i) { var e = document.getElementById('r' + i + '_warn'); return e && e.textContent.trim() ? '<p class="desc"><b>' + esc(v('r' + i + '_name') || 'Recipe ' + i) + ':</b></p>' + e.innerHTML : ''; }).join('');
+      return [
+        { title: 'Recipe comparison', html: comparisonTable() }, { title: w ? 'Recipe warnings' : '', html: w },
+        { title: 'Adjust / rebuild solver — ' + (solMode === 'adjust' ? 'adjust plan' : 'rebuild batch'), nodes: ['s_msgs', 's_out'] }
+      ];
+    } });
 });
 </script>
 </body>
