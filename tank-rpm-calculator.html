@@ -32,13 +32,13 @@
     <div class="grid">
       <div class="field"><label for="diameter_in">Tank diameter (in)</label><input id="diameter_in" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 48"></div>
       <div class="field"><label for="diameter_m">Tank diameter (m)</label><input id="diameter_m" readonly tabindex="-1"></div>
-      <div class="field"><label for="preset">Vp preset (rule of thumb)</label>
+      <div class="field"><label for="preset">Vp preset</label>
         <select id="preset">
-          <option value="prime">Prime: 80 m/min (rule of thumb)</option>
-          <option value="backup" selected>Backup: 90–110 m/min (rule of thumb)</option>
+          <option value="prime">Prime preset: 80 m/min</option>
+          <option value="backup" selected>Backup preset: 90–110 m/min</option>
           <option value="custom">Custom</option>
         </select>
-        <span class="hint">Presets are CTG rules of thumb, not a published standard. Editing a Vp switches to Custom.</span>
+        <span class="hint">CTG presets. Editing a Vp switches to Custom.</span>
       </div>
     </div>
     <div class="grid">
@@ -51,12 +51,12 @@
   <section class="card" aria-labelledby="out-h" aria-live="polite">
     <h2 id="out-h">Recommended RPM</h2>
     <div class="metrics" id="results"></div>
-    <div class="notice">Rule of thumb: backup slurries 90–110 m/min; prime 80 m/min (lower speed because more flour may raise particle-attrition risk). Confirm against your tank and drive limits.</div>
+    <div class="notice">Presets: backup slurries 90–110 m/min; prime 80 m/min (lower speed because more flour may raise particle-attrition risk). Confirm against your tank and drive limits.</div>
   </section>
 </main>
 
 <footer class="ctg-footer">
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+  CTG Tools
 </footer>
 
 <script>

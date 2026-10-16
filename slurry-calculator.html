@@ -33,7 +33,7 @@ table.out tr.hl td{background:var(--surface-2)}
 <header class="page-header">
   <div class="inner">
     <h1>Slurry Recipe Calculator</h1>
-    <p>Design and compare up to three slurry recipes, with dosing for Nalco 7667 wetting agent and Nalco 2305 antifoam.</p>
+    <p>Design and compare up to three slurry recipes, with dosing for 7667 wetting agent and 2305 antifoam.</p>
   </div>
 </header>
 
@@ -56,15 +56,16 @@ table.out tr.hl td{background:var(--surface-2)}
       <li><b>% Silica (of liquid)</b> = binder lb × binder solids % ÷ liquid lb (binder + water + polymer). Binder solids are assumed to be silica.</li>
       <li><b>% Polymer (of liquid)</b> = (binder lb × binder polymer % + polymer lb × polymer solids %) ÷ liquid lb.</li>
       <li><b>% Zircon</b> = zircon lb ÷ total refractory lb. Drives the 7667 dose (linear interpolation of the product-bulletin table, 7.0–10.0 mL/gal of liquid).</li>
-      <li><b>Antifoam</b> = Nalco 2305 mL/L × liquid litres.</li>
-      <li>Polymer SG is an input (default 1.0). Material property tables (binder solids/density/polymer, refractory SG) are CTG reference values; verify against current product data sheets.</li>
+      <li><b>Antifoam</b> = 2305 mL/L × liquid litres.</li>
+      <li>Polymer SG is an input (default 1.0). Polymer solids default 50 %.</li>
+      <li>Material tables (binder solids/density/polymer, refractory SG): values from product SDS and product information sheets (general-use values).</li>
       <li>A refractory set to "None" with a weight is ignored and flagged.</li>
     </ul>
   </details>
 
   <div class="print-only">
     <div class="print-header">
-      <div><strong>NALCO WATER</strong><br><small>An Ecolab Company</small></div>
+      <div><strong>CTG Tools</strong><br><small>Colloidal Technologies Group</small></div>
       <div><strong>Slurry Recipe Comparison</strong><br><small id="print_date"></small></div>
     </div>
     <table class="print-comparison" id="print_table"></table>
@@ -72,7 +73,7 @@ table.out tr.hl td{background:var(--surface-2)}
 </main>
 
 <footer class="ctg-footer">
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+  CTG Tools
 </footer>
 
 <script>
@@ -118,8 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="grid">' + f(p, 'poly_solids', 'Polymer solids (%)', ' max="100" value="50"') + f(p, 'poly_sg', 'Polymer SG', ' value="1.0"') + '</div>' +
       '<div class="subhead">Refractories</div>' + s(p, 'ref1', 'Refractory #1', opts(REFRACTORIES)) + f(p, 'ref1_wt', 'Refractory #1 (lb)') +
       s(p, 'ref2', 'Refractory #2', opts(REFRACTORIES)) + f(p, 'ref2_wt', 'Refractory #2 (lb)') +
-      '<div class="subhead">Additives</div>' + s(p, 'wetting', 'Wetting agent', '<option>None</option><option>Nalco 7667</option>') +
-      s(p, 'antifoam', 'Antifoam (Nalco 2305)', opts(ANTIFOAM)) +
+      '<div class="subhead">Additives</div>' + s(p, 'wetting', 'Wetting agent', '<option>None</option><option>7667</option>') +
+      s(p, 'antifoam', 'Antifoam (2305)', opts(ANTIFOAM)) +
       '<div class="subhead">Outputs</div><div id="' + p + 'warn" aria-live="polite"></div><table class="out" style="width:100%">' +
       OUT.map(function (o) { return '<tr' + (o[3] ? ' class="hl"' : '') + '><td>' + o[1] + ' <span class="hint">(' + o[2] + ')</span></td><td class="num" id="' + p + o[0] + '">—</td></tr>'; }).join('') +
       '</table></section>';
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
       binder: BINDERS[v(p + 'binder')], binderLb: v(p + 'binder_wt'), waterLb: v(p + 'water_wt'), polymerLb: v(p + 'polymer_wt'),
       polymerSolidsPct: v(p + 'poly_solids'), polymerSG: v(p + 'poly_sg'),
       refs: [1, 2].map(function (n) { var name = v(p + 'ref' + n); return { name: name, sg: REFRACTORIES[name], lb: v(p + 'ref' + n + '_wt'), isZircon: name === 'Zircon' }; }),
-      wetting: v(p + 'wetting') === 'Nalco 7667', antifoamMlPerL: ANTIFOAM[v(p + 'antifoam')]
+      wetting: v(p + 'wetting') === '7667', antifoamMlPerL: ANTIFOAM[v(p + 'antifoam')]
     });
     results[i] = r;
     var has = r.totalLb > 0, fx = function (x, d) { return has && x !== null && isFinite(x) ? x.toFixed(d) : '—'; };

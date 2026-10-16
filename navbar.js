@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var CTG_VERSION = 'v2.0.0 · 2026-10-16';
+  var CTG_VERSION = 'v2.1.0 · 2026-10-16';
 
   var CTG_TOOLS = [
     { id: 'correlation', status: 'live', nav: 'Correlation', href: 'shell-control-correlation.html', icon: '📊',
@@ -30,7 +30,7 @@
     { id: 'slurry', status: 'live', nav: 'Slurry', href: 'slurry-calculator.html', icon: '🧪',
       title: 'Slurry Recipe Calculator',
       input: 'Binder, water, polymer and refractory weights (lb) for up to 3 recipes.',
-      output: 'Volume, SG, % solids / silica / polymer, Nalco 7667 and 2305 doses.',
+      output: 'Volume, SG, % solids / silica / polymer, 7667 and 2305 doses.',
       when: 'Designing or comparing slurry make-up recipes. Adjust/rebuild mode: coming soon.' },
     { id: 'rpm', status: 'live', nav: 'Tank RPM', href: 'tank-rpm-calculator.html', icon: '⚙️',
       title: 'Tank RPM Calculator',
@@ -40,11 +40,7 @@
     { id: 'biocide', status: 'planned', nav: null, href: null, icon: '🧫',
       title: 'Biocide Addition Calculator',
       input: 'Tank volume and target dose.', output: 'Biocide addition amount.',
-      when: 'Coming soon.' },
-    { id: 'e3d', status: 'live', external: true, nav: 'E3D', href: 'https://e3d.ecolab.com/', icon: '🌐',
-      title: 'E3D',
-      input: 'Your E3D login.', output: 'E3D platform data and tools.',
-      when: 'Viewing site data in E3D (external site, opens in a new tab).' }
+      when: 'Coming soon.' }
   ];
 
   var BRAND_TEXT = 'CTG', BRAND_SUBTITLE = 'Colloidal Technologies Group';
@@ -142,7 +138,7 @@
         dl.appendChild(el('dt', { text: p[0] })); dl.appendChild(el('dd', { text: p[1] }));
       });
       tile.appendChild(dl);
-      tile.appendChild(el('div', { class: 'go', text: live ? (t.external ? 'Open E3D ↗' : 'Open tool →') : 'Coming soon' }));
+      tile.appendChild(el('div', { class: 'go', text: live ? (t.external ? 'Open ↗' : 'Open tool →') : 'Coming soon' }));
       host.appendChild(tile);
     });
   }
