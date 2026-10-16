@@ -14,6 +14,16 @@ To run locally: `python -m http.server 8000`, then open `http://localhost:8000`.
 
 ## Shell Control Correlation
 
+
+## Cup formula sources
+
+Cup seconds convert to kinematic viscosity (cSt) with V = k·T − C/T:
+
+- **EZ-Zahn #4:** V = 13.26T − 673/T (Paul N. Gardner / GARDCO EZ™ Zahn cup manual)
+- **EZ-Zahn #5:** V = 23.56T − 744/T (same GARDCO series)
+- **ISO #6:** V = 6.90T − 570/T (ISO 2431 Table 1, 6 mm orifice; meaningful roughly 30–100 s)
+- **ISO #8:** V = 21.78T − 306/T (common 8 mm flow-cup constants; not one of the ISO 2431 cups 3–6)
+
 ### What to upload
 
 A CSV export from the sensor system. The tool expects the column headers on row 15 and data starting on row 16. You need three columns:
