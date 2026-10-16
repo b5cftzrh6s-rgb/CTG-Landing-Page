@@ -7,7 +7,7 @@ Pages:
 - `index.html` - landing page with links to each tool
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
 - `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
-- `slurry-calculator.html` - slurry make-up calculator. Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
+- `slurry-calculator.html` - slurry make-up calculator plus an **adjust / rebuild solver** (water, binder and flour additions to reach a target SG and % silica in liquid by mass/volume balance; removal plan when the target can't be reached by additions; viscosity is not predicted). Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
 - `biocide-calculator.html` - 6451 biocide addition: g = dose % ÷ 100 × liquid lb × 454 g/lb (or kg × 1000), mL = g ÷ 1.145 g/mL. Shows Maximum (0.15 %, specified max), Medium (0.10 %) and Low (0.05 %) side by side; Medium/Low are adjustable defaults. 1000 lb → 681 g / 594.76 mL at maximum.
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
 
@@ -72,3 +72,33 @@ The tool tries to auto-detect these from the header names; check the mappings be
 - **Recommended sensor LSL / USL** runs your cup LSL and USL through the regression line to get equivalent sensor limits, shown for all data and for quality-filtered data. Coverage is the percentage of sensor readings that fall inside those limits.
 - **Per-shift analysis** repeats the fit for each defined shift.
 - **Data table and export** shows the paired rows and downloads them as CSV (identical to the original tool: DateTime as MM/DD/YYYY HH:MM, CupSec, CalcCst, SensorCP, AbsDiff, Interpolated, and Shift when shifts are defined; numbers to 3 decimals). AbsDiff is |CalcCst × SG − SensorCP|, which equals the original |CalcCst − SensorCP| at the default SG 1.0.
+
+
+## Slurry adjust / rebuild solver
+
+- **Model:** three components, each with SG values from the material table and volumes assumed additive (8.345 lb/gal water):
+  - binder as supplied (solids % treated as silica)
+  - added water
+  - refractory flour
+- **Adjust:** the measured weight (or volume × SG), SG and % solids are split into binder, water and flour by three linear balances: weight, volume and dry solids. The target SG and % silica in liquid then fix the final composition. The solver gives the smallest additions that reach it. If a component is already in excess, or the result would exceed the tank maximum or the chosen final volume, it tells you how much slurry to remove first.
+- **Rebuild:** target composition × batch volume.
+- **Error messages:** unreachable targets (e.g. an SG below liquid-only SG, or silica above the binder's own solids) and measurements that don't fit the selected materials get a clear message instead of a number.
+- **Not modeled:** viscosity, polymer additions, evaporation and settling. Add in steps and re-measure.
+
+## Install as an app (PWA, works offline)
+
+The site is a Progressive Web App:
+
+- `manifest.webmanifest`, icons in `icons/` (including maskable ones), and `sw.js`.
+- The service worker precaches every page with a versioned cache. When a new version is deployed, a banner shows **"A new version of CTG Tools is available. Update"**.
+- After the first visit, every tool works offline.
+- All paths are relative, so it works at a domain root, under the Databricks app URL, or on a GitHub Pages sub-path.
+
+Installing requires **HTTPS or localhost**. Databricks Apps and GitHub Pages are HTTPS, so they work. Plain `http://` on a LAN IP does not.
+
+- **Desktop (Chrome / Edge):** open the site and click **⬇ Install** in the navbar, or the install icon in the address bar (Edge: *Apps → Install this site as an app*). It then opens in its own window, gets a Start menu / Dock entry, and works offline.
+- **Android (Chrome):** menu → *Install app* / *Add to Home screen*.
+- **iPhone / iPad (Safari):** Share → *Add to Home Screen*. The app icon and full-screen mode are set up.
+- **Run locally:** `./run-local.sh` (macOS/Linux) or `run-local.bat` (Windows) starts `python -m http.server 8000`. Then open http://localhost:8000 and install from there. Python 3 is required.
+- **Releasing:** bump `CTG_VERSION` in `navbar.js` **and** `CACHE_VERSION` in `sw.js` together (a test enforces this), and add any new page to `PRECACHE` in `sw.js` (a test checks every `.html` file is listed). Otherwise installed users keep the old cached version.
+- **Electron:** a native desktop wrapper (Electron/Tauri) would be possible, but it isn't included. The PWA install already gives a desktop window and works offline, without the extra 100+ MB runtime.

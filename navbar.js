@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var CTG_VERSION = 'v2.2.0 · 2026-10-16';
+  var CTG_VERSION = 'v2.3.0 · 2026-10-16';
 
   var CTG_TOOLS = [
     { id: 'correlation', status: 'live', nav: 'Correlation', href: 'shell-control-correlation.html', icon: '📊',
@@ -29,9 +29,9 @@
       when: 'Sitting 1-on-1 with a customer to build a defensible ROI.' },
     { id: 'slurry', status: 'live', nav: 'Slurry', href: 'slurry-calculator.html', icon: '🧪',
       title: 'Slurry Recipe Calculator',
-      input: 'Binder, water, polymer and refractory weights (lb) for up to 3 recipes.',
-      output: 'Volume, SG, % solids / silica / polymer, 7667 and 2305 doses.',
-      when: 'Designing or comparing slurry make-up recipes. Adjust/rebuild mode: coming soon.' },
+      input: 'Recipe weights (lb), or a tank’s measured SG and % solids plus targets.',
+      output: 'Volume, SG, % solids / silica / polymer, 7667 and 2305 doses; water / binder / flour additions to hit target SG and silica.',
+      when: 'Designing recipes, adjusting a tank back to spec, or rebuilding a batch.' },
     { id: 'rpm', status: 'live', nav: 'Tank RPM', href: 'tank-rpm-calculator.html', icon: '⚙️',
       title: 'Tank RPM Calculator',
       input: 'Tank diameter and target tangential speed (Vp).',
@@ -105,7 +105,14 @@
       setThemeLabel(); document.dispatchEvent(new CustomEvent('ctg-theme-change'));
     });
     var toggle = el('button', { class: 'ctg-nav-btn ctg-nav-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': 'ctg-nav-list', 'aria-label': 'Toggle navigation', text: '☰' });
-    right.appendChild(theme); right.appendChild(toggle);
+    var install = el('button', { class: 'ctg-nav-btn hidden', id: 'ctg-install', type: 'button', title: 'Install CTG Tools as an app', text: '⬇ Install' });
+    if (deferredInstall) install.classList.remove('hidden');
+    install.addEventListener('click', function () {
+      if (!deferredInstall) return;
+      deferredInstall.prompt();
+      deferredInstall.userChoice.then(function () { deferredInstall = null; install.classList.add('hidden'); });
+    });
+    right.appendChild(install); right.appendChild(theme); right.appendChild(toggle);
     var list = el('ul', { class: 'ctg-nav-list', id: 'ctg-nav-list' });
     var links = [{ nav: 'Home', href: 'index.html' }].concat(CTG_TOOLS.filter(function (t) { return t.status === 'live' && t.nav; }));
     links.forEach(function (t) {
@@ -149,6 +156,45 @@
     if (f && !f.querySelector('.ver')) f.appendChild(el('span', { class: 'ver', text: 'CTG Tools ' + CTG_VERSION }));
   }
 
+  /* ---------- PWA: service worker, update prompt, install button ---------- */
+  var deferredInstall = null;
+  function banner(msg, btnText, onClick) {
+    var b = document.getElementById('ctg-banner');
+    if (!b) {
+      b = el('div', { id: 'ctg-banner', role: 'status', class: 'no-print' });
+      b.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:3000;background:#06223f;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.3);display:flex;gap:10px;align-items:center;font-size:14px;max-width:calc(100% - 24px)';
+      document.body.appendChild(b);
+    }
+    b.innerHTML = '';
+    b.appendChild(el('span', { text: msg }));
+    if (btnText) { var x = el('button', { type: 'button', class: 'btn small', text: btnText }); x.addEventListener('click', onClick); b.appendChild(x); }
+    var c = el('button', { type: 'button', class: 'btn secondary small', 'aria-label': 'Dismiss', text: '×' });
+    c.addEventListener('click', function () { b.remove(); }); b.appendChild(c);
+  }
+  function registerSW() {
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+    var userAskedUpdate = false, reloading = false;
+    // Reload only after the user pressed "Update" (not on first install / clients.claim()).
+    navigator.serviceWorker.addEventListener('controllerchange', function () { if (!userAskedUpdate || reloading) return; reloading = true; window.location.reload(); });
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (reg) {
+      function promptUpdate(w) {
+        banner('A new version of CTG Tools is available.', 'Update', function () { userAskedUpdate = true; w.postMessage('SKIP_WAITING'); });
+      }
+      if (reg.waiting && navigator.serviceWorker.controller) promptUpdate(reg.waiting);
+      reg.addEventListener('updatefound', function () {
+        var w = reg.installing; if (!w) return;
+        w.addEventListener('statechange', function () {
+          if (w.state === 'installed' && navigator.serviceWorker.controller) promptUpdate(w);
+        });
+      });
+    }).catch(function (e) { if (window.console) console.warn('[CTG] service worker not registered:', e && e.message); });
+  }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferredInstall = e;
+    var btn = document.getElementById('ctg-install'); if (btn) btn.classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', function () { deferredInstall = null; var btn = document.getElementById('ctg-install'); if (btn) btn.classList.add('hidden'); });
+
   function mount() {
     try {
       if (!document.getElementById('ctg-nav-styles')) {
@@ -156,7 +202,7 @@
       }
       var c = document.getElementById('navbar-container');
       if (c) { c.innerHTML = ''; c.appendChild(buildNav()); }
-      renderTiles(); stampFooter();
+      renderTiles(); stampFooter(); registerSW();
     } catch (e) { if (window.console) console.error('[navbar.js]', e); }
   }
   window.CTG_TOOLS = CTG_TOOLS; window.CTG_VERSION = CTG_VERSION;
