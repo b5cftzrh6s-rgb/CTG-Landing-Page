@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var CTG_VERSION = 'v2.4.2 · 2026-10-16';
+  var CTG_VERSION = 'v2.4.3 · 2026-10-16';
 
   var CTG_TOOLS = [
     { id: 'correlation', status: 'live', nav: 'Correlation', href: 'shell-control-correlation.html', icon: '📊',
@@ -29,9 +29,9 @@
       when: 'Sitting 1-on-1 with a customer to build a defensible ROI.' },
     { id: 'slurry', status: 'live', nav: 'Slurry', href: 'slurry-calculator.html', icon: '🧪',
       title: 'Slurry Recipe Calculator',
-      input: 'Recipe weights (lb), or a tank’s measured SG and % solids plus targets.',
-      output: 'Volume, SG, % solids / silica / polymer, 7667 and 2305 doses; water / binder / polymer / flour additions to hit target SG, silica and polymer.',
-      when: 'Designing recipes, adjusting a tank back to spec, or rebuilding a batch.' },
+      input: 'Recipe weights (lb) for up to three recipes.',
+      output: 'Volume, SG, % solids / silica / polymer, 7667 and 2305 doses, side-by-side comparison.',
+      when: 'Designing and comparing slurry recipes.' },
     { id: 'rpm', status: 'live', nav: 'Tank RPM', href: 'tank-rpm-calculator.html', icon: '⚙️',
       title: 'Tank RPM Calculator',
       input: 'Tank diameter and target tangential speed (Vp).',

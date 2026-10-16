@@ -7,7 +7,7 @@ Pages:
 - `index.html` - landing page with links to each tool
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
 - `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
-- `slurry-calculator.html` - slurry make-up calculator plus an **adjust / rebuild solver** (water, binder, polymer and flour additions to reach a target SG, % silica in liquid and % polymer of whole slurry by mass/volume balance; removal plan when the target can't be reached by additions; viscosity is not predicted). Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
+- `slurry-calculator.html` - slurry recipe calculator: compare up to three recipes (volume, SG, % solids / silica / polymer, 7667 and 2305 doses). Polymer is fixed at 50 % solids and SG 1.0. Material tables: values from product SDS and product information sheets (general-use values).
 - `biocide-calculator.html` - 6451 biocide addition: g = dose % ÷ 100 × liquid lb × 454 g/lb (or kg × 1000), mL = g ÷ 1.145 g/mL. Shows Maximum (0.15 %, specified max), Medium (0.10 %) and Low (0.05 %) side by side; Medium/Low are adjustable defaults. 1000 lb → 681 g / 594.76 mL at maximum.
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
 
@@ -74,7 +74,9 @@ The tool tries to auto-detect these from the header names; check the mappings be
 - **Data table and export** shows the paired rows and downloads them as CSV (identical to the original tool: DateTime as MM/DD/YYYY HH:MM, CupSec, CalcCst, SensorCP, AbsDiff, Interpolated, and Shift when shifts are defined; numbers to 3 decimals). AbsDiff is |CalcCst × SG − SensorCP|, which equals the original |CalcCst − SensorCP| at the default SG 1.0.
 
 
-## Slurry adjust / rebuild solver
+## Slurry adjust / rebuild solver: parked, not on the page
+
+> **Parked, not on the page.** The solver functions (`slurryDecompose`, `targetFractions`, `slurryRebuild`, `slurryAdjust` in `calc.js`) and their tests are kept for future work, but `slurry-calculator.html` does not use them (as of v2.4.3).
 
 - **Model:** four components, with volumes assumed additive (8.345 lb/gal water):
   - binder as supplied (solids % treated as silica; SG and polymer % from the table)
