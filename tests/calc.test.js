@@ -136,6 +136,13 @@ t('model A keeps Low/High and ignores B-only annual scrap $', function () {
   near(r.total.lo, 300000); near(r.total.hi, 440000);
 });
 
+t('value report: results are the summary table only (no assumptions, warnings or formulas)', function () {
+  var h = fs.readFileSync(path.join(__dirname, '..', 'shell-control-value-calculator.html'), 'utf8');
+  var reg = h.slice(h.indexOf("CTGPrint.register({ id: 'value'")); reg = reg.slice(reg.indexOf('results: function'), reg.indexOf('});'));
+  assert.ok(reg.indexOf("$('sumTable')") !== -1 && !/assumptions|warnings|Assumptions/.test(reg.replace(/\/\/.*\n/g, '')), reg);
+  assert.ok(/class="formula no-report"/.test(h));
+});
+
 console.log('slurry');
 t('7667 interpolation', function () { near(C.dose7667(25), 7.75); near(C.dose7667(0), 7); near(C.dose7667(150), 10); });
 t('water only is SG 1', function () { var r = C.slurryRecipe({ binder: null, waterLb: 83.45, refs: [] }); near(r.sg, 1); near(r.volumeGal, 10); });

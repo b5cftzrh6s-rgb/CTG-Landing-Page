@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var d = r.drivers[k]; if (!d) return; nd++;
       $('v-' + k).textContent = B ? money(d.value) : range(d); $('f-' + k).textContent = d.formula;
       if (d.hi > 0) filled++;
-      rows += '<tr><td>' + LABELS[k] + '<div class="formula">' + esc(d.formula) + '</div></td>' + (B ? '<td class="num">' + money(d.value) + '</td>' : '<td class="num">' + money(d.lo) + '</td><td class="num">' + money(d.hi) + '</td>') + '</tr>';
+      rows += '<tr><td>' + LABELS[k] + '<div class="formula no-report">' + esc(d.formula) + '</div></td>' + (B ? '<td class="num">' + money(d.value) + '</td>' : '<td class="num">' + money(d.lo) + '</td><td class="num">' + money(d.hi) + '</td>') + '</tr>';
     });
     rows += '<tr><th>Total annual value</th>' + (B ? '<th class="num">' + money(r.total.value) + '</th>' : '<th class="num">' + money(r.total.lo) + '</th><th class="num">' + money(r.total.hi) + '</th>') + '</tr></tbody>';
     $('sumTable').innerHTML = rows;
@@ -205,8 +205,8 @@ document.addEventListener('DOMContentLoaded', function () {
       return g;
     },
     results: function () { return [
-      { title: state.mode === 'B' ? 'Annual value by driver (Model B, single value) with formulas' : 'Annual value by driver (Model A, Low / High) with formulas', node: $('sumTable') }, { node: $('warnings') },
-      { title: 'Assumptions', node: $('assumptions') }
+      // Report = inputs + results/totals only: no formulas, warnings or assumptions (they stay on screen).
+      { title: state.mode === 'B' ? 'Annual value by driver (Model B, single value)' : 'Annual value by driver (Model A, Low / High)', node: $('sumTable') }
     ]; } });
 });
 </script>
