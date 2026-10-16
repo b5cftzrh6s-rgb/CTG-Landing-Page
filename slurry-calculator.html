@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Slurry Recipe Calculator — CTG Tools</title>
-<link rel="icon" href="data:,">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a4a8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CTG Tools">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
@@ -22,8 +29,11 @@ table.out tr.hl td{background:var(--surface-2)}
 .print-comparison tr.section-row td{background:#003a70;color:#fff;font-weight:800;text-transform:uppercase;text-align:left}
 @media print{
   @page{size:letter landscape;margin:.4in}
-  .page-header,#recipes-grid,#defs,.ctg-footer{display:none !important}
+  .page-header,#recipes-grid,#defs,.ctg-footer,#solver{display:none !important}
+  body.print-solver #solver{display:block !important}
+  body.print-solver .print-only{display:none !important}
 }
+.sol-out td.num{font-weight:700;color:var(--brand)}
 </style>
 </head>
 <body>
@@ -41,7 +51,7 @@ table.out tr.hl td{background:var(--surface-2)}
   <div class="toolbar no-print">
     <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
     <button class="btn secondary" type="button" id="resetBtn">Reset all</button>
-    <span class="badge">Adjust / rebuild mode: coming soon</span>
+    <a class="btn secondary" href="#solver">Adjust / rebuild solver ↓</a>
   </div>
 
   <div class="grid-3" id="recipes-grid"></div>
@@ -62,6 +72,49 @@ table.out tr.hl td{background:var(--surface-2)}
       <li>A refractory set to "None" with a weight is ignored and flagged.</li>
     </ul>
   </details>
+
+  <section class="card" id="solver" aria-labelledby="sol-h">
+    <h2 id="sol-h">Adjust / rebuild solver</h2>
+    <p class="desc">Mass and volume balance on three components: binder (colloidal silica, as supplied), added water and refractory flour, using the same material table and additive-volume model as the recipe cards. Targets are slurry SG and % silica in liquid; % solids follows from them.</p>
+    <div class="row-flex no-print" role="group" aria-label="Solver mode" style="margin-bottom:12px">
+      <button type="button" class="btn secondary" data-solmode="adjust" aria-pressed="true">Adjust an existing tank</button>
+      <button type="button" class="btn secondary" data-solmode="rebuild" aria-pressed="false">Rebuild a fresh batch</button>
+      <button type="button" class="btn small" id="printSolver">Print solver</button>
+    </div>
+    <div class="grid">
+      <div class="field"><label for="s_binder">Binder (colloidal silica)</label><select id="s_binder"></select></div>
+      <div class="field"><label for="s_ref">Refractory flour</label><select id="s_ref"></select></div>
+    </div>
+    <div id="s_adjust_in">
+      <h3>Current tank (measured)</h3>
+      <div class="grid">
+        <div class="field"><label for="s_cur_vol">Current slurry volume (gal)</label><input id="s_cur_vol" type="number" inputmode="decimal" min="0" step="any"><span class="hint">Or enter weight instead</span></div>
+        <div class="field"><label for="s_cur_lb">Current slurry weight (lb)</label><input id="s_cur_lb" type="number" inputmode="decimal" min="0" step="any"><span class="hint">Used instead of volume if entered</span></div>
+        <div class="field"><label for="s_cur_sg">Measured SG (–)</label><input id="s_cur_sg" type="number" inputmode="decimal" min="1" step="any"></div>
+        <div class="field"><label for="s_cur_sol">Measured solids (% by weight, dried)</label><input id="s_cur_sol" type="number" inputmode="decimal" min="0" max="100" step="any"></div>
+        <div class="field"><label for="s_cur_visc">Measured viscosity (s, cup) — optional, record only</label><input id="s_cur_visc" type="number" inputmode="decimal" min="0" step="any"><span class="hint">Not used in the math; recorded on the printout.</span></div>
+      </div>
+    </div>
+    <h3>Target</h3>
+    <div class="grid">
+      <div class="field"><label for="s_t_sg">Target SG (–)</label><input id="s_t_sg" type="number" inputmode="decimal" min="1" step="any"></div>
+      <div class="field"><label for="s_t_sil">Target silica (% of liquid)</label><input id="s_t_sil" type="number" inputmode="decimal" min="0" max="100" step="any"></div>
+      <div class="field" id="s_vol_wrap"><label for="s_t_vol">Final volume (gal)</label><input id="s_t_vol" type="number" inputmode="decimal" min="0" step="any"><span class="hint" id="s_vol_hint">Adjust: optional. Blank = smallest additions, nothing removed.</span></div>
+      <div class="field" id="s_max_wrap"><label for="s_max">Tank maximum volume (gal) — optional</label><input id="s_max" type="number" inputmode="decimal" min="0" step="any"></div>
+    </div>
+    <div id="s_msgs" aria-live="polite"></div>
+    <div class="table-wrap" style="max-height:none"><table class="data sol-out" id="s_out"></table></div>
+    <details style="margin-top:10px"><summary><strong>Method &amp; assumptions</strong></summary>
+      <ul class="desc">
+        <li>Components: binder as supplied (solids % and SG from the material table), added water (SG 1.000), refractory flour (dry, SG from the table). Volumes are assumed additive (same model as the recipe cards; 8.345 lb/gal water).</li>
+        <li>Adjust: the current tank is split into binder / water / flour by solving three balances: total weight, total volume (weight ÷ SG) and dry solids (binder solids + flour). The target composition comes from target SG and % silica in liquid. The solver finds the smallest additions that reach it; if a component is already in excess, it tells you how much slurry to remove first.</li>
+        <li>Rebuild: target composition × target volume × target SG × 8.345 lb/gal.</li>
+        <li>Binder solids are treated as silica. Polymer in the binder is carried with the binder; separate polymer additions are not solved for. Evaporation, settling and flour wetting are ignored.</li>
+        <li><strong>Viscosity is not predicted.</strong> No first-principles viscosity model is used. Make additions in steps and re-measure viscosity (cup or sensor), using the Correlation tool for your site-specific relationship.</li>
+        <li>Results are only as good as the SG and % solids measurements; small errors in % solids change the split noticeably. Re-measure after mixing.</li>
+      </ul>
+    </details>
+  </section>
 
   <div class="print-only">
     <div class="print-header">
@@ -172,6 +225,55 @@ document.addEventListener('DOMContentLoaded', function () {
     calcAll();
   });
   calcAll();
+
+  /* ---------- adjust / rebuild solver ---------- */
+  var SKEY = 'ctg-slurry-solver-v1', SIDS = ['s_binder', 's_ref', 's_cur_vol', 's_cur_lb', 's_cur_sg', 's_cur_sol', 's_cur_visc', 's_t_sg', 's_t_sil', 's_t_vol', 's_max'];
+  var sb = document.getElementById('s_binder'), sr = document.getElementById('s_ref');
+  sb.innerHTML = opts(BINDERS); sr.innerHTML = Object.keys(REFRACTORIES).filter(function (k) { return REFRACTORIES[k] > 0; }).map(function (k) { return '<option>' + esc(k) + '</option>'; }).join('');
+  var sst = {}; try { sst = JSON.parse(localStorage.getItem(SKEY) || '{}') || {}; } catch (e) {}
+  var solMode = sst.mode === 'rebuild' ? 'rebuild' : 'adjust';
+  SIDS.forEach(function (id) { if (sst[id] != null) document.getElementById(id).value = sst[id]; });
+  var sec = document.getElementById('solver');
+  function n(x, d) { return x === null || x === undefined || !isFinite(x) ? '—' : x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function row(l, v, u) { return '<tr><td>' + l + '</td><td class="num">' + v + '</td><td>' + u + '</td></tr>'; }
+  function solve() {
+    var st = { mode: solMode }; SIDS.forEach(function (id) { st[id] = document.getElementById(id).value; });
+    try { localStorage.setItem(SKEY, JSON.stringify(st)); } catch (e) {}
+    sec.querySelectorAll('[data-solmode]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.solmode === solMode ? 'true' : 'false'); });
+    document.getElementById('s_adjust_in').classList.toggle('hidden', solMode !== 'adjust');
+    document.getElementById('s_max_wrap').classList.toggle('hidden', solMode !== 'adjust');
+    document.getElementById('s_vol_hint').textContent = solMode === 'adjust' ? 'Adjust: optional. Blank = smallest additions, nothing removed.' : 'Required: batch volume to build.';
+    var binder = BINDERS[st.s_binder], refSG = REFRACTORIES[st.s_ref], r, h = '', msgs = '';
+    var started = solMode === 'adjust' ? (st.s_cur_sg || st.s_cur_sol || st.s_t_sg) : (st.s_t_sg || st.s_t_vol);
+    if (solMode === 'rebuild') r = C.slurryRebuild({ binder: binder, refSG: refSG, volumeGal: st.s_t_vol, targetSG: st.s_t_sg, targetSilicaPct: st.s_t_sil });
+    else r = C.slurryAdjust({ binder: binder, refSG: refSG, current: { volumeGal: st.s_cur_vol, massLb: st.s_cur_lb, sg: st.s_cur_sg, solidsPct: st.s_cur_sol },
+      targetSG: st.s_t_sg, targetSilicaPct: st.s_t_sil, targetVolumeGal: st.s_t_vol, maxVolumeGal: st.s_max });
+    if (!r.ok) { msgs = started ? r.errors.map(function (e) { return '<div class="notice bad">' + esc(e) + '</div>'; }).join('') : '<div class="notice">Enter the values above to get a plan.</div>'; }
+    else {
+      (r.warnings || []).forEach(function (w) { msgs += '<div class="notice warn">' + esc(w) + '</div>'; });
+      h = '<thead><tr><th>Step</th><th class="num">Amount</th><th>Unit</th></tr></thead><tbody>';
+      if (solMode === 'adjust') {
+        h += '<tr><th colspan="3">Current tank (calculated split)</th></tr>' + row('Binder', n(r.currentLb.binderLb, 1), 'lb') + row('Added water', n(r.currentLb.waterLb, 1), 'lb') + row('Flour', n(r.currentLb.flourLb, 1), 'lb') +
+          row('Volume', n(r.current.volumeGal, 1), 'gal') + row('Silica in liquid', n(r.current.pctSilicaInLiquid, 2), '%') + (st.s_cur_visc ? row('Viscosity (recorded)', esc(st.s_cur_visc), 's') : '');
+        h += '<tr><th colspan="3">Plan</th></tr>';
+        if (r.removeGal > 1e-6) h += row('<strong>1. Remove slurry</strong>', n(r.removeGal, 1), 'gal (' + n(r.removeLb, 0) + ' lb)');
+        h += row('<strong>' + (r.removeGal > 1e-6 ? '2' : '1') + '. Add binder</strong>', n(r.addBinderLb, 1), 'lb') + row('<strong>Add water</strong>', n(r.addWaterLb, 1), 'lb (' + n(r.addWaterLb / C.LB_PER_GAL_WATER, 2) + ' gal)') +
+          row('<strong>Add flour</strong>', n(r.addFlourLb, 1), 'lb');
+      } else {
+        h += row('<strong>Binder</strong>', n(r.binderLb, 1), 'lb') + row('<strong>Water</strong>', n(r.waterLb, 1), 'lb (' + n(r.waterLb / C.LB_PER_GAL_WATER, 2) + ' gal)') + row('<strong>Flour</strong>', n(r.flourLb, 1), 'lb');
+      }
+      h += '<tr><th colspan="3">Expected result</th></tr>' + row('Volume', n(r.result.volumeGal, 1), 'gal') + row('Weight', n(r.result.totalLb, 0), 'lb') + row('SG', n(r.result.sg, 3), '–') +
+        row('Solids', n(r.result.pctSolids, 1), '% by weight') + row('Silica in liquid', n(r.result.pctSilicaInLiquid, 2), '%') + '</tbody>';
+      msgs += '<div class="notice">Viscosity is not predicted. Add in steps, mix, and re-measure.</div>';
+    }
+    document.getElementById('s_msgs').innerHTML = msgs;
+    document.getElementById('s_out').innerHTML = h;
+  }
+  sec.addEventListener('input', solve); sec.addEventListener('change', solve);
+  sec.addEventListener('click', function (e) { var b = e.target.closest('[data-solmode]'); if (b) { solMode = b.dataset.solmode; solve(); } });
+  document.getElementById('printSolver').addEventListener('click', function () { document.body.classList.add('print-solver'); window.print(); });
+  window.addEventListener('afterprint', function () { document.body.classList.remove('print-solver'); });
+  solve();
 });
 </script>
 </body>
