@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var CTG_VERSION = 'v2.3.1 · 2026-10-16';
+  var CTG_VERSION = 'v2.3.2 · 2026-10-16';
 
   var CTG_TOOLS = [
     { id: 'correlation', status: 'live', nav: 'Correlation', href: 'shell-control-correlation.html', icon: '📊',

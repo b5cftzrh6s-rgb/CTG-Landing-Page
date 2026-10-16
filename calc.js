@@ -412,6 +412,7 @@
       pctSolids: total > 0 ? dry / total * 100 : 0,
       pctSilicaInLiquid: liquidLb > 0 ? silicaLb / liquidLb * 100 : 0,
       pctPolymerInLiquid: liquidLb > 0 ? activePoly / liquidLb * 100 : 0,
+      pctPolymer: total > 0 ? activePoly / total * 100 : 0,
       pctZircon: pctZ, liquidGal: liqGal, liquidL: liqGal * L_PER_GAL,
       dose7667MlPerGal: inp.wetting ? dosePerGal : null,
       total7667Ml: inp.wetting ? dosePerGal * liqGal : null,
@@ -432,10 +433,10 @@
      Same definitions as the recipe cards:
        liquid lb      = B + W + P
        % silica (liq) = B·sb ÷ liquid
-       % polymer (liq)= (B·pb + P·ps) ÷ liquid
+       % polymer      = (B·pb + P·ps) ÷ total slurry (whole-slurry basis)
        % solids       = (B·sb + P·ps + R) ÷ total
      Measuring weight, SG and % solids gives 3 balances; the 4th comes from
-     the current % polymer (of liquid), which the user must supply.
+     the current % polymer (of whole slurry), which the user must supply.
      Viscosity is NOT modelled. */
   function solveN(A, b) {
     var n = b.length, M = A.map(function (r, i) { return r.slice().concat([b[i]]); });
@@ -461,16 +462,17 @@
     if (!(m.rp > 0)) e.push('Polymer SG must be greater than 0.');
     return e;
   }
-  // rows: [mass, volume, silica-in-liquid, polymer-in-liquid] coefficient helpers
+  // rows: [mass, volume, silica-in-liquid, polymer-of-whole-slurry] coefficient helpers
   function volRow(m) { return [1 / m.rb, 1, 1 / m.rp, 1 / m.rr]; }
   function silRow(m, q) { return [m.sb - q, -q, -q, 0]; }
-  function polRow(m, q) { return [m.pb - q, -q, m.ps - q, 0]; }
+  function polRow(m, q) { return [m.pb - q, -q, m.ps - q, -q]; }
   function describeComp(m, x) {
     var B = x[0], W = x[1], P = x[2], R = x[3], tot = B + W + P + R, liq = B + W + P;
     var v = B / m.rb + W + P / m.rp + R / m.rr;
     return { totalLb: tot, volumeGal: v / LB_PER_GAL_WATER, sg: v > 0 ? tot / v : 0,
       pctSolids: tot > 0 ? (B * m.sb + P * m.ps + R) / tot * 100 : 0,
       pctSilicaInLiquid: liq > 0 ? B * m.sb / liq * 100 : 0,
+      pctPolymer: tot > 0 ? (B * m.pb + P * m.ps) / tot * 100 : 0,
       pctPolymerInLiquid: liq > 0 ? (B * m.pb + P * m.ps) / liq * 100 : 0 };
   }
   /* Split a measured slurry into binder / water / polymer / flour lb. */
@@ -487,10 +489,10 @@
   function checkTargets(inp, m, sg, silicaPct, polymerPct, errs) {
     if (!(sg > 1)) errs.push('Target SG must be greater than 1.0.');
     if (!(silicaPct > 0) || silicaPct >= m.binderSolids) errs.push('Target % silica in liquid must be above 0 and below the binder’s own solids (' + m.binderSolids + ' %).');
-    if (!(polymerPct >= 0)) errs.push('Target % polymer in liquid must be 0 or more.');
+    if (!(polymerPct >= 0)) errs.push('Target % polymer (of whole slurry) must be 0 or more.');
     if (errs.length) return null;
     var f = targetFractions(inp, sg, silicaPct, polymerPct);
-    if (f && f[2] < -1e-9) { errs.push('Target % polymer is below what the binder alone brings at this silica level (' + (m.pb * silicaPct / m.sb).toFixed(2) + ' %). Raise the polymer target or choose a binder with less polymer.'); return null; }
+    if (f && f[2] < -1e-9) { errs.push('Target % polymer is below what the binder alone brings at this SG and silica level. Raise the polymer target or choose a binder with less polymer.'); return null; }
     if (!f || f.some(function (v) { return v < -1e-9; })) {
       if (f && f[3] < 0) {
         var liqOnly = describeComp(m, [silicaPct / 100 / m.sb, 0, 0, 0]); // placeholder, recomputed below
@@ -523,7 +525,7 @@
     var cpp = (c.polymerPct === '' || c.polymerPct == null) ? NaN : Number(c.polymerPct);
     if (!(sg > 1)) errs.push('Current SG must be greater than 1.0.');
     if (!(sol > 0 && sol < 100)) errs.push('Current % solids must be between 0 and 100.');
-    if (!(cpp >= 0)) errs.push('Enter the current % polymer (of liquid). SG and % solids cannot separate polymer from silica, so use the last measured or recipe value.');
+    if (!(cpp >= 0)) errs.push('Enter the current % polymer (of whole slurry). SG and % solids cannot separate polymer from silica, so use the last measured or recipe value.');
     var mass = Number(c.massLb) > 0 ? Number(c.massLb) : (Number(c.volumeGal) > 0 ? Number(c.volumeGal) * LB_PER_GAL_WATER * sg : NaN);
     if (!(mass > 0)) errs.push('Enter the current tank volume (gal) or slurry weight (lb).');
     if (errs.length) return { ok: false, errors: errs };

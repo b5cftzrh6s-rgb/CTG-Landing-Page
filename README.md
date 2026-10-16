@@ -7,7 +7,7 @@ Pages:
 - `index.html` - landing page with links to each tool
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
 - `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
-- `slurry-calculator.html` - slurry make-up calculator plus an **adjust / rebuild solver** (water, binder, polymer and flour additions to reach a target SG, % silica in liquid and % polymer in liquid by mass/volume balance; removal plan when the target can't be reached by additions; viscosity is not predicted). Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
+- `slurry-calculator.html` - slurry make-up calculator plus an **adjust / rebuild solver** (water, binder, polymer and flour additions to reach a target SG, % silica in liquid and % polymer of whole slurry by mass/volume balance; removal plan when the target can't be reached by additions; viscosity is not predicted). Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
 - `biocide-calculator.html` - 6451 biocide addition: g = dose % ÷ 100 × liquid lb × 454 g/lb (or kg × 1000), mL = g ÷ 1.145 g/mL. Shows Maximum (0.15 %, specified max), Medium (0.10 %) and Low (0.05 %) side by side; Medium/Low are adjustable defaults. 1000 lb → 681 g / 594.76 mL at maximum.
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
 
@@ -82,8 +82,8 @@ The tool tries to auto-detect these from the header names; check the mappings be
   - polymer as supplied (solids % default 50 %, SG default 1.0, both editable)
   - refractory flour
 - **SG** is the whole-slurry density: liquid, colloidal silica solids, polymer solids and flour, by total weight ÷ total volume.
-- **% polymer (of liquid)** = (binder × binder polymer % + polymer × polymer solids %) ÷ (binder + water + polymer), the same definition as the recipe cards. % silica (of liquid) uses the same liquid basis.
-- **Adjust:** four balances split the tank into its four components: weight (or volume × SG), volume (weight ÷ SG), dry solids, and the **current % polymer in liquid, which you must enter**. SG and % solids can't separate polymer from silica, so use the last measured or recipe value. Targets are SG, % silica and % polymer (both of liquid). The solver gives the smallest additions of binder, water, polymer and flour in lb, or a remove-then-add plan when a component is in excess or the tank maximum or chosen final volume would be exceeded.
+- **% polymer (of whole slurry)** = polymer solids lb, including binder-borne polymer (binder × binder polymer % + polymer × polymer solids %), ÷ total slurry lb (binder + water + polymer + flour). This is the spec basis. Recipe cards show it as "Polymer, % of total slurry" and also show the liquid-basis value, labelled "% of liquid", for reference. % silica stays on the liquid basis (binder silica ÷ binder + water + polymer).
+- **Adjust:** four balances split the tank into its four components: weight (or volume × SG), volume (weight ÷ SG), dry solids, and the **current % polymer (of whole slurry), which you must enter**. SG and % solids can't separate polymer from silica, so use the last measured or recipe value. Targets are SG, % silica (of liquid) and % polymer (of whole slurry). The solver gives the smallest additions of binder, water, polymer and flour in lb, or a remove-then-add plan when a component is in excess or the tank maximum or chosen final volume would be exceeded.
 - **Rebuild:** target composition × batch volume.
 - **Error messages:** unreachable targets get a clear message instead of a number:
   - an SG below liquid-only SG

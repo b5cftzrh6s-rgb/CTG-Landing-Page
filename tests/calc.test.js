@@ -141,19 +141,19 @@ t('binder silica definition', function () {
 console.log('slurry solver (4 components)');
 // Hand-checked case. Binder 30 % solids, SG 1.2, no polymer; polymer 50 % solids SG 1.0; flour SG 2.5.
 // 40 B + 50 W + 10 P + 100 R: liquid 100 lb; vol-eq = 33.333 + 50 + 10 + 40 = 133.333 lb; mass 200
-// -> SG 1.500; solids (12 + 5 + 100)/200 = 58.5 %; silica 12/100 = 12 %; polymer 5/100 = 5 % of liquid.
+// -> SG 1.500; solids (12 + 5 + 100)/200 = 58.5 %; silica 12/100 = 12 %; polymer 5/200 = 2.5 % of whole slurry (5 % of liquid).
 var BND = { solids: 30, density: 1.2, poly: 0 }, MAT = { binder: BND, refSG: 2.5, polymerSolidsPct: 50, polymerSG: 1.0 };
 function withM(o) { var r = {}; for (var k in MAT) r[k] = MAT[k]; for (var j in o) r[j] = o[j]; return r; }
 var liqP = function (B, W, P, R) { return C.slurryRecipe({ binder: BND, binderLb: B, waterLb: W, polymerLb: P, polymerSolidsPct: 50, polymerSG: 1, refs: [{ name: 'F', sg: 2.5, lb: R }] }); };
-t('hand case: recipe-card definitions match (SG 1.5, 58.5 % solids, 12 % silica, 5 % polymer)', function () {
-  var r = liqP(40, 50, 10, 100); near(r.sg, 1.5, 1e-9); near(r.pctSolids, 58.5, 1e-9); near(r.pctSilicaInLiquid, 12, 1e-9); near(r.pctPolymerInLiquid, 5, 1e-9);
+t('hand case: recipe-card definitions match (SG 1.5, 58.5 % solids, 12 % silica, 2.5 % polymer of slurry)', function () {
+  var r = liqP(40, 50, 10, 100); near(r.sg, 1.5, 1e-9); near(r.pctSolids, 58.5, 1e-9); near(r.pctSilicaInLiquid, 12, 1e-9); near(r.pctPolymer, 2.5, 1e-9); near(r.pctPolymerInLiquid, 5, 1e-9);
 });
-t('hand case: decompose 200 lb, SG 1.5, 58.5 % solids, 5 % polymer -> 40/50/10/100', function () {
-  var d = C.slurryDecompose(MAT, 200, 1.5, 58.5, 5);
+t('hand case: decompose 200 lb, SG 1.5, 58.5 % solids, 2.5 % polymer -> 40/50/10/100', function () {
+  var d = C.slurryDecompose(MAT, 200, 1.5, 58.5, 2.5);
   near(d.binderLb, 40, 1e-6); near(d.waterLb, 50, 1e-6); near(d.polymerLb, 10, 1e-6); near(d.flourLb, 100, 1e-6);
 });
-t('hand case: target fractions for SG 1.5 / 12 % silica / 5 % polymer = 0.20/0.25/0.05/0.50', function () {
-  var f = C.targetFractions(MAT, 1.5, 12, 5); near(f[0], 0.2, 1e-9); near(f[1], 0.25, 1e-9); near(f[2], 0.05, 1e-9); near(f[3], 0.5, 1e-9);
+t('hand case: target fractions for SG 1.5 / 12 % silica / 2.5 % polymer = 0.20/0.25/0.05/0.50', function () {
+  var f = C.targetFractions(MAT, 1.5, 12, 2.5); near(f[0], 0.2, 1e-9); near(f[1], 0.25, 1e-9); near(f[2], 0.05, 1e-9); near(f[3], 0.5, 1e-9);
 });
 t('SG includes polymer solids: same flour/silica, more polymer changes SG', function () {
   var a = liqP(40, 60, 0, 100), b = liqP(40, 50, 10, 100);
@@ -162,50 +162,50 @@ t('SG includes polymer solids: same flour/silica, more polymer changes SG', func
   assert.ok(hv.sg > b.sg);
 });
 t('rebuild 100 gal: hand amounts and cross-check with slurryRecipe', function () {
-  var r = C.slurryRebuild(withM({ volumeGal: 100, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5 }));
+  var r = C.slurryRebuild(withM({ volumeGal: 100, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5 }));
   assert.ok(r.ok); var M = 100 * 8.345 * 1.5; // 1251.75 lb
   near(r.binderLb, 0.2 * M, 1e-6); near(r.waterLb, 0.25 * M, 1e-6); near(r.polymerLb, 0.05 * M, 1e-6); near(r.flourLb, 0.5 * M, 1e-6);
   var x = liqP(r.binderLb, r.waterLb, r.polymerLb, r.flourLb);
-  near(x.sg, 1.5, 1e-9); near(x.pctSilicaInLiquid, 12, 1e-9); near(x.pctPolymerInLiquid, 5, 1e-9); near(x.volumeGal, 100, 1e-9);
+  near(x.sg, 1.5, 1e-9); near(x.pctSilicaInLiquid, 12, 1e-9); near(x.pctPolymer, 2.5, 1e-9); near(x.pctPolymerInLiquid, 5, 1e-9); near(x.volumeGal, 100, 1e-9);
 });
 t('adjust: low polymer tank -> add exactly 10 lb polymer', function () {
   // current 40 B + 50 W + 0 P + 100 R (polymer 0 %); target = 40/50/10/100 composition.
   // Hand: 40/0.2 = 200, 50/0.25 = 200, 100/0.5 = 200 -> final 200 lb, add P = 10 lb only... but polymer replaces no water:
   // final 40/50/10/100 = 200 lb. Current mass 190 lb.
   var cur = liqP(40, 50, 0, 100);
-  var r = C.slurryAdjust(withM({ current: { massLb: 190, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: 0 }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5 }));
+  var r = C.slurryAdjust(withM({ current: { massLb: 190, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: 0 }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5 }));
   assert.ok(r.ok, JSON.stringify(r.errors)); near(r.addPolymerLb, 10, 1e-6); near(r.addBinderLb, 0, 1e-6); near(r.addWaterLb, 0, 1e-6); near(r.addFlourLb, 0, 1e-6);
-  near(r.result.pctPolymerInLiquid, 5, 1e-9);
+  near(r.result.pctPolymer, 2.5, 1e-9);
 });
 t('adjust: thin slurry -> add 50 lb flour', function () {
   var cur = liqP(40, 50, 10, 50);
-  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: 5 }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5 }));
+  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymer }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5 }));
   near(r.addFlourLb, 50, 1e-6); near(r.addBinderLb + r.addWaterLb + r.addPolymerLb, 0, 1e-6); near(r.result.sg, 1.5, 1e-9);
 });
 t('adjust: thick slurry -> add 20 B + 25 W + 5 P', function () {
   var cur = liqP(20, 25, 5, 100);
-  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymerInLiquid }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5 }));
+  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymer }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5 }));
   near(r.addBinderLb, 20, 1e-6); near(r.addWaterLb, 25, 1e-6); near(r.addPolymerLb, 5, 1e-6); near(r.addFlourLb, 0, 1e-6);
 });
 t('adjust: fixed final volume smaller than needed -> remove first', function () {
   var cur = liqP(20, 25, 5, 100);
-  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymerInLiquid }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5, targetVolumeGal: cur.volumeGal }));
-  assert.ok(r.removeGal > 0 && r.warnings.length); near(r.result.volumeGal, cur.volumeGal, 1e-6); near(r.result.sg, 1.5, 1e-9); near(r.result.pctPolymerInLiquid, 5, 1e-9);
+  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymer }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5, targetVolumeGal: cur.volumeGal }));
+  assert.ok(r.removeGal > 0 && r.warnings.length); near(r.result.volumeGal, cur.volumeGal, 1e-6); near(r.result.sg, 1.5, 1e-9); near(r.result.pctPolymer, 2.5, 1e-9);
   ['addBinderLb', 'addWaterLb', 'addPolymerLb', 'addFlourLb'].forEach(function (k) { assert.ok(r[k] >= -1e-9, k); });
 });
 t('adjust: tank max exceeded -> removal plan within max', function () {
   var cur = liqP(20, 25, 5, 100);
-  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymerInLiquid }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5, maxVolumeGal: cur.volumeGal + 1 }));
+  var r = C.slurryAdjust(withM({ current: { massLb: 150, sg: cur.sg, solidsPct: cur.pctSolids, polymerPct: cur.pctPolymer }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5, maxVolumeGal: cur.volumeGal + 1 }));
   assert.ok(r.warnings.length && r.removeGal > 0 && r.result.volumeGal <= cur.volumeGal + 1 + 1e-6);
 });
 t('current % polymer is required (cannot be inferred)', function () {
-  var r = C.slurryAdjust(withM({ current: { massLb: 200, sg: 1.5, solidsPct: 58.5 }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 5 }));
+  var r = C.slurryAdjust(withM({ current: { massLb: 200, sg: 1.5, solidsPct: 58.5 }, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 2.5 }));
   assert.ok(!r.ok && /current % polymer/.test(r.errors.join(' ')));
 });
 t('binder polymer counts toward % polymer (like recipe cards)', function () {
   var I = withM({ binder: { solids: 30, density: 1.2, poly: 5 } });
-  var f = C.targetFractions(I, 1.5, 12, 5); // binder fB*0.05 ... polymer from binder only = 0.05*0.4 liquid share
-  var B = f[0], W = f[1], P = f[2], liq = B + W + P; near((B * 0.05 + P * 0.5) / liq * 100, 5, 1e-9); near(B * 0.3 / liq * 100, 12, 1e-9);
+  var f = C.targetFractions(I, 1.5, 12, 2.5); // binder-borne polymer counts, whole-slurry basis
+  var B = f[0], W = f[1], P = f[2], R = f[3], liq = B + W + P; near((B * 0.05 + P * 0.5) / (liq + R) * 100, 2.5, 1e-9); assert.ok(P < 0.05 - 1e-6); near(B * 0.3 / liq * 100, 12, 1e-9);
 });
 t('impossible: polymer target below binder polymer', function () { var r = C.slurryRebuild(withM({ binder: { solids: 30, density: 1.2, poly: 20 }, volumeGal: 10, targetSG: 1.5, targetSilicaPct: 12, targetPolymerPct: 1 })); assert.ok(!r.ok && /below what the binder alone brings/.test(r.errors[0])); });
 t('impossible: SG below liquid-only SG', function () { var r = C.slurryRebuild(withM({ volumeGal: 10, targetSG: 1.01, targetSilicaPct: 25, targetPolymerPct: 2 })); assert.ok(!r.ok && /cannot be reached by adding flour/.test(r.errors[0])); });
