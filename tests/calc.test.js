@@ -138,6 +138,28 @@ t('binder silica definition', function () {
   near(r.pctSilicaInLiquid, 20);
 });
 
+console.log('biocide 6451');
+t('1000 lb -> 681 g -> 594.76 mL (spec)', function () {
+  var r = C.biocideDose({ liquid: 1000 }); assert.ok(r.ok); near(r.grams, 681, 1e-9); near(r.mL, 681 / 1.145, 1e-9); near(r.mL, 594.76, 0.005);
+  near(r.mL, (0.0015 * 1000 * 454) / 1.145, 1e-9);
+});
+t('defaults are 0.15 %, 454 g/lb, 1.145 g/mL', function () { assert.deepStrictEqual(C.BIOCIDE_DEFAULTS, { dosePct: 0.15, gPerLb: 454, densityGmL: 1.145 }); });
+t('kg uses kg × 1000 g', function () { var r = C.biocideDose({ liquid: 100, unit: 'kg' }); near(r.grams, 150); near(r.mL, 150 / 1.145); });
+t('custom dose and density', function () { var r = C.biocideDose({ liquid: 1000, dosePct: 0.3, densityGmL: 1.0 }); near(r.grams, 1362); near(r.mL, 1362); });
+t('validation: liquid must be > 0', function () { assert.ok(C.biocideDose({ liquid: 0 }).errors.liquid); assert.ok(C.biocideDose({ liquid: -5 }).errors.liquid); assert.ok(C.biocideDose({}).errors.liquid); });
+t('validation: dose and density > 0', function () { var r = C.biocideDose({ liquid: 10, dosePct: 0, densityGmL: -1 }); assert.ok(r.errors.dosePct && r.errors.densityGmL); assert.strictEqual(r.mL, null); });
+
+t('three tiers at 1000 lb: max 681/594.76, med 454/396.51, low 227/198.25', function () {
+  var r = C.biocideTiers({ liquid: 1000 }), T = {}; r.tiers.forEach(function (x) { T[x.id] = x; });
+  near(T.max.grams, 681, 1e-9); near(T.max.mL, 594.76, 0.005);
+  near(T.med.grams, 454, 1e-9); near(T.med.mL, 396.51, 0.005);
+  near(T.low.grams, 227, 1e-9); near(T.low.mL, 198.25, 0.005);
+  assert.deepStrictEqual(r.tiers.map(function (x) { return x.pct; }), [0.15, 0.10, 0.05]);
+});
+t('tier defaults editable; warn when above max', function () {
+  var r = C.biocideTiers({ liquid: 1000, medPct: 0.2 }); near(r.tiers[1].grams, 908); assert.ok(r.warnings.length);
+});
+
 console.log('tank rpm');
 t('48 in @ 80 m/min = 20.89 rpm', function () { near(C.tankRpm(48, 80), 80 / (Math.PI * 48 * 0.0254)); near(C.tankRpm(48, 80), 20.89, 0.01); });
 t('invalid -> null', function () { assert.strictEqual(C.tankRpm(0, 80), null); assert.strictEqual(C.tankRpm(48, -1), null); });

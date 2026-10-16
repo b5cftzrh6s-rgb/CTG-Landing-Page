@@ -8,6 +8,7 @@ Pages:
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
 - `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
 - `slurry-calculator.html` - slurry make-up calculator. Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
+- `biocide-calculator.html` - 6451 biocide addition: g = dose % ÷ 100 × liquid lb × 454 g/lb (or kg × 1000), mL = g ÷ 1.145 g/mL. Shows Maximum (0.15 %, specified max), Medium (0.10 %) and Low (0.05 %) side by side; Medium/Low are adjustable defaults. 1000 lb → 681 g / 594.76 mL at maximum.
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
 
 Shared files: `ctg.css` (all styling, light/dark), `navbar.js` (tool registry `CTG_TOOLS`, navbar, landing tiles, footer version stamp), `calc.js` (all calculations, no DOM).

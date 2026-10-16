@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  var CTG_VERSION = 'v2.1.0 · 2026-10-16';
+  var CTG_VERSION = 'v2.2.0 · 2026-10-16';
 
   var CTG_TOOLS = [
     { id: 'correlation', status: 'live', nav: 'Correlation', href: 'shell-control-correlation.html', icon: '📊',
@@ -37,10 +37,11 @@
       input: 'Tank diameter and target tangential speed (Vp).',
       output: 'Rotation speed (RPM) for prime or backup slurry.',
       when: 'Setting up or checking slurry tank rotation.' },
-    { id: 'biocide', status: 'planned', nav: null, href: null, icon: '🧫',
+    { id: 'biocide', status: 'live', nav: 'Biocide', href: 'biocide-calculator.html', icon: '🧫',
       title: 'Biocide Addition Calculator',
-      input: 'Tank volume and target dose.', output: 'Biocide addition amount.',
-      when: 'Coming soon.' }
+      input: 'Liquid weight in the tank (lb or kg).',
+      output: 'Grams and mL of 6451 at Maximum (0.15 %), Medium and Low doses.',
+      when: 'Making up or topping up a slurry tank and dosing biocide.' }
   ];
 
   var BRAND_TEXT = 'CTG', BRAND_SUBTITLE = 'Colloidal Technologies Group';

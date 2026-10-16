@@ -420,6 +420,43 @@
     };
   }
 
+  /* ---------------- biocide addition (6451) ----------------
+     grams = dose% / 100 × liquid grams;  mL = grams ÷ product density.
+     Liquid grams = lb × 454 g/lb (spec factor), or kg × 1000. */
+  var BIOCIDE_DEFAULTS = { dosePct: 0.15, gPerLb: 454, densityGmL: 1.145 };
+  /* 0.15 % is the MAXIMUM dose (spec). Medium/Low are adjustable defaults. */
+  var BIOCIDE_TIERS = [{ id: 'max', label: 'Maximum', pct: 0.15 }, { id: 'med', label: 'Medium', pct: 0.10 }, { id: 'low', label: 'Low', pct: 0.05 }];
+  function biocideDose(inp) {
+    inp = inp || {};
+    var errors = {};
+    var unit = inp.unit === 'kg' ? 'kg' : 'lb';
+    var pick = function (k) { var v = inp[k]; return (v === '' || v == null) ? BIOCIDE_DEFAULTS[k] : Number(v); };
+    var amt = (inp.liquid === '' || inp.liquid == null) ? NaN : Number(inp.liquid);
+    var dose = pick('dosePct'), gpl = pick('gPerLb'), dens = pick('densityGmL');
+    if (!(amt > 0)) errors.liquid = 'Enter a liquid weight greater than 0';
+    if (!(dose > 0) || dose > 100) errors.dosePct = 'Dose must be > 0 and ≤ 100 %';
+    if (!(gpl > 0)) errors.gPerLb = 'Must be greater than 0';
+    if (!(dens > 0)) errors.densityGmL = 'Density must be greater than 0';
+    if (Object.keys(errors).length) return { ok: false, errors: errors, grams: null, mL: null };
+    var liquidG = unit === 'kg' ? amt * 1000 : amt * gpl;
+    var grams = dose / 100 * liquidG;
+    return { ok: true, errors: {}, unit: unit, liquidG: liquidG, grams: grams, mL: grams / dens, dosePct: dose, gPerLb: gpl, densityGmL: dens };
+  }
+
+  /* inp: {liquid, unit, gPerLb, densityGmL, maxPct, medPct, lowPct} -> tiers [{id,label,pct,grams,mL,errors}] */
+  function biocideTiers(inp) {
+    inp = inp || {};
+    var tiers = BIOCIDE_TIERS.map(function (t) {
+      var v = inp[t.id + 'Pct'], pct = (v === '' || v == null) ? t.pct : v;
+      var r = biocideDose({ liquid: inp.liquid, unit: inp.unit, gPerLb: inp.gPerLb, densityGmL: inp.densityGmL, dosePct: pct });
+      return { id: t.id, label: t.label, pct: Number(pct), grams: r.grams, mL: r.mL, ok: r.ok, errors: r.errors };
+    });
+    var warnings = [];
+    var mx = tiers[0].pct;
+    tiers.slice(1).forEach(function (t) { if (t.pct > mx) warnings.push(t.label + ' dose (' + t.pct + ' %) is above the maximum (' + mx + ' %).'); });
+    return { tiers: tiers, warnings: warnings };
+  }
+
   /* ---------------- tank RPM ---------------- */
   var IN_TO_M = 0.0254;
   function tankRpm(diameterIn, vpMPerMin) {
@@ -439,6 +476,7 @@
     timeToMinutes: timeToMinutes, inShift: inShift,
     VALUE_LIMITS: VALUE_LIMITS, validateValueInputs: validateValueInputs, computeValue: computeValue,
     TABLE_7667: TABLE_7667, dose7667: dose7667, slurryRecipe: slurryRecipe, LB_PER_GAL_WATER: LB_PER_GAL_WATER,
+    BIOCIDE_DEFAULTS: BIOCIDE_DEFAULTS, biocideDose: biocideDose, BIOCIDE_TIERS: BIOCIDE_TIERS, biocideTiers: biocideTiers,
     IN_TO_M: IN_TO_M, tankRpm: tankRpm
   };
 });
