@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biocide Addition Calculator — CTG Tools</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="ctg.css">
+<script src="calc.js" defer></script>
+<script src="navbar.js" defer></script>
+<style>
+.tier h3{margin:0 0 4px}
+.tier .pct{font-family:var(--mono);font-weight:700}
+.tier.max{border-top:4px solid var(--accent)} .tier.med{border-top:4px solid var(--brand)} .tier.low{border-top:4px solid var(--teal)}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div id="navbar-container"></div>
+
+<header class="page-header">
+  <div class="inner">
+    <h1>Biocide Addition Calculator</h1>
+    <p>Grams and millilitres of 6451 biocide for a slurry tank, from the liquid weight. Maximum dose is 0.15 % of liquid weight.</p>
+  </div>
+</header>
+
+<main id="main">
+  <div class="toolbar no-print">
+    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn secondary" type="button" id="resetBtn">Reset to defaults</button>
+  </div>
+
+  <section class="card" aria-labelledby="in-h">
+    <h2 id="in-h">Liquid in the tank</h2>
+    <div class="grid">
+      <div class="field"><label for="liquid">Liquid weight</label><input id="liquid" type="number" inputmode="decimal" min="0" step="any" placeholder="e.g. 1000" aria-describedby="liquid-err"><span class="err" id="liquid-err"></span></div>
+      <div class="field"><label for="unit">Unit</label><select id="unit"><option value="lb">lb</option><option value="kg">kg</option></select>
+        <span class="hint">lb × 454 g/lb; kg × 1000 g (direct, not via the lb factor).</span></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="dose-h">
+    <h2 id="dose-h">Dose levels (% of liquid weight)</h2>
+    <p class="desc">Maximum 0.15 % is the specified maximum. <strong>Medium and Low are adjustable defaults</strong> (0.10 % and 0.05 %); confirm them for your site.</p>
+    <div class="grid">
+      <div class="field"><label for="maxPct">Maximum dose (%)</label><input id="maxPct" type="number" inputmode="decimal" min="0" max="100" step="any" aria-describedby="maxPct-err"><span class="hint">Default 0.15 % (specified maximum)</span><span class="err" id="maxPct-err"></span></div>
+      <div class="field"><label for="medPct">Medium dose (%)</label><input id="medPct" type="number" inputmode="decimal" min="0" max="100" step="any" aria-describedby="medPct-err"><span class="hint">Adjustable default 0.10 %</span><span class="err" id="medPct-err"></span></div>
+      <div class="field"><label for="lowPct">Low dose (%)</label><input id="lowPct" type="number" inputmode="decimal" min="0" max="100" step="any" aria-describedby="lowPct-err"><span class="hint">Adjustable default 0.05 %</span><span class="err" id="lowPct-err"></span></div>
+    </div>
+    <details><summary>Conversion factors</summary>
+      <div class="grid" style="margin-top:10px">
+        <div class="field"><label for="gPerLb">Grams per pound (g/lb)</label><input id="gPerLb" type="number" inputmode="decimal" min="0" step="any" aria-describedby="gPerLb-err"><span class="hint">Default 454 (spec value)</span><span class="err" id="gPerLb-err"></span></div>
+        <div class="field"><label for="densityGmL">6451 density (g/mL)</label><input id="densityGmL" type="number" inputmode="decimal" min="0" step="any" aria-describedby="densityGmL-err"><span class="hint">Default 1.145 g/mL</span><span class="err" id="densityGmL-err"></span></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="out-h" aria-live="polite">
+    <h2 id="out-h">6451 addition</h2>
+    <div class="grid" id="tiers"></div>
+    <div id="warnings"></div>
+    <div class="formula" id="formula"></div>
+  </section>
+</main>
+
+<footer class="ctg-footer">
+  CTG Tools
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  'use strict';
+  var C = window.CTGCalc, $ = function (id) { return document.getElementById(id); }, KEY = 'ctg-biocide-v1';
+  var DEF = { liquid: '', unit: 'lb', maxPct: '0.15', medPct: '0.10', lowPct: '0.05', gPerLb: String(C.BIOCIDE_DEFAULTS.gPerLb), densityGmL: String(C.BIOCIDE_DEFAULTS.densityGmL) };
+  var IDS = Object.keys(DEF), st = {};
+  try { st = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { st = {}; }
+  IDS.forEach(function (k) { $(k).value = st[k] != null ? st[k] : DEF[k]; });
+  function fmt(x, d) { return x === null || !isFinite(x) ? '—' : x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+  function calc() {
+    var v = {}; IDS.forEach(function (k) { v[k] = $(k).value; });
+    try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {}
+    var r = C.biocideTiers({ liquid: v.liquid, unit: v.unit, gPerLb: v.gPerLb, densityGmL: v.densityGmL, maxPct: v.maxPct, medPct: v.medPct, lowPct: v.lowPct });
+    var errs = {};
+    r.tiers.forEach(function (t) { for (var k in t.errors) errs[k === 'dosePct' ? t.id + 'Pct' : k] = t.errors[k]; });
+    if (v.liquid === '') delete errs.liquid; // don't nag before first entry
+    ['liquid', 'maxPct', 'medPct', 'lowPct', 'gPerLb', 'densityGmL'].forEach(function (k) {
+      $(k + '-err').textContent = errs[k] || ''; $(k).setAttribute('aria-invalid', errs[k] ? 'true' : 'false');
+    });
+    $('tiers').innerHTML = r.tiers.map(function (t) {
+      return '<div class="card tier ' + t.id + '"><h3>' + t.label + ' <span class="pct">' + (isFinite(t.pct) ? t.pct : '—') + ' %</span></h3>' +
+        '<div class="metrics"><div class="metric' + (t.id === 'max' ? ' highlight' : '') + '"><div class="lbl">6451</div><div class="v">' + fmt(t.grams, 1) + '</div><div class="u">g</div></div>' +
+        '<div class="metric' + (t.id === 'max' ? ' highlight' : '') + '"><div class="lbl">6451</div><div class="v">' + fmt(t.mL, 2) + '</div><div class="u">mL</div></div></div></div>';
+    }).join('');
+    $('warnings').innerHTML = r.warnings.map(function (w) { return '<div class="notice warn">' + C.escapeHtml(w) + '</div>'; }).join('');
+    var amt = v.liquid || 'W', liq = v.unit === 'kg' ? amt + ' kg × 1000 g/kg' : amt + ' lb × ' + v.gPerLb + ' g/lb';
+    $('formula').innerHTML = 'g = (dose % ÷ 100) × ' + C.escapeHtml(liq) + '<br>mL = g ÷ ' + C.escapeHtml(v.densityGmL) + ' g/mL' +
+      '<br>e.g. Maximum: mL = (' + C.escapeHtml(String(v.maxPct / 100)) + ' × ' + C.escapeHtml(liq) + ') ÷ ' + C.escapeHtml(v.densityGmL) + ' g/mL = ' + fmt(r.tiers[0].mL, 2) + ' mL';
+  }
+  document.querySelector('main').addEventListener('input', calc);
+  document.querySelector('main').addEventListener('change', calc);
+  $('resetBtn').addEventListener('click', function () { IDS.forEach(function (k) { $(k).value = DEF[k]; }); calc(); });
+  calc();
+});
+</script>
+</body>
+</html>

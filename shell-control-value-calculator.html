@@ -3,768 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Value Calculator — CTG Tools</title>
-
-<!-- CTG shared navbar — single source of truth -->
+<title>Shell Control Value Worksheet — CTG Tools</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="ctg.css">
+<script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
-
 <style>
-:root{
-  --blue:#003a70; --blue-dark:#002347; --teal:#00a7b5;
-  --accent:#e87722; --green:#2e7d32; --bg:#f4f6f9;
-  --card:#fff; --border:#dbe1ea; --text:#1f2a3a; --muted:#5b6b80;
-  --low:#00a7b5; --high:#2e7d32; --mid:#003a70;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text)}
-
-/* ============ CTG CONSISTENT PAGE HEADER ============ */
-header.ctg-page-header{
-  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-  color:#fff;
-  padding: 40px 40px;
-  border-bottom: 4px solid var(--teal);
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-}
-header.ctg-page-header .ctg-page-inner{
-  max-width: 1400px;
-  margin: 0 auto;
-}
-header.ctg-page-header h1{
-  margin:0;
-  font-size:32px;
-  font-weight:700;
-  color:#fff;
-  letter-spacing:.3px;
-  line-height:1.2;
-}
-header.ctg-page-header p{
-  margin: 10px 0 0;
-  opacity:.92;
-  font-size:15px;
-  max-width: 900px;
-  color:#cfe4ff;
-  line-height:1.5;
-}
-/* ============ END CTG HEADER ============ */
-
-main{max-width:1200px;margin:24px auto;padding:0 20px 40px}
-.card,.global{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.card h3,.global h3{margin:0 0 8px;color:var(--blue);font-size:19px;font-weight:700}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.range-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field{margin-bottom:12px}
-.field label{font-size:13px;font-weight:600;display:block;margin-bottom:5px;color:var(--text)}
-.field input,.field select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-family:inherit;font-size:14px;background:#fff}
-.field input:focus,.field select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,167,181,.15)}
-.desc{font-size:13px;color:var(--muted);margin-bottom:12px}
-.hint{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic}
-button{padding:10px 18px;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px}
-.btn{background:var(--accent);color:#fff}
-.btn:hover{background:#c65e14}
-.btn2{background:#666;color:#fff}
-.btn2:hover{background:#4d4d4d}
-.toolbar{margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap}
-.mode-toggle{display:flex;background:#eef1f5;padding:4px;border-radius:8px;max-width:520px;margin-bottom:14px}
-.mode-toggle button{flex:1;background:transparent;color:var(--muted);padding:10px 14px;border-radius:6px;font-size:13px;margin:0}
-.mode-toggle button.active{background:var(--blue);color:#fff;box-shadow:0 2px 6px rgba(0,58,112,.25)}
-.check-toggle{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#eef4fb;border-radius:6px;margin-bottom:12px;border:1px solid #cfe0ef}
-.check-toggle input{width:auto;margin:0}
-.check-toggle label{margin:0;font-weight:600;font-size:13px;color:var(--blue);cursor:pointer}
-.result-range{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.result-range .r-box{text-align:center;padding:10px;border-radius:6px;background:#f7f9fc}
-.result-range .r-low{border-left:3px solid var(--low)}
-.result-range .r-high{border-left:3px solid var(--high)}
-.result-range .r-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin-bottom:4px}
-.result-range .r-val{font-size:18px;font-weight:800;color:var(--blue);font-family:'Courier New',monospace}
-.result-range .r-low .r-val{color:var(--low)}
-.result-range .r-high .r-val{color:var(--high)}
-.result-single{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;align-items:baseline}
-.result-single .r-lbl{font-size:13px;color:var(--muted);font-weight:600}
-.result-single .r-val{font-size:20px;font-weight:800;color:var(--green);font-family:'Courier New',monospace}
-.mode-panel{display:none}
-.mode-panel.active{display:block}
-.hidden{display:none !important}
-table{width:100%;border-collapse:collapse;margin-top:8px}
-td,th{padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;text-align:left}
-th{background:#f7f9fc;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.value{text-align:right;font-weight:700;font-family:'Courier New',monospace;color:var(--blue);font-size:14px}
-.value.low{color:var(--low)}
-.value.high{color:var(--high)}
-.value.mid{color:var(--mid)}
-tr.total-row td{font-weight:800;color:var(--blue);background:#eef4fb;font-size:15px}
-.total-banner{margin-top:24px;background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:26px 32px;border-radius:8px;box-shadow:0 6px 16px rgba(0,58,112,.25)}
-.total-banner .t-title{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:.9;margin-bottom:10px}
-.total-banner .t-range{font-size:36px;font-weight:800;color:#ffc000;line-height:1.15}
-.total-banner .t-mid{font-size:14px;opacity:.9;margin-top:8px}
-.total-banner .t-mid strong{color:#ffc000;font-weight:700}
-.total-banner .t-capture{border-top:1px solid rgba(255,255,255,.2);margin-top:16px;padding-top:14px;font-size:13px;opacity:.9;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.total-banner .t-capture strong{color:#ffc000}
-footer{text-align:center;padding:22px;font-size:12px;color:var(--muted)}
-/* ===== MODE-AWARE VISIBILITY ===== */
-body.mode-A .col-single{display:none !important}
-body.mode-A .single-only{display:none !important}
-body.mode-B .col-low,
-body.mode-B .col-mid,
-body.mode-B .col-high{display:none !important}
-body.mode-B .range-only{display:none !important}
-body.mode-B #revenue_card,
-body.mode-B #revenue_inputs,
-body.mode-B #sum_rev_row,
-body.mode-B #p_rev_row,
-body.mode-B .check-toggle{display:none !important}
-.print-only{display:none}
-@media print {
-  @page { size: letter; margin: 0.5in; }
-  body { background:#fff; }
-  .toolbar, header.ctg-page-header, footer, main > .global, main > .card, main > .grid, main > .total-banner { display: none !important; }
-  .print-only { display: block !important; }
-  main { max-width: 100%; margin: 0; padding: 0; }
-}
-.print-page{background:#fff;padding:30px 40px;color:#1f2a3a;font-family:'Segoe UI',Arial}
-.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--blue);padding-bottom:16px;margin-bottom:24px}
-.print-logo{display:flex;align-items:center;gap:14px}
-.print-logo .logo-mark{width:60px;height:60px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px}
-.print-logo .brand-name{font-size:22px;font-weight:800;color:var(--blue);letter-spacing:.5px}
-.print-logo .brand-sub{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
-.print-title-block{text-align:right}
-.print-title-block h1{margin:0;font-size:22px;color:var(--blue)}
-.print-title-block .date{font-size:11px;color:var(--muted);margin-top:4px}
-.print-section{margin-bottom:20px;page-break-inside:avoid}
-.print-section h2{font-size:13px;color:#fff;background:var(--blue);padding:8px 14px;margin:0;letter-spacing:.5px;text-transform:uppercase;border-radius:4px 4px 0 0}
-.print-section table{width:100%;border-collapse:collapse;margin-top:0;border:1px solid var(--border)}
-.print-section td,.print-section th{padding:6px 12px;font-size:12px;border-bottom:1px solid #eef1f5}
-.print-section th{background:#f7f9fc;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:right}
-.print-section th:first-child{text-align:left}
-.print-section td:not(:first-child){text-align:right;font-weight:700;font-family:'Courier New',monospace;color:var(--blue)}
-.print-section tr:nth-child(even) td{background:#f7f9fc}
-.print-section tr:last-child td{border-bottom:none}
-.print-section tr.p-total td{background:#eef4fb;color:var(--blue);font-weight:800;font-size:13px;border-top:2px solid var(--blue)}
-.print-total-banner{background:var(--blue);color:#fff;padding:16px 20px;border-radius:6px;margin-top:16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.print-total-banner .pb-title{font-size:11px;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-bottom:6px}
-.print-total-banner .pb-range{font-size:22px;font-weight:800;color:#ffc000}
-.print-total-banner .pb-mid{font-size:12px;margin-top:6px;opacity:.9}
-.print-footer{border-top:1px solid var(--border);padding-top:10px;margin-top:20px;text-align:center;font-size:10px;color:var(--muted)}
-.print-footer .tagline{font-weight:700;color:var(--blue);margin-bottom:4px}
-@media (max-width:768px){
-  header.ctg-page-header{padding:24px 20px}
-  header.ctg-page-header h1{font-size:24px}
-  .total-banner .t-range{font-size:26px}
-  .range-row{grid-template-columns:1fr}
-}
+.step{scroll-margin-top:80px}
+.step .result{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);flex-wrap:wrap}
+.step .result .amt{font-family:var(--mono);font-weight:800;font-size:20px;color:var(--ok)}
+.total-bar{position:sticky;bottom:0;z-index:50;background:var(--surface);border-top:2px solid var(--brand);box-shadow:0 -4px 12px rgba(0,0,0,.08);padding:10px 16px}
+.total-bar .inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.total-bar .amt{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--brand)}
+.progress{font-size:13px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0}
+@media print{ .total-bar{position:static;box-shadow:none} .step .hint{display:none} details{display:block} }
 </style>
 </head>
-<body class="mode-A">
-
-<!-- CTG shared navbar renders here (managed by navbar.js) -->
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
 <div id="navbar-container"></div>
 
-<header class="ctg-page-header">
-  <div class="ctg-page-inner">
-    <h1>Shell Control Value Calculator</h1>
-    <p>3D TRASAR Technology for Shell Control</p>
+<header class="page-header">
+  <div class="inner">
+    <h1>Shell Control Value Worksheet</h1>
+    <p>Fill this out step by step with the customer. Every number is traceable to an input they gave you, and the printout lists each formula and assumption.</p>
   </div>
 </header>
 
-<main>
-<div class="toolbar">
-  <button class="btn" onclick="window.print()">Print / Save PDF</button>
-  <button class="btn2" onclick="resetAll()">Reset</button>
-</div>
+<main id="main">
+  <div class="toolbar no-print">
+    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
+    <button class="btn secondary" type="button" id="clearBtn">Clear worksheet</button>
+    <span class="progress" id="saveState" aria-live="polite">Saved in this browser.</span>
+  </div>
+  <div class="notice no-print">Leave a step blank if it does not apply; it counts as $0. Use conservative, customer-confirmed numbers. Values are saved locally in this browser only.</div>
+  <form id="ws" novalidate onsubmit="return false"></form>
 
-<!-- ============ SCRAP INPUT MODE TOGGLE ============ -->
-<div class="global">
-  <h3>Scrap Input Method</h3>
-  <div class="desc">Choose how you'd like to model scrap value. Toggle between Cost-per-Part or Annual Scrap Dollars.</div>
-  <div class="mode-toggle">
-    <button id="mode_btn_A" class="active" onclick="setMode('A')">Mode A — Cost / Selling Price per Part</button>
-    <button id="mode_btn_B" onclick="setMode('B')">Mode B — Annual Scrap $ + Scrap %</button>
-  </div>
-  <div id="mode_A" class="mode-panel active">
-    <div class="range-row">
-      <div class="field"><label>Annual Parts</label><input id="parts" type="number" step="any"></div>
-      <div class="field"><label>Scrap %</label><input id="scrap" type="number" step="any"></div>
-    </div>
-    <div class="range-row">
-      <div class="field"><label>Cost per Part — Low ($)</label><input id="cost_low" type="number" step="any"></div>
-      <div class="field"><label>Cost per Part — High ($)</label><input id="cost_high" type="number" step="any"></div>
-    </div>
-    <div class="hint">Low = conservative, High = optimistic. Entering only one value will treat it as a single point.</div>
-  </div>
-  <div id="mode_B" class="mode-panel">
-    <div class="range-row">
-      <div class="field"><label>Annual Shell-Related Scrap ($)</label><input id="scrap_dollars" type="number" step="any"></div>
-      <div class="field"><label>Shell-Related Scrap Rate (%)</label><input id="scrap_rate" type="number" step="any"></div>
-    </div>
-    <div class="hint">If precise part-level cost is unknown, enter total shell-related scrap dollars for the year.</div>
-  </div>
-  <div class="field" style="max-width:260px;margin-top:12px">
-    <label>Expected Scrap Reduction (%)</label>
-    <input id="reduction" type="number" step="any">
-  </div>
-</div>
-
-<!-- ============ REVENUE TOGGLE ============ -->
-<div class="global range-only">
-  <h3>Revenue Uplift Inputs</h3>
-  <div class="check-toggle">
-    <input type="checkbox" id="enable_revenue" onchange="toggleRevenue()">
-    <label for="enable_revenue">Include Revenue Uplift (contribution margin on recovered good parts)</label>
-  </div>
-  <div id="revenue_inputs" class="hidden">
-    <div class="range-row">
-      <div class="field"><label>Selling Price — Low ($)</label><input id="price_low" type="number" step="any"></div>
-      <div class="field"><label>Selling Price — High ($)</label><input id="price_high" type="number" step="any"></div>
-    </div>
-    <div class="field" style="max-width:260px"><label>Variable Cost %</label><input id="vc" type="number" step="any"></div>
-    <div class="hint">Revenue Uplift = recovered parts × selling price × (1 − VC%). Requires Mode A (part-level parts count).</div>
-  </div>
-</div>
-
-<!-- ============ SHARED PLANT INPUTS ============ -->
-<div class="global">
-  <h3>Plant Inputs (shared)</h3>
-  <div class="grid">
-    <div class="field"><label># Slurry Tanks</label><input id="tanks" type="number" step="any"></div>
-    <div class="field"><label>Labor Rate ($/hr)</label><input id="labor_rate" type="number" step="any"></div>
-  </div>
-</div>
-
-<!-- ============ VALUE DRIVER CARDS ============ -->
-<div class="grid">
-  <div class="card">
-    <h3>Scrap Reduction</h3>
-    <div class="desc">Recovered value from reducing shell-related defects and scrap.</div>
-    <div class="field"><label>Recovered Parts (Mode A only)</label><input id="recovered" readonly></div>
-    <div class="result-range range-only">
-      <div class="r-box r-low"><div class="r-lbl">Low</div><div class="r-val" id="scrap_low_out">$0</div></div>
-      <div class="r-box r-high"><div class="r-lbl">High</div><div class="r-val" id="scrap_high_out">$0</div></div>
-    </div>
-    <div class="result-single single-only">
-      <span class="r-lbl">Annual Value</span>
-      <span class="r-val" id="scrap_single_out">$0</span>
-    </div>
-  </div>
-
-  <div class="card range-only" id="revenue_card">
-    <h3>Revenue Uplift</h3>
-    <div class="desc">Additional contribution margin from converting scrap into sellable parts.</div>
-    <div class="field"><label>Revenue Gross Range ($)</label><input id="rev_gross" readonly></div>
-    <div class="field"><label>Contribution Margin</label><input id="cm" readonly></div>
-    <div class="result-range">
-      <div class="r-box r-low"><div class="r-lbl">Low</div><div class="r-val" id="rev_low_out">$0</div></div>
-      <div class="r-box r-high"><div class="r-lbl">High</div><div class="r-val" id="rev_high_out">$0</div></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Rework Labor Reduction</h3>
-    <div class="desc">Annual labor savings from reducing rework hours through stable shell viscosity control.</div>
-    <div class="field"><label>Rework Hours per Month</label><input id="rw_hours" type="number" step="any"></div>
-    <div class="field"><label>Rework Labor Rate ($/hr)</label><input id="rw_rate" type="number" step="any"></div>
-    <div class="field"><label>Rework Reduction (%)</label><input id="rw_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Annual Value</span><span class="r-val" id="out_rework">$0</span></div>
-    <div class="hint">Formula: monthly hours × 12 × labor rate × reduction%</div>
-  </div>
-
-  <div class="card">
-    <h3>Labor Reduction</h3>
-    <div class="desc">Savings from eliminating manual viscosity readings and data logging.</div>
-    <div class="field"><label>Readings/day</label><input id="reads" type="number" step="any"></div>
-    <div class="field"><label>Minutes/reading</label><input id="mins" type="number" step="any"></div>
-    <div class="field"><label>Days/year</label><input id="days" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_labor">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Slurry Life Extension</h3>
-    <div class="desc">Reduced material waste and disposal costs from stable slurry tank control.</div>
-    <div class="field"><label>Cost/tank ($)</label><input id="sl_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="sl_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_slurry">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Downtime Reduction</h3>
-    <div class="desc">Avoided production losses from fewer interruptions and process issues.</div>
-    <div class="field"><label>Hours/year</label><input id="dt_hours" type="number" step="any"></div>
-    <div class="field"><label>Cost/hr</label><input id="dt_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="dt_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_dt">$0</span></div>
-  </div>
-
-  <div class="card">
-    <h3>Safety</h3>
-    <div class="desc">Reduced risk exposure from eliminating manual tank access and sampling.</div>
-    <div class="field"><label># Operators</label><input id="ops" type="number" step="any"></div>
-    <div class="field"><label>Cost/incident</label><input id="sf_cost" type="number" step="any"></div>
-    <div class="field"><label>Reduction %</label><input id="sf_red" type="number" step="any"></div>
-    <div class="result-single"><span class="r-lbl">Value</span><span class="r-val" id="out_sf">$0</span></div>
-  </div>
-</div>
-
-<!-- ============ SUMMARY TABLE ============ -->
-<div class="card">
-  <h3>Value Bridge Summary</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Value Driver</th>
-        <th class="col-low"    style="text-align:right">Low</th>
-        <th class="col-mid"    style="text-align:right">Mid</th>
-        <th class="col-high"   style="text-align:right">High</th>
-        <th class="col-single" style="text-align:right">Value</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Scrap Reduction</td>
-        <td class="value low col-low"    id="sum_scrap_low">$0</td>
-        <td class="value mid col-mid"    id="sum_scrap_mid">$0</td>
-        <td class="value high col-high"  id="sum_scrap_high">$0</td>
-        <td class="value col-single"     id="sum_scrap_single">$0</td>
-      </tr>
-      <tr id="sum_rev_row">
-        <td>Revenue Uplift</td>
-        <td class="value low col-low"    id="sum_rev_low">$0</td>
-        <td class="value mid col-mid"    id="sum_rev_mid">$0</td>
-        <td class="value high col-high"  id="sum_rev_high">$0</td>
-        <td class="value col-single"     id="sum_rev_single">$0</td>
-      </tr>
-      <tr>
-        <td>Rework Labor Reduction</td>
-        <td class="value col-low"   id="sum_rework_low">$0</td>
-        <td class="value col-mid"   id="sum_rework_mid">$0</td>
-        <td class="value col-high"  id="sum_rework_high">$0</td>
-        <td class="value col-single" id="sum_rework_single">$0</td>
-      </tr>
-      <tr>
-        <td>Labor Reduction</td>
-        <td class="value col-low"   id="sum_labor_low">$0</td>
-        <td class="value col-mid"   id="sum_labor_mid">$0</td>
-        <td class="value col-high"  id="sum_labor_high">$0</td>
-        <td class="value col-single" id="sum_labor_single">$0</td>
-      </tr>
-      <tr>
-        <td>Slurry Life Extension</td>
-        <td class="value col-low"   id="sum_slurry_low">$0</td>
-        <td class="value col-mid"   id="sum_slurry_mid">$0</td>
-        <td class="value col-high"  id="sum_slurry_high">$0</td>
-        <td class="value col-single" id="sum_slurry_single">$0</td>
-      </tr>
-      <tr>
-        <td>Downtime Reduction</td>
-        <td class="value col-low"   id="sum_dt_low">$0</td>
-        <td class="value col-mid"   id="sum_dt_mid">$0</td>
-        <td class="value col-high"  id="sum_dt_high">$0</td>
-        <td class="value col-single" id="sum_dt_single">$0</td>
-      </tr>
-      <tr>
-        <td>Safety</td>
-        <td class="value col-low"   id="sum_sf_low">$0</td>
-        <td class="value col-mid"   id="sum_sf_mid">$0</td>
-        <td class="value col-high"  id="sum_sf_high">$0</td>
-        <td class="value col-single" id="sum_sf_single">$0</td>
-      </tr>
-      <tr class="total-row">
-        <td>TOTAL</td>
-        <td class="value col-low"   id="sum_total_low">$0</td>
-        <td class="value col-mid"   id="sum_total_mid">$0</td>
-        <td class="value col-high"  id="sum_total_high">$0</td>
-        <td class="value col-single" id="sum_total_single">$0</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- ============ TOTAL BANNER ============ -->
-<div class="total-banner">
-  <div class="t-title">Total Annual Value Delivered</div>
-  <div class="t-range range-only" id="banner_range">$0 — $0</div>
-  <div class="t-range single-only" id="banner_single">$0</div>
-  <div class="t-mid range-only">Midpoint (expected value): <strong id="banner_mid">$0</strong></div>
-</div>
+  <section class="card" id="summary" aria-labelledby="sum-h">
+    <h2 id="sum-h">Summary: annual value</h2>
+    <div class="table-wrap" style="max-height:none"><table class="data" id="sumTable"></table></div>
+    <div id="warnings" aria-live="polite"></div>
+    <h3 style="margin-top:16px">Assumptions</h3>
+    <ul class="desc" id="assumptions"></ul>
+  </section>
 </main>
 
-<!-- ============ PRINT EXPORT ============ -->
-<div class="print-only">
-  <div class="print-page">
-    <div class="print-header">
-      <div class="print-logo">
-        <div class="logo-mark">N</div>
-        <div>
-          <div class="brand-name">NALCO WATER</div>
-          <div class="brand-sub">An Ecolab Company</div>
-        </div>
-      </div>
-      <div class="print-title-block">
-        <h1>Shell Control Value Report</h1>
-        <div class="date" id="print_date"></div>
-      </div>
-    </div>
-    <div class="print-section">
-      <h2>Input Summary</h2>
-      <table>
-        <tr><td>Input Mode</td><td colspan="4" id="p_mode">—</td></tr>
-        <tr><td>Annual Parts</td><td colspan="4" id="p_parts">—</td></tr>
-        <tr><td>Cost per Part Range</td><td colspan="4" id="p_cost_range">—</td></tr>
-        <tr><td>Annual Scrap $ / Rate</td><td colspan="4" id="p_scrap_dollars">—</td></tr>
-        <tr><td>Selling Price Range</td><td colspan="4" id="p_price_range">—</td></tr>
-        <tr><td>Variable Cost %</td><td colspan="4" id="p_vc">—</td></tr>
-        <tr><td>Rework Hours/Month · Rate · Reduction%</td><td colspan="4" id="p_rework_inputs">—</td></tr>
-        <tr><td># Slurry Tanks</td><td colspan="4" id="p_tanks">—</td></tr>
-        <tr><td>Labor Rate ($/hr)</td><td colspan="4" id="p_rate">—</td></tr>
-      </table>
-    </div>
-    <div class="print-section">
-      <h2>Value Bridge — Full Breakdown</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Value Driver</th>
-            <th class="col-low">Low</th>
-            <th class="col-mid">Mid</th>
-            <th class="col-high">High</th>
-            <th class="col-single">Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Scrap Reduction</td>
-            <td class="col-low"    id="p_scrap_low">—</td>
-            <td class="col-mid"    id="p_scrap_mid">—</td>
-            <td class="col-high"   id="p_scrap_high">—</td>
-            <td class="col-single" id="p_scrap_single">—</td>
-          </tr>
-          <tr id="p_rev_row">
-            <td>Revenue Uplift</td>
-            <td class="col-low"    id="p_rev_low">—</td>
-            <td class="col-mid"    id="p_rev_mid">—</td>
-            <td class="col-high"   id="p_rev_high">—</td>
-            <td class="col-single" id="p_rev_single">—</td>
-          </tr>
-          <tr>
-            <td>Rework Labor Reduction</td>
-            <td class="col-low"    id="p_rework_low">—</td>
-            <td class="col-mid"    id="p_rework_mid">—</td>
-            <td class="col-high"   id="p_rework_high">—</td>
-            <td class="col-single" id="p_rework_single">—</td>
-          </tr>
-          <tr>
-            <td>Labor Reduction</td>
-            <td class="col-low"    id="p_labor_low">—</td>
-            <td class="col-mid"    id="p_labor_mid">—</td>
-            <td class="col-high"   id="p_labor_high">—</td>
-            <td class="col-single" id="p_labor_single">—</td>
-          </tr>
-          <tr>
-            <td>Slurry Life Extension</td>
-            <td class="col-low"    id="p_slurry_low">—</td>
-            <td class="col-mid"    id="p_slurry_mid">—</td>
-            <td class="col-high"   id="p_slurry_high">—</td>
-            <td class="col-single" id="p_slurry_single">—</td>
-          </tr>
-          <tr>
-            <td>Downtime Reduction</td>
-            <td class="col-low"    id="p_dt_low">—</td>
-            <td class="col-mid"    id="p_dt_mid">—</td>
-            <td class="col-high"   id="p_dt_high">—</td>
-            <td class="col-single" id="p_dt_single">—</td>
-          </tr>
-          <tr>
-            <td>Safety</td>
-            <td class="col-low"    id="p_sf_low">—</td>
-            <td class="col-mid"    id="p_sf_mid">—</td>
-            <td class="col-high"   id="p_sf_high">—</td>
-            <td class="col-single" id="p_sf_single">—</td>
-          </tr>
-          <tr class="p-total">
-            <td>TOTAL ANNUAL VALUE</td>
-            <td class="col-low"    id="p_total_low">—</td>
-            <td class="col-mid"    id="p_total_mid">—</td>
-            <td class="col-high"   id="p_total_high">—</td>
-            <td class="col-single" id="p_total_single">—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="print-total-banner">
-      <div class="pb-title">Total Annual Value Delivered</div>
-      <div class="pb-range range-only" id="p_banner_range">$0 — $0</div>
-      <div class="pb-range single-only" id="p_banner_single">$0</div>
-    </div>
-    <div class="print-footer">
-      <div class="tagline">3D TRASAR&trade; Technology for Shell Control &nbsp;·&nbsp; Rheonics SlurrySense&trade;</div>
-      <div>3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only</div>
-    </div>
-  </div>
-</div>
+<div class="total-bar no-print" aria-live="polite"><div class="inner">
+  <span class="progress" id="progress"></span>
+  <span>Annual value: <span class="amt" id="totalAmt">$0</span></span>
+</div></div>
 
-<footer>
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D — For internal and customer proposal use only
+<footer class="ctg-footer">
+  CTG Tools
 </footer>
 
 <script>
-'use strict';
-
-/* ============================================================
-   Shell Control Value Calculator — full logic
-   ============================================================ */
-
-var mode = 'A';   // 'A' = cost-per-part range, 'B' = annual scrap $
-
-/* ---------- tiny helpers ---------- */
-function num(id){
-  var el = document.getElementById(id);
-  if (!el) return 0;
-  var v = parseFloat(el.value);
-  return isNaN(v) ? 0 : v;
-}
-function fmt(x){
-  if (!isFinite(x)) x = 0;
-  return "$" + Math.round(x).toLocaleString();
-}
-function fmtRange(lo, hi){ return fmt(lo) + " — " + fmt(hi); }
-function setText(id, txt){
-  var el = document.getElementById(id);
-  if (el) el.textContent = txt;
-}
-function setVal(id, val){
-  var el = document.getElementById(id);
-  if (el) el.value = val;
-}
-
-/* Resolve a low/high pair: if only one is entered, mirror it.
-   If they were entered in the wrong order, swap. */
-function resolveRange(lowId, highId){
-  var lo = num(lowId), hi = num(highId);
-  if (lo === 0 && hi > 0) lo = hi;
-  if (hi === 0 && lo > 0) hi = lo;
-  if (lo > hi) { var t = lo; lo = hi; hi = t; }
-  return { lo: lo, hi: hi };
-}
-
-/* ---------- mode switching ---------- */
-function setMode(m){
-  mode = m;
-  document.body.classList.remove('mode-A', 'mode-B');
-  document.body.classList.add('mode-' + m);
-
-  var btnA   = document.getElementById('mode_btn_A');
-  var btnB   = document.getElementById('mode_btn_B');
-  var panelA = document.getElementById('mode_A');
-  var panelB = document.getElementById('mode_B');
-
-  if (m === 'A'){
-    btnA.classList.add('active');    btnB.classList.remove('active');
-    panelA.classList.add('active');  panelB.classList.remove('active');
-  } else {
-    btnB.classList.add('active');    btnA.classList.remove('active');
-    panelB.classList.add('active');  panelA.classList.remove('active');
-    // Revenue Uplift requires Mode A — force-uncheck when leaving A
-    var chk = document.getElementById('enable_revenue');
-    if (chk && chk.checked){
-      chk.checked = false;
-      document.getElementById('revenue_inputs').classList.add('hidden');
-    }
-  }
-  calc();
-}
-
-/* ---------- revenue uplift checkbox ---------- */
-function toggleRevenue(){
-  var chk = document.getElementById('enable_revenue');
-  var box = document.getElementById('revenue_inputs');
-  if (chk.checked) box.classList.remove('hidden');
-  else             box.classList.add('hidden');
-  calc();
-}
-
-/* ---------- reset ---------- */
-function resetAll(){
-  var inputs = document.querySelectorAll('input[type="number"]');
-  inputs.forEach(function(i){ i.value = ''; });
-  var chk = document.getElementById('enable_revenue');
-  if (chk) chk.checked = false;
-  document.getElementById('revenue_inputs').classList.add('hidden');
-  setMode('A');
-}
-
-/* ============================================================
-   Main calculation
-   ============================================================ */
-function calc(){
-  /* -------- shared inputs -------- */
-  var reductionPct = num('reduction') / 100;
-  var tanks        = num('tanks');
-  var laborRate    = num('labor_rate');
-  var revChk       = document.getElementById('enable_revenue');
-  var revenueOn    = !!(revChk && revChk.checked) && mode === 'A';
-
-  /* -------- SCRAP REDUCTION -------- */
-  var scrapLow = 0, scrapHigh = 0, scrapSingle = 0;
-  var recoveredParts = 0;
-
-  if (mode === 'A'){
-    var parts    = num('parts');
-    var scrapPct = num('scrap') / 100;
-    var cost     = resolveRange('cost_low', 'cost_high');
-    recoveredParts = parts * scrapPct * reductionPct;
-    scrapLow  = recoveredParts * cost.lo;
-    scrapHigh = recoveredParts * cost.hi;
-  } else {
-    // Mode B: annual scrap dollars × reduction%
-    scrapSingle = num('scrap_dollars') * reductionPct;
-  }
-
-  setVal('recovered',
-    mode === 'A' ? Math.round(recoveredParts).toLocaleString() : '—');
-  setText('scrap_low_out',    fmt(scrapLow));
-  setText('scrap_high_out',   fmt(scrapHigh));
-  setText('scrap_single_out', fmt(scrapSingle));
-
-  /* -------- REVENUE UPLIFT (Mode A only) -------- */
-  var revLow = 0, revHigh = 0;
-  var revGrossLow = 0, revGrossHigh = 0, cmPct = 0;
-
-  if (revenueOn){
-    var price = resolveRange('price_low', 'price_high');
-    var vcPct = num('vc') / 100;
-    cmPct = 1 - vcPct;
-    revGrossLow  = recoveredParts * price.lo;
-    revGrossHigh = recoveredParts * price.hi;
-    revLow  = revGrossLow  * cmPct;
-    revHigh = revGrossHigh * cmPct;
-  }
-  setVal('rev_gross', fmtRange(revGrossLow, revGrossHigh));
-  setVal('cm', (cmPct * 100).toFixed(1) + '%');
-  setText('rev_low_out',  fmt(revLow));
-  setText('rev_high_out', fmt(revHigh));
-
-  /* -------- SINGLE-VALUE DRIVERS -------- */
-  var rework   = num('rw_hours') * 12 * num('rw_rate') * (num('rw_red') / 100);
-  var labor    = tanks * num('reads') * num('mins') * num('days') / 60 * laborRate;
-  var slurry   = tanks * num('sl_cost') * (num('sl_red') / 100);
-  var downtime = num('dt_hours') * num('dt_cost') * (num('dt_red') / 100);
-  var safety   = num('ops') * num('sf_cost') * (num('sf_red') / 100);
-
-  setText('out_rework', fmt(rework));
-  setText('out_labor',  fmt(labor));
-  setText('out_slurry', fmt(slurry));
-  setText('out_dt',     fmt(downtime));
-  setText('out_sf',     fmt(safety));
-
-  /* -------- SUMMARY TABLE -------- */
-  var scrapMid = (scrapLow + scrapHigh) / 2;
-  var revMid   = (revLow   + revHigh)   / 2;
-
-  setText('sum_scrap_low',    fmt(scrapLow));
-  setText('sum_scrap_mid',    fmt(scrapMid));
-  setText('sum_scrap_high',   fmt(scrapHigh));
-  setText('sum_scrap_single', fmt(scrapSingle));
-
-  setText('sum_rev_low',      fmt(revLow));
-  setText('sum_rev_mid',      fmt(revMid));
-  setText('sum_rev_high',     fmt(revHigh));
-  setText('sum_rev_single',   fmt(0));   // revenue is Mode-A only
-
-  // Single-value drivers appear identically in Low/Mid/High and Single columns
-  [
-    { k:'rework', v: rework   },
-    { k:'labor',  v: labor    },
-    { k:'slurry', v: slurry   },
-    { k:'dt',     v: downtime },
-    { k:'sf',     v: safety   }
-  ].forEach(function(d){
-    setText('sum_' + d.k + '_low',    fmt(d.v));
-    setText('sum_' + d.k + '_mid',    fmt(d.v));
-    setText('sum_' + d.k + '_high',   fmt(d.v));
-    setText('sum_' + d.k + '_single', fmt(d.v));
-  });
-
-  /* -------- TOTALS -------- */
-  var driverSum = rework + labor + slurry + downtime + safety;
-  var totalLow    = scrapLow  + revLow  + driverSum;
-  var totalHigh   = scrapHigh + revHigh + driverSum;
-  var totalMid    = (totalLow + totalHigh) / 2;
-  var totalSingle = scrapSingle + driverSum;
-
-  setText('sum_total_low',    fmt(totalLow));
-  setText('sum_total_mid',    fmt(totalMid));
-  setText('sum_total_high',   fmt(totalHigh));
-  setText('sum_total_single', fmt(totalSingle));
-
-  /* -------- TOTAL BANNER -------- */
-  setText('banner_range',  fmtRange(totalLow, totalHigh));
-  setText('banner_single', fmt(totalSingle));
-  setText('banner_mid',    fmt(totalMid));
-
-  /* -------- PRINT / PDF EXPORT -------- */
-  updatePrint({
-    scrapLow: scrapLow, scrapHigh: scrapHigh, scrapMid: scrapMid, scrapSingle: scrapSingle,
-    revLow: revLow, revHigh: revHigh, revMid: revMid,
-    rework: rework, labor: labor, slurry: slurry, downtime: downtime, safety: safety,
-    totalLow: totalLow, totalHigh: totalHigh, totalMid: totalMid, totalSingle: totalSingle
-  });
-}
-
-/* ============================================================
-   Print-only mirror
-   ============================================================ */
-function updatePrint(r){
-  var now = new Date();
-  setText('print_date', now.toLocaleDateString('en-US',
-          { year:'numeric', month:'long', day:'numeric' }));
-
-  setText('p_mode', mode === 'A'
-    ? 'Mode A — Cost / Selling Price per Part'
-    : 'Mode B — Annual Scrap $ + Scrap %');
-  setText('p_parts',
-    num('parts').toLocaleString() + '  (scrap ' + num('scrap') + '%)');
-
-  var cost  = resolveRange('cost_low','cost_high');
-  var price = resolveRange('price_low','price_high');
-
-  setText('p_cost_range',     fmtRange(cost.lo, cost.hi));
-  setText('p_scrap_dollars',  fmt(num('scrap_dollars')) + ' @ ' + num('scrap_rate') + '%');
-  setText('p_price_range',    fmtRange(price.lo, price.hi));
-  setText('p_vc',             num('vc') + '%');
-  setText('p_rework_inputs',
-    num('rw_hours') + ' hrs/mo · $' + num('rw_rate') + '/hr · ' + num('rw_red') + '%');
-  setText('p_tanks',          num('tanks'));
-  setText('p_rate',           '$' + num('labor_rate'));
-
-  var pairs = [
-    ['scrap',  r.scrapLow,  r.scrapMid,  r.scrapHigh,  r.scrapSingle],
-    ['rev',    r.revLow,    r.revMid,    r.revHigh,    0],
-    ['rework', r.rework,    r.rework,    r.rework,     r.rework],
-    ['labor',  r.labor,     r.labor,     r.labor,      r.labor],
-    ['slurry', r.slurry,    r.slurry,    r.slurry,     r.slurry],
-    ['dt',     r.downtime,  r.downtime,  r.downtime,   r.downtime],
-    ['sf',     r.safety,    r.safety,    r.safety,     r.safety],
-    ['total',  r.totalLow,  r.totalMid,  r.totalHigh,  r.totalSingle]
+document.addEventListener('DOMContentLoaded', function () {
+  'use strict';
+  var C = window.CTGCalc, esc = C.escapeHtml, KEY = 'ctg-value-worksheet-v2';
+  /* Step definitions: [id, label, unit, hint] */
+  var STEPS = [
+    { id: 'ctx', title: 'Customer & context', text: true, fields: [
+      ['customer', 'Customer / site', '', 'e.g. ACME Castings – Plant 2'], ['preparedBy', 'Prepared by', '', ''], ['wsDate', 'Date', 'date', ''] ] },
+    { id: 'scrap', title: 'Shell-related scrap', driver: 'scrap', modes: true, fields: [
+      ['parts', 'Annual parts poured', 'parts/yr', 'Total parts per year', 'A'],
+      ['scrapPct', 'Total scrap rate', '%', 'All causes', 'A'],
+      ['costLow', 'Cost per scrapped part, low', '$/part', 'Conservative', 'A'],
+      ['costHigh', 'Cost per scrapped part, high', '$/part', 'Optional; leave blank for a single value', 'A'],
+      ['scrapDollars', 'Annual scrap cost, all causes', '$/yr', 'From the customer’s scrap report', 'B'],
+      ['shellShare', 'Shell-related share of scrap', '%', 'Share of scrap caused by shell defects (cracks, spall, inclusions, etc.)'],
+      ['reductionPct', 'Expected reduction in shell-related scrap', '%', 'Use trial or reference-site data where possible'] ] },
+    { id: 'rev', title: 'Revenue uplift (only if capacity-constrained)', driver: 'revenue', capacity: true, fields: [
+      ['priceLow', 'Selling price per part, low', '$/part', ''], ['priceHigh', 'Selling price per part, high', '$/part', 'Optional'],
+      ['vcPct', 'Variable cost', '% of price', 'Material, energy, etc. per extra part'] ] },
+    { id: 'labor', title: 'Manual viscosity reading labor', driver: 'labor', fields: [
+      ['tanks', 'Slurry tanks monitored', 'tanks', 'Also used in step 6'], ['readsPerDay', 'Manual readings per tank per day', '/day', ''],
+      ['minsPerReading', 'Minutes per reading', 'min', 'Include walking, cleaning, logging'], ['daysPerYear', 'Operating days per year', 'days', ''],
+      ['laborRate', 'Loaded labor rate', '$/hr', ''], ['laborReductionPct', 'Reduction in manual reading time', '%', 'Most sites keep some cup checks; 100 % is rarely realistic'] ] },
+    { id: 'rework', title: 'Rework labor', driver: 'rework', fields: [
+      ['reworkHoursMonth', 'Shell-related rework hours per month', 'hr/mo', ''], ['reworkRate', 'Rework labor rate', '$/hr', ''],
+      ['reworkReductionPct', 'Expected reduction', '%', ''] ] },
+    { id: 'slurry', title: 'Slurry life', driver: 'slurry', fields: [
+      ['slurryCostPerTankYear', 'Slurry replacement/rebuild cost per tank per year', '$/tank/yr', 'Uses tank count from step 4'],
+      ['slurryReductionPct', 'Expected reduction', '%', ''] ] },
+    { id: 'dt', title: 'Downtime', driver: 'downtime', fields: [
+      ['downtimeHoursYear', 'Slurry-related downtime', 'hr/yr', ''], ['downtimeCostHour', 'Cost of downtime', '$/hr', ''],
+      ['downtimeReductionPct', 'Expected reduction', '%', ''] ] },
+    { id: 'sf', title: 'Safety', driver: 'safety', fields: [
+      ['incidentsYear', 'Slurry-handling incidents per year', 'incidents/yr', 'Recordables or near-misses linked to manual sampling'],
+      ['costPerIncident', 'Average cost per incident', '$', ''], ['safetyReductionPct', 'Expected reduction', '%', ''] ] }
   ];
-  pairs.forEach(function(p){
-    setText('p_' + p[0] + '_low',    fmt(p[1]));
-    setText('p_' + p[0] + '_mid',    fmt(p[2]));
-    setText('p_' + p[0] + '_high',   fmt(p[3]));
-    setText('p_' + p[0] + '_single', fmt(p[4]));
+  var LABELS = { scrap: 'Scrap reduction', revenue: 'Revenue uplift', labor: 'Reading labor', rework: 'Rework', slurry: 'Slurry life', downtime: 'Downtime', safety: 'Safety' };
+  var state = { mode: 'A', capacityConstrained: false };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) state = saved; } catch (e) {}
+
+  var form = document.getElementById('ws'), html = '';
+  STEPS.forEach(function (st, si) {
+    html += '<section class="card step" id="step-' + st.id + '" aria-labelledby="h-' + st.id + '"><h2 class="step-title" id="h-' + st.id + '"><span class="step-num">' + (si + 1) + '</span>' + esc(st.title) + '</h2>';
+    if (st.modes) html += '<p class="desc">How does the customer know their scrap cost?</p><div class="seg no-print" role="group" aria-label="Scrap input method">' +
+      '<button type="button" class="btn secondary" data-mode="A">A: per-part counts &amp; cost</button><button type="button" class="btn secondary" data-mode="B">B: annual scrap $</button></div>';
+    if (st.capacity) html += '<label class="check" style="margin:6px 0 10px"><input type="checkbox" id="capacityConstrained"> Plant is capacity-constrained (every recovered part becomes an extra sale)</label>' +
+      '<p class="desc">If the plant could already make more parts than it sells, recovered parts only save cost (step 2). Counting margin too would double-count. Requires method A.</p>';
+    html += '<div class="grid' + (st.capacity ? ' rev-fields' : '') + '">';
+    st.fields.forEach(function (f) {
+      var isText = st.text, type = isText ? (f[2] === 'date' ? 'date' : 'text') : 'number';
+      var lim = C.VALUE_LIMITS[f[0]];
+      html += '<div class="field" data-mode-only="' + (f[4] || '') + '"><label for="' + f[0] + '">' + esc(f[1]) + (f[2] && !isText ? ' <span class="hint">(' + esc(f[2]) + ')</span>' : '') + '</label>' +
+        '<input id="' + f[0] + '" name="' + f[0] + '" type="' + type + '"' + (isText ? '' : ' inputmode="decimal" step="any"' + (lim ? ' min="' + lim[0] + '" max="' + lim[1] + '"' : '')) +
+        (f[3] && isText ? ' placeholder="' + esc(f[3]) + '"' : '') + ' aria-describedby="' + f[0] + '-err">' +
+        (f[3] && !isText ? '<span class="hint">' + esc(f[3]) + '</span>' : '') + '<span class="err" id="' + f[0] + '-err"></span></div>';
+    });
+    html += '</div>';
+    if (st.driver) html += '<div class="result"><div class="formula" id="f-' + st.driver + '"></div><span class="amt" id="v-' + st.driver + '">$0</span></div>';
+    html += '</section>';
+  });
+  form.innerHTML = html;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var money = function (x) { return '$' + Math.round(isFinite(x) ? x : 0).toLocaleString('en-US'); };
+  var range = function (d) { return Math.round(d.lo) === Math.round(d.hi) ? money(d.lo) : money(d.lo) + ' – ' + money(d.hi); };
+
+  // restore values
+  form.querySelectorAll('input').forEach(function (i) {
+    if (i.type === 'checkbox') i.checked = !!state[i.id];
+    else if (state[i.id] != null) i.value = state[i.id];
   });
 
-  setText('p_banner_range',  fmtRange(r.totalLow, r.totalHigh));
-  setText('p_banner_single', fmt(r.totalSingle));
-}
-
-/* ============================================================
-   Wire up live recalculation + initial render
-   ============================================================ */
-document.addEventListener('DOMContentLoaded', function(){
-  // Recalc on any numeric input change
-  document.querySelectorAll('input[type="number"]').forEach(function(i){
-    i.addEventListener('input', calc);
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); $('saveState').textContent = 'Saved in this browser ' + new Date().toLocaleTimeString(); }
+    catch (e) { $('saveState').textContent = 'Could not save (browser storage blocked).'; }
+  }
+  function render() {
+    form.querySelectorAll('[data-mode]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mode === state.mode ? 'true' : 'false'); });
+    form.querySelectorAll('[data-mode-only]').forEach(function (f) { var m = f.dataset.modeOnly; f.classList.toggle('hidden', !!m && m !== state.mode); });
+    var revOn = state.capacityConstrained && state.mode === 'A';
+    form.querySelector('.rev-fields').classList.toggle('hidden', !revOn);
+    var r = C.computeValue(state);
+    form.querySelectorAll('input[type=number]').forEach(function (i) {
+      var e = r.errors[i.id]; i.setAttribute('aria-invalid', e ? 'true' : 'false'); $(i.id + '-err').textContent = e || '';
+    });
+    var rows = '<thead><tr><th>Value driver</th><th class="num">Low</th><th class="num">High</th></tr></thead><tbody>', filled = 0;
+    Object.keys(LABELS).forEach(function (k) {
+      var d = r.drivers[k];
+      $('v-' + k).textContent = range(d); $('f-' + k).textContent = d.formula;
+      if (d.hi > 0) filled++;
+      rows += '<tr><td>' + LABELS[k] + '<div class="formula">' + esc(d.formula) + '</div></td><td class="num">' + money(d.lo) + '</td><td class="num">' + money(d.hi) + '</td></tr>';
+    });
+    rows += '<tr><th>Total annual value</th><th class="num">' + money(r.total.lo) + '</th><th class="num">' + money(r.total.hi) + '</th></tr></tbody>';
+    $('sumTable').innerHTML = rows;
+    $('totalAmt').textContent = range(r.total);
+    $('progress').textContent = filled + ' of 7 value drivers contributing';
+    $('warnings').innerHTML = r.warnings.map(function (w) { return '<div class="notice warn">' + esc(w) + '</div>'; }).join('');
+    var A = [];
+    var s = function (k) { return state[k] === '' || state[k] == null ? '—' : esc(state[k]); };
+    A.push('Customer/site: ' + s('customer') + ' · Prepared by: ' + s('preparedBy') + ' · Date: ' + s('wsDate'));
+    A.push('Scrap method ' + state.mode + (state.mode === 'A'
+      ? ': ' + s('parts') + ' parts/yr, ' + s('scrapPct') + ' % scrap, cost $' + s('costLow') + '–$' + s('costHigh') + '/part (recovered parts: ' + Math.round(r.recoveredParts).toLocaleString('en-US') + ')'
+      : ': $' + s('scrapDollars') + '/yr total scrap') + '; shell-related share ' + s('shellShare') + ' %; expected reduction ' + s('reductionPct') + ' %.');
+    A.push(revOn ? 'Capacity-constrained: yes. Price $' + s('priceLow') + '–$' + s('priceHigh') + ', variable cost ' + s('vcPct') + ' %.' : 'Revenue uplift not counted (plant not declared capacity-constrained, or method B).');
+    A.push('Labor: ' + s('tanks') + ' tanks × ' + s('readsPerDay') + ' readings/day × ' + s('minsPerReading') + ' min × ' + s('daysPerYear') + ' days at $' + s('laborRate') + '/hr, ' + s('laborReductionPct') + ' % reduction.');
+    A.push('Rework: ' + s('reworkHoursMonth') + ' hr/mo at $' + s('reworkRate') + '/hr, ' + s('reworkReductionPct') + ' % reduction.');
+    A.push('Slurry life: $' + s('slurryCostPerTankYear') + '/tank/yr, ' + s('slurryReductionPct') + ' % reduction.');
+    A.push('Downtime: ' + s('downtimeHoursYear') + ' hr/yr at $' + s('downtimeCostHour') + '/hr, ' + s('downtimeReductionPct') + ' % reduction.');
+    A.push('Safety: ' + s('incidentsYear') + ' incidents/yr at $' + s('costPerIncident') + ', ' + s('safetyReductionPct') + ' % reduction.');
+    A.push('Low/High differ only where the customer gave a cost or price range. Blank inputs count as 0. Figures are annual, undiscounted, before Shell Control program cost.');
+    $('assumptions').innerHTML = A.map(function (a) { return '<li>' + a + '</li>'; }).join('');
+  }
+  form.addEventListener('input', function (e) {
+    var t = e.target; if (!t.id) return;
+    state[t.id] = t.type === 'checkbox' ? t.checked : t.value;
+    render(); save();
   });
-  // Initial state
-  setMode('A');
-  calc();
+  form.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mode]'); if (!b) return;
+    state.mode = b.dataset.mode; render(); save();
+  });
+  $('clearBtn').addEventListener('click', function () {
+    if (!confirm('Clear every field in this worksheet?')) return;
+    state = { mode: 'A', capacityConstrained: false };
+    form.querySelectorAll('input').forEach(function (i) { if (i.type === 'checkbox') i.checked = false; else i.value = ''; });
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    render();
+  });
+  render();
 });
 </script>
+</body>
+</html>
