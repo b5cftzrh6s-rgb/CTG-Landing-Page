@@ -117,6 +117,25 @@ t('totals sum drivers', function () {
   near(r.total.lo, 51000); near(r.total.hi, 51000);
 });
 
+t('model B: single consolidated values (value per line, single total, no revenue driver)', function () {
+  var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 50, reductionPct: 10, tanks: 4, readsPerDay: 6, minsPerReading: 10, daysPerYear: 250, laborRate: 40, laborReductionPct: 50,
+    parts: 100000, scrapPct: 10, costLow: 100, costHigh: 200, capacityConstrained: true, priceLow: 500, vcPct: 60 });
+  assert.ok(r.single && r.mode === 'B'); assert.ok(!('revenue' in r.drivers));
+  near(r.drivers.scrap.value, 50000); near(r.drivers.labor.value, 4 * 6 * 10 / 60 * 250 * 40 * 0.5);
+  Object.keys(r.drivers).forEach(function (k) { near(r.drivers[k].lo, r.drivers[k].hi); near(r.drivers[k].value, r.drivers[k].lo); });
+  near(r.total.value, 50000 + 20000); near(r.total.lo, r.total.value); near(r.total.hi, r.total.value);
+});
+t('model B ignores Model A-only inputs, even invalid ones', function () {
+  var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 50, reductionPct: 10, costHigh: -5, vcPct: 150, parts: -1 });
+  assert.ok(!r.errors.costHigh && !r.errors.vcPct && !r.errors.parts); near(r.drivers.scrap.value, 50000); assert.strictEqual(r.warnings.length, 0);
+});
+t('model A keeps Low/High and ignores B-only annual scrap $', function () {
+  var r = C.computeValue({ mode: 'A', parts: 100000, scrapPct: 10, shellShare: 50, reductionPct: 20, costLow: 100, costHigh: 200, scrapDollars: -1, capacityConstrained: true, priceLow: 500, priceHigh: 600, vcPct: 60 });
+  assert.ok(!r.single && !r.errors.scrapDollars && r.total.value === undefined && 'revenue' in r.drivers);
+  near(r.drivers.scrap.lo, 100000); near(r.drivers.scrap.hi, 200000); near(r.drivers.revenue.lo, 200000); near(r.drivers.revenue.hi, 240000);
+  near(r.total.lo, 300000); near(r.total.hi, 440000);
+});
+
 console.log('slurry');
 t('7667 interpolation', function () { near(C.dose7667(25), 7.75); near(C.dose7667(0), 7); near(C.dose7667(150), 10); });
 t('water only is SG 1', function () { var r = C.slurryRecipe({ binder: null, waterLb: 83.45, refs: [] }); near(r.sg, 1); near(r.volumeGal, 10); });

@@ -307,13 +307,17 @@
     if (lo > hi) { var t = lo; lo = hi; hi = t; }
     return { lo: lo, hi: hi };
   }
+  var VALUE_A_ONLY = ['parts', 'scrapPct', 'costLow', 'costHigh', 'priceLow', 'priceHigh', 'vcPct'], VALUE_B_ONLY = ['scrapDollars'];
   function computeValue(inp) {
     var errors = validateValueInputs(inp);
+    var mode = inp.mode === 'B' ? 'B' : 'A';
+    /* Model A (per-part counts, low/high cost range) and Model B (single annual scrap $, single values)
+       use different inputs. Only the active model's inputs are validated and used. */
+    (mode === 'B' ? VALUE_A_ONLY : VALUE_B_ONLY).forEach(function (k) { delete errors[k]; });
     var g = function (k) { var v = Number(inp[k]); return (errors[k] || !isFinite(v) || inp[k] === '' || inp[k] == null) ? 0 : v; };
     var gr = function (k) { var v = Number(inp[k]); return (errors[k] || inp[k] === '' || inp[k] == null || !isFinite(v)) ? NaN : v; };
     var pct = function (k) { return g(k) / 100; };
     var d = {}, warnings = [];
-    var mode = inp.mode === 'B' ? 'B' : 'A';
     var recovered = 0;
     if (mode === 'A') {
       recovered = g('parts') * pct('scrapPct') * pct('shellShare') * pct('reductionPct');
@@ -324,12 +328,14 @@
       var v = g('scrapDollars') * pct('shellShare') * pct('reductionPct');
       d.scrap = { lo: v, hi: v, formula: 'Annual scrap $ (all causes) × shell-related share % × expected reduction %' };
     }
-    if (inp.capacityConstrained && mode === 'A') {
+    if (mode === 'B') {
+      // Model B: no revenue driver (needs part counts and prices).
+    } else if (inp.capacityConstrained) {
       var price = rng(gr('priceLow'), gr('priceHigh')), cm = 1 - pct('vcPct');
       d.revenue = { lo: recovered * price.lo * cm, hi: recovered * price.hi * cm,
         formula: 'Recovered parts × selling price × (1 − variable cost %). Only counted when the plant is capacity-constrained (every recovered part is an extra sale).' };
     } else {
-      d.revenue = { lo: 0, hi: 0, formula: inp.capacityConstrained ? 'Requires part-level inputs (Method A).' : 'Not counted: plant not capacity-constrained.' };
+      d.revenue = { lo: 0, hi: 0, formula: 'Not counted: plant not capacity-constrained.' };
     }
     var labor = g('tanks') * g('readsPerDay') * g('minsPerReading') / 60 * g('daysPerYear') * g('laborRate') * pct('laborReductionPct');
     d.labor = { lo: labor, hi: labor, formula: 'Tanks × readings/day × minutes/reading ÷ 60 × days/yr × labor rate × reading-time reduction %' };
@@ -354,13 +360,14 @@
     var lo = 0, hi = 0;
     for (var k in d) {
       if (DRIVER_FIELDS[k].some(function (f) { return errors[f]; })) { d[k].lo = 0; d[k].hi = 0; d[k].invalid = true; }
+      if (mode === 'B') d[k].value = d[k].lo; // single consolidated value
       lo += d[k].lo; hi += d[k].hi;
     }
     if (Object.keys(errors).length) warnings.push('Some inputs are out of range; the affected value drivers are set to $0 until fixed.');
     if (mode === 'A' && g('parts') > 0 && !(g('shellShare') > 0)) warnings.push('Shell-related share is 0 %, so scrap value is $0. Enter the share of scrap caused by shell defects.');
     if (g('reductionPct') > 50) warnings.push('Expected scrap reduction above 50 % is aggressive; support it with site data or a trial.');
-    if (inp.capacityConstrained && mode === 'B') warnings.push('Revenue uplift needs part counts and prices (Method A).');
-    return { drivers: d, total: { lo: lo, hi: hi, mid: (lo + hi) / 2 }, recoveredParts: recovered, errors: errors, warnings: warnings };
+    var total = mode === 'B' ? { value: lo, lo: lo, hi: lo } : { lo: lo, hi: hi };
+    return { mode: mode, single: mode === 'B', drivers: d, total: total, recoveredParts: recovered, errors: errors, warnings: warnings };
   }
 
   /* ---------------- slurry recipe ---------------- */
@@ -615,7 +622,7 @@
     validSensor: validSensor, pairReadings: pairReadings,
     linearRegression: linearRegression, rSquared: rSquared, residualSD: residualSD, projectLimits: projectLimits,
     timeToMinutes: timeToMinutes, inShift: inShift,
-    VALUE_LIMITS: VALUE_LIMITS, validateValueInputs: validateValueInputs, computeValue: computeValue,
+    VALUE_LIMITS: VALUE_LIMITS, validateValueInputs: validateValueInputs, computeValue: computeValue, VALUE_A_ONLY: VALUE_A_ONLY, VALUE_B_ONLY: VALUE_B_ONLY,
     TABLE_7667: TABLE_7667, dose7667: dose7667, slurryRecipe: slurryRecipe, LB_PER_GAL_WATER: LB_PER_GAL_WATER,
     slurryDecompose: slurryDecompose, targetFractions: targetFractions, slurryRebuild: slurryRebuild, slurryAdjust: slurryAdjust,
     BIOCIDE_DEFAULTS: BIOCIDE_DEFAULTS, biocideDose: biocideDose, BIOCIDE_TIERS: BIOCIDE_TIERS, biocideTiers: biocideTiers,

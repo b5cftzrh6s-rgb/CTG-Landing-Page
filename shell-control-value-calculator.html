@@ -82,18 +82,18 @@ document.addEventListener('DOMContentLoaded', function () {
       ['scrapDollars', 'Annual scrap cost, all causes', '$/yr', 'From the customer’s scrap report', 'B'],
       ['shellShare', 'Shell-related share of scrap', '%', 'Share of scrap caused by shell defects (cracks, spall, inclusions, etc.)'],
       ['reductionPct', 'Expected reduction in shell-related scrap', '%', 'Use trial or reference-site data where possible'] ] },
-    { id: 'rev', title: 'Revenue uplift (only if capacity-constrained)', driver: 'revenue', capacity: true, fields: [
+    { id: 'rev', title: 'Revenue uplift (only if capacity-constrained)', driver: 'revenue', capacity: true, modeOnly: 'A', fields: [
       ['priceLow', 'Selling price per part, low', '$/part', ''], ['priceHigh', 'Selling price per part, high', '$/part', 'Optional'],
       ['vcPct', 'Variable cost', '% of price', 'Material, energy, etc. per extra part'] ] },
     { id: 'labor', title: 'Manual viscosity reading labor', driver: 'labor', fields: [
-      ['tanks', 'Slurry tanks monitored', 'tanks', 'Also used in step 6'], ['readsPerDay', 'Manual readings per tank per day', '/day', ''],
+      ['tanks', 'Slurry tanks monitored', 'tanks', 'Also used in Slurry life'], ['readsPerDay', 'Manual readings per tank per day', '/day', ''],
       ['minsPerReading', 'Minutes per reading', 'min', 'Include walking, cleaning, logging'], ['daysPerYear', 'Operating days per year', 'days', ''],
       ['laborRate', 'Loaded labor rate', '$/hr', ''], ['laborReductionPct', 'Reduction in manual reading time', '%', 'Most sites keep some cup checks; 100 % is rarely realistic'] ] },
     { id: 'rework', title: 'Rework labor', driver: 'rework', fields: [
       ['reworkHoursMonth', 'Shell-related rework hours per month', 'hr/mo', ''], ['reworkRate', 'Rework labor rate', '$/hr', ''],
       ['reworkReductionPct', 'Expected reduction', '%', ''] ] },
     { id: 'slurry', title: 'Slurry life', driver: 'slurry', fields: [
-      ['slurryCostPerTankYear', 'Slurry replacement/rebuild cost per tank per year', '$/tank/yr', 'Uses tank count from step 4'],
+      ['slurryCostPerTankYear', 'Slurry replacement/rebuild cost per tank per year', '$/tank/yr', 'Uses tank count from Manual viscosity reading labor'],
       ['slurryReductionPct', 'Expected reduction', '%', ''] ] },
     { id: 'dt', title: 'Downtime', driver: 'downtime', fields: [
       ['downtimeHoursYear', 'Slurry-related downtime', 'hr/yr', ''], ['downtimeCostHour', 'Cost of downtime', '$/hr', ''],
@@ -108,9 +108,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var form = document.getElementById('ws'), html = '';
   STEPS.forEach(function (st, si) {
-    html += '<section class="card step" id="step-' + st.id + '" aria-labelledby="h-' + st.id + '"><h2 class="step-title" id="h-' + st.id + '"><span class="step-num">' + (si + 1) + '</span>' + esc(st.title) + '</h2>';
+    html += '<section class="card step" id="step-' + st.id + '"' + (st.modeOnly ? ' data-mode-only="' + st.modeOnly + '"' : '') + ' aria-labelledby="h-' + st.id + '"><h2 class="step-title" id="h-' + st.id + '"><span class="step-num">' + (si + 1) + '</span>' + esc(st.title) + '</h2>';
     if (st.modes) html += '<p class="desc">How does the customer know their scrap cost?</p><div class="seg no-print" role="group" aria-label="Scrap input method">' +
-      '<button type="button" class="btn secondary" data-mode="A">A: per-part counts &amp; cost</button><button type="button" class="btn secondary" data-mode="B">B: annual scrap $</button></div>';
+      '<button type="button" class="btn secondary" data-mode="A">A: per-part counts &amp; cost</button><button type="button" class="btn secondary" data-mode="B">B: annual scrap $</button></div><p class="desc" id="modeNote"></p>';
     if (st.capacity) html += '<label class="check" style="margin:6px 0 10px"><input type="checkbox" id="capacityConstrained"> Plant is capacity-constrained (every recovered part becomes an extra sale)</label>' +
       '<p class="desc">If the plant could already make more parts than it sells, recovered parts only save cost (step 2). Counting margin too would double-count. Requires method A.</p>';
     html += '<div class="grid' + (st.capacity ? ' rev-fields' : '') + '">';
@@ -147,21 +147,24 @@ document.addEventListener('DOMContentLoaded', function () {
     form.querySelectorAll('[data-mode-only]').forEach(function (f) { var m = f.dataset.modeOnly; f.classList.toggle('hidden', !!m && m !== state.mode); });
     var revOn = state.capacityConstrained && state.mode === 'A';
     form.querySelector('.rev-fields').classList.toggle('hidden', !revOn);
-    var r = C.computeValue(state);
+    var r = C.computeValue(state), B = r.single;
+    // number the visible steps 1..n (Model B hides the revenue step)
+    var sn = 0; form.querySelectorAll('section.step').forEach(function (s) { if (!s.classList.contains('hidden')) s.querySelector('.step-num').textContent = ++sn; });
+    $('modeNote').textContent = B ? 'Model B: annual scrap $. Single values: one input per field, one result per line, one total.' : 'Model A: per-part counts and cost. Results show Low / High where a cost or price range is given.';
     form.querySelectorAll('input[type=number]').forEach(function (i) {
       var e = r.errors[i.id]; i.setAttribute('aria-invalid', e ? 'true' : 'false'); $(i.id + '-err').textContent = e || '';
     });
-    var rows = '<thead><tr><th>Value driver</th><th class="num">Low</th><th class="num">High</th></tr></thead><tbody>', filled = 0;
+    var rows = '<thead><tr><th>Value driver</th>' + (B ? '<th class="num">Annual value</th>' : '<th class="num">Low</th><th class="num">High</th>') + '</tr></thead><tbody>', filled = 0, nd = 0;
     Object.keys(LABELS).forEach(function (k) {
-      var d = r.drivers[k];
-      $('v-' + k).textContent = range(d); $('f-' + k).textContent = d.formula;
+      var d = r.drivers[k]; if (!d) return; nd++;
+      $('v-' + k).textContent = B ? money(d.value) : range(d); $('f-' + k).textContent = d.formula;
       if (d.hi > 0) filled++;
-      rows += '<tr><td>' + LABELS[k] + '<div class="formula">' + esc(d.formula) + '</div></td><td class="num">' + money(d.lo) + '</td><td class="num">' + money(d.hi) + '</td></tr>';
+      rows += '<tr><td>' + LABELS[k] + '<div class="formula">' + esc(d.formula) + '</div></td>' + (B ? '<td class="num">' + money(d.value) + '</td>' : '<td class="num">' + money(d.lo) + '</td><td class="num">' + money(d.hi) + '</td>') + '</tr>';
     });
-    rows += '<tr><th>Total annual value</th><th class="num">' + money(r.total.lo) + '</th><th class="num">' + money(r.total.hi) + '</th></tr></tbody>';
+    rows += '<tr><th>Total annual value</th>' + (B ? '<th class="num">' + money(r.total.value) + '</th>' : '<th class="num">' + money(r.total.lo) + '</th><th class="num">' + money(r.total.hi) + '</th>') + '</tr></tbody>';
     $('sumTable').innerHTML = rows;
-    $('totalAmt').textContent = range(r.total);
-    $('progress').textContent = filled + ' of 7 value drivers contributing';
+    $('totalAmt').textContent = B ? money(r.total.value) : range(r.total);
+    $('progress').textContent = filled + ' of ' + nd + ' value drivers contributing';
     $('warnings').innerHTML = r.warnings.map(function (w) { return '<div class="notice warn">' + esc(w) + '</div>'; }).join('');
     var A = [];
     var s = function (k) { return state[k] === '' || state[k] == null ? '—' : esc(state[k]); };
@@ -169,13 +172,13 @@ document.addEventListener('DOMContentLoaded', function () {
     A.push('Scrap method ' + state.mode + (state.mode === 'A'
       ? ': ' + s('parts') + ' parts/yr, ' + s('scrapPct') + ' % scrap, cost $' + s('costLow') + '–$' + s('costHigh') + '/part (recovered parts: ' + Math.round(r.recoveredParts).toLocaleString('en-US') + ')'
       : ': $' + s('scrapDollars') + '/yr total scrap') + '; shell-related share ' + s('shellShare') + ' %; expected reduction ' + s('reductionPct') + ' %.');
-    A.push(revOn ? 'Capacity-constrained: yes. Price $' + s('priceLow') + '–$' + s('priceHigh') + ', variable cost ' + s('vcPct') + ' %.' : 'Revenue uplift not counted (plant not declared capacity-constrained, or method B).');
+    if (!B) A.push(revOn ? 'Capacity-constrained: yes. Price $' + s('priceLow') + '–$' + s('priceHigh') + ', variable cost ' + s('vcPct') + ' %.' : 'Revenue uplift not counted (plant not declared capacity-constrained, or method B).');
     A.push('Labor: ' + s('tanks') + ' tanks × ' + s('readsPerDay') + ' readings/day × ' + s('minsPerReading') + ' min × ' + s('daysPerYear') + ' days at $' + s('laborRate') + '/hr, ' + s('laborReductionPct') + ' % reduction.');
     A.push('Rework: ' + s('reworkHoursMonth') + ' hr/mo at $' + s('reworkRate') + '/hr, ' + s('reworkReductionPct') + ' % reduction.');
     A.push('Slurry life: $' + s('slurryCostPerTankYear') + '/tank/yr, ' + s('slurryReductionPct') + ' % reduction.');
     A.push('Downtime: ' + s('downtimeHoursYear') + ' hr/yr at $' + s('downtimeCostHour') + '/hr, ' + s('downtimeReductionPct') + ' % reduction.');
     A.push('Safety: ' + s('incidentsYear') + ' incidents/yr at $' + s('costPerIncident') + ', ' + s('safetyReductionPct') + ' % reduction.');
-    A.push('Low/High differ only where the customer gave a cost or price range. Blank inputs count as 0. Figures are annual, undiscounted, before Shell Control program cost.');
+    A.push((B ? 'Model B uses single values: one input per field, one result per line, one total. Revenue uplift is not part of Model B (it needs part counts and prices).' : 'Low/High differ only where the customer gave a cost or price range.') + ' Blank inputs count as 0. Figures are annual, undiscounted, before Shell Control program cost.');
     $('assumptions').innerHTML = A.map(function (a) { return '<li>' + a + '</li>'; }).join('');
   }
   form.addEventListener('input', function (e) {
@@ -202,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return g;
     },
     results: function () { return [
-      { title: 'Annual value by driver (Low / High) with formulas', node: $('sumTable') }, { node: $('warnings') },
+      { title: state.mode === 'B' ? 'Annual value by driver (Model B, single value) with formulas' : 'Annual value by driver (Model A, Low / High) with formulas', node: $('sumTable') }, { node: $('warnings') },
       { title: 'Assumptions', node: $('assumptions') }
     ]; } });
 });
