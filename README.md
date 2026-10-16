@@ -7,12 +7,12 @@ Pages:
 - `index.html` - landing page with links to each tool
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
 - `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
-- `slurry-calculator.html` - slurry make-up calculator
+- `slurry-calculator.html` - slurry make-up calculator. Material tables: values from product SDS and product information sheets (general-use values); polymer solids default 50 %.
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
 
 Shared files: `ctg.css` (all styling, light/dark), `navbar.js` (tool registry `CTG_TOOLS`, navbar, landing tiles, footer version stamp), `calc.js` (all calculations, no DOM).
 
-Tests: `node tests/calc.test.js` (no dependencies). `tests/sample-correlation.csv` is a synthetic DD/MM sample file for the correlation tool (SG 1.7, EZ-Zahn #5, cup rows offset from sensor rows).
+Tests: `node tests/calc.test.js` (no dependencies). `tests/sample-original-layout.csv` mimics the original export layout (14 prebuilt rows, headers on row 15, data from row 16); `tests/reference-main.js` is the original tool's parsing/pairing/export logic and the tests check the new code produces a byte-identical export. `tests/sample-correlation.csv` is a synthetic DD/MM sample file for the correlation tool (SG 1.7, EZ-Zahn #5, cup rows offset from sensor rows).
 
 ### Adding a tool
 
@@ -29,10 +29,12 @@ To run locally: `python -m http.server 8000`, then open `http://localhost:8000`.
 
 Cup seconds convert to kinematic viscosity (cSt) with V = k·T − C/T:
 
-- **EZ-Zahn #4:** V = 13.26T − 673/T (Paul N. Gardner / GARDCO EZ™ Zahn cup manual)
-- **EZ-Zahn #5:** V = 23.56T − 744/T (same GARDCO series)
-- **ISO #6:** V = 6.90T − 570/T (ISO 2431 Table 1, 6 mm orifice; meaningful roughly 30–100 s)
-- **ISO #8:** V = 21.78T − 306/T (common 8 mm flow-cup constants; not one of the ISO 2431 cups 3–6)
+- **EZ-Zahn #4:** V = 13.26T − 673/T
+- **EZ-Zahn #5:** V = 23.56T − 744/T
+- **ISO #6:** V = 6.90T − 570/T
+- **ISO #8:** V = 21.78T − 306/T
+
+Source for all four: GARDCO (Paul N. Gardner Co.), the cup manufacturer. See the [GARDCO viscosity knowledge library](https://www.gardco.com/en-GB/resources/knowledge-library/viscosity-faq) and the [GARDCO EZ Zahn cup manual (PDF)](https://assets-cdn-prod-dfauhca6edaxdvgy.a01.azurefd.net/assets%2FMultimedia%2FGARDCO%2FAssets%2FDocuments%2FManuals%2FViscometers%2Fvi%2FEZ-Zahn-Cups-Manual.pdf).
 
 ### What to upload
 
@@ -53,10 +55,11 @@ The tool tries to auto-detect these from the header names; check the mappings be
 
 ### How readings are paired
 
-- **With a date/time column (recommended):** each cup reading is paired with the sensor samples nearest in *time*. If valid samples exist on both sides within the window (default ±5 min, configurable) the value is linearly interpolated in time; otherwise the nearest one within the window is used; otherwise the reading is counted as "No sensor match". Row order does not matter.
+- **Default: row order (original behavior).** Each cup reading uses the sensor value on the same row, else the average of the nearest valid rows before/after (counted as interpolated). Readings whose date cannot be parsed are skipped, as before.
+- **Optional: timestamp pairing** (select "Timestamp" under Pairing): each cup reading is paired with the sensor samples nearest in *time*. If valid samples exist on both sides within the window (default ±5 min, configurable) the value is linearly interpolated in time; otherwise the nearest one within the window is used; otherwise the reading is counted as "No sensor match". Row order does not matter.
 - **Date format:** Auto-detects MM/DD vs DD/MM when a day above 12 appears; if every date is ambiguous it assumes MM/DD and says so. You can force either. ISO `YYYY-MM-DD` is always recognised.
-- **Without a date column:** falls back to row order (same row, else the average of the nearest valid rows before/after).
-- **Cup valid range:** readings outside the cup's valid seconds range (editable; defaults Zahn 20–80 s, ISO 6 30–100 s, ISO 8 30–100 s unverified) or giving cSt ≤ 0 are excluded and listed under "Excluded readings".
+- **Without a date column:** always row order.
+- **Cup valid range:** readings outside the cup's valid seconds range (editable; defaults EZ-Zahn 20–80 s, ISO #6 and #8 30–100 s) or giving cSt ≤ 0 are excluded and listed under "Excluded readings".
 
 ### Reading the results
 
@@ -67,4 +70,4 @@ The tool tries to auto-detect these from the header names; check the mappings be
   - **Slope / intercept** define the line used to translate cup seconds into sensor cP.
 - **Recommended sensor LSL / USL** runs your cup LSL and USL through the regression line to get equivalent sensor limits, shown for all data and for quality-filtered data. Coverage is the percentage of sensor readings that fall inside those limits.
 - **Per-shift analysis** repeats the fit for each defined shift.
-- **Data table and export** shows the paired rows and downloads them as CSV (DateTime, CupSec, CalcCst, CalcCP, SensorCP, AbsDiff, Interpolated, and Shift when shifts are defined).
+- **Data table and export** shows the paired rows and downloads them as CSV (identical to the original tool: DateTime as MM/DD/YYYY HH:MM, CupSec, CalcCst, SensorCP, AbsDiff, Interpolated, and Shift when shifts are defined; numbers to 3 decimals). AbsDiff is |CalcCst × SG − SensorCP|, which equals the original |CalcCst − SensorCP| at the default SG 1.0.

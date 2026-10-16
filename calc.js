@@ -51,18 +51,17 @@
 
   /* ---------------- efflux cups ----------------
      V(cSt) = k*T - C/T. Valid ranges are DEFAULTS and editable in the UI.
-     EZ-Zahn: ASTM D4212 / GARDCO guidance of roughly 20-80 s.
-     ISO 6: ISO 2431 recommends 30-100 s. ISO 8: not an ISO 2431 cup;
-     30-100 s used as a conservative default (unverified). */
+     Formula constants for all four cups: GARDCO (Paul N. Gardner Co.).
+     Valid time ranges: CTG settings (EZ-Zahn 20-80 s, ISO 30-100 s). */
   var CUPS = {
     'EZ-Zahn4': { label: 'EZ-Zahn #4', k: 13.26, C: 673, minSec: 20, maxSec: 80,
-      source: 'GARDCO EZ Zahn cup manual; range per ASTM D4212 guidance (~20-80 s)' },
+      source: 'GARDCO (Paul N. Gardner Co.)' },
     'EZ-Zahn5': { label: 'EZ-Zahn #5', k: 23.56, C: 744, minSec: 20, maxSec: 80,
-      source: 'GARDCO EZ Zahn cup manual; range per ASTM D4212 guidance (~20-80 s)' },
+      source: 'GARDCO (Paul N. Gardner Co.)' },
     'ISO6': { label: 'ISO #6', k: 6.90, C: 570, minSec: 30, maxSec: 100,
-      source: 'ISO 2431 Table 1 (6 mm), recommended 30-100 s' },
+      source: 'GARDCO (Paul N. Gardner Co.)' },
     'ISO8': { label: 'ISO #8', k: 21.78, C: 306, minSec: 30, maxSec: 100,
-      source: 'Common 8 mm flow-cup constants (not ISO 2431); range is a default, verify' }
+      source: 'GARDCO (Paul N. Gardner Co.)' }
   };
   function cupCst(sec, cup) {
     var c = CUPS[cup];
@@ -190,6 +189,49 @@
     if (b !== null) return { value: b, interpolated: true, lagMin: null };
     if (f !== null) return { value: f, interpolated: true, lagMin: null };
     return null;
+  }
+
+  /* ---------------- original (origin/main) CSV layout ----------------
+     ECOLAB 3D-style export: column headers on Excel row 15 (index 14),
+     data from Excel row 16 (index 15); blank rows skipped. */
+  var HEADER_ROW_INDEX = 14, DATA_START_INDEX = 15;
+  function splitExport(parsed, headerRowIndex) {
+    var hr = headerRowIndex == null ? HEADER_ROW_INDEX : headerRowIndex;
+    if (parsed.length <= hr) throw new Error('The file has only ' + parsed.length + ' rows; header expected on row ' + (hr + 1) + '.');
+    var head = parsed[hr].map(function (h) { return String(h == null ? '' : h).trim(); });
+    if (!head.some(function (h) { return h; })) throw new Error('Header row ' + (hr + 1) + ' is empty. Check the header row number.');
+    var rows = parsed.slice(hr + 1).filter(function (r) { return r && r.some(function (c) { return String(c == null ? '' : c).trim(); }); });
+    if (!rows.length) throw new Error('No data rows after header row ' + (hr + 1) + '.');
+    return { headers: head, rows: rows };
+  }
+  /* Identical rules to origin/main autoDetectColumns (first match wins). */
+  function detectColumns(headers) {
+    var out = { date: '', manual: '', sensor: '' };
+    for (var i = 0; i < headers.length; i++) {
+      var hl = String(headers[i] || '').toLowerCase();
+      if (hl.indexOf('date') !== -1 || hl.indexOf('time') !== -1) { if (out.date === '') out.date = String(i); }
+      if (hl.indexOf('zahn') !== -1 || hl.indexOf('efflux') !== -1 || hl.indexOf('cup') !== -1 || hl.indexOf('sec') !== -1) { if (out.manual === '') out.manual = String(i); }
+      if (hl.indexOf('viscosity') !== -1 || (hl.indexOf('cp') !== -1 && hl.indexOf('cup') === -1)) { if (out.sensor === '') out.sensor = String(i); }
+    }
+    return out;
+  }
+  /* Export identical to origin/main downloadCSV:
+     DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated[,Shift]
+     DateTime = local MM/DD/YYYY HH:MM, numbers toFixed(3). */
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function formatDateTimeMDY(t) {
+    if (t === null || t === undefined || !isFinite(t)) return '';
+    var d = new Date(t);
+    return pad2(d.getMonth() + 1) + '/' + pad2(d.getDate()) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function exportCSV(rows, withShift) {
+    var f3 = function (v) { return v === null || v === undefined || !isFinite(v) ? '' : v.toFixed(3); };
+    var c = 'DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated' + (withShift ? ',Shift' : '') + '\n';
+    for (var i = 0; i < rows.length; i++) {
+      var p = rows[i];
+      c += formatDateTimeMDY(p.t) + ',' + f3(p.cup) + ',' + f3(p.cst) + ',' + f3(p.sensor) + ',' + f3(p.absDiff) + ',' + (p.interpolated ? 'Yes' : 'No') + (withShift ? ',' + p.shift : '') + '\n';
+    }
+    return c;
   }
 
   /* ---------------- statistics ---------------- */
@@ -390,6 +432,8 @@
     toNum: toNum, escapeHtml: escapeHtml, csvField: csvField, parseCSV: parseCSV,
     CUPS: CUPS, cupCst: cupCst, cupCheck: cupCheck,
     detectDateFormat: detectDateFormat, parseDateTime: parseDateTime,
+    HEADER_ROW_INDEX: HEADER_ROW_INDEX, DATA_START_INDEX: DATA_START_INDEX, splitExport: splitExport, detectColumns: detectColumns,
+    formatDateTimeMDY: formatDateTimeMDY, exportCSV: exportCSV,
     validSensor: validSensor, pairReadings: pairReadings,
     linearRegression: linearRegression, rSquared: rSquared, residualSD: residualSD, projectLimits: projectLimits,
     timeToMinutes: timeToMinutes, inShift: inShift,

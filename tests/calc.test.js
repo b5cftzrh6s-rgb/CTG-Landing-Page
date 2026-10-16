@@ -58,6 +58,35 @@ t('csv parser quotes + BOM', function () { var r = C.parseCSV('\uFEFFa,"b,c","d"
 t('csvField escapes', function () { assert.strictEqual(C.csvField('a,b'), '"a,b"'); });
 t('escapeHtml', function () { assert.strictEqual(C.escapeHtml('<b x="1">'), '&lt;b x=&quot;1&quot;&gt;'); });
 
+console.log('original export layout (origin/main parity)');
+var fs = require('fs'), path = require('path'), REF = require('./reference-main.js');
+var LAYOUT = fs.readFileSync(path.join(__dirname, 'sample-original-layout.csv'), 'utf8');
+function newPipeline(text, cup, mode, windowMin) {
+  var sp = C.splitExport(C.parseCSV(text)), det = C.detectColumns(sp.headers);
+  var fmt = C.detectDateFormat(sp.rows.map(function (r) { return r[+det.date]; }));
+  fmt = fmt === 'DMY' ? 'DMY' : 'MDY';
+  var rows = sp.rows.map(function (r) { return { t: C.parseDateTime(r[+det.date], fmt), cup: parseFloat(r[+det.manual]), sensor: parseFloat(r[+det.sensor]) }; });
+  var res = C.pairReadings(rows, { mode: mode, windowMin: windowMin });
+  var out = res.pairs.filter(function (p) { return C.cupCheck(p.cup, cup).ok; }).map(function (p) {
+    var cst = C.cupCst(p.cup, cup); return { t: p.t, cup: p.cup, cst: cst, sensor: p.sensor, absDiff: Math.abs(cst * 1.0 - p.sensor), interpolated: p.interpolated };
+  });
+  return { sp: sp, det: det, csv: C.exportCSV(out, false) };
+}
+t('default header row 15 / data row 16 like main', function () { assert.strictEqual(C.HEADER_ROW_INDEX, REF.HEADER_ROW_INDEX); assert.strictEqual(C.DATA_START_INDEX, REF.DATA_START_INDEX); });
+t('same headers and data rows as main', function () {
+  var ref = REF.run(LAYOUT, 'EZ-Zahn5'), n = newPipeline(LAYOUT, 'EZ-Zahn5', 'row');
+  assert.deepStrictEqual(n.sp.headers, ref.headers); assert.deepStrictEqual(n.sp.rows, ref.rows);
+});
+t('same auto-detected columns as main', function () { assert.deepStrictEqual(newPipeline(LAYOUT, 'EZ-Zahn5', 'row').det, REF.run(LAYOUT, 'EZ-Zahn5').detected); });
+t('column detection examples', function () {
+  assert.deepStrictEqual(C.detectColumns(['Date/Time', 'Zahn #5 Cup (sec)', 'Viscosity (cP)']), { date: '0', manual: '1', sensor: '2' });
+  assert.deepStrictEqual(C.detectColumns(['Timestamp', 'Efflux', 'Sensor cP']), { date: '0', manual: '1', sensor: '2' });
+});
+t('row-order export byte-identical to main', function () { var ref = REF.run(LAYOUT, 'EZ-Zahn5'); assert.ok(ref.n > 10); assert.strictEqual(newPipeline(LAYOUT, 'EZ-Zahn5', 'row').csv, ref.csv); });
+t('timestamp export identical to main on evenly spaced export (window 15 min)', function () { assert.strictEqual(newPipeline(LAYOUT, 'EZ-Zahn5', 'time', 15).csv, REF.run(LAYOUT, 'EZ-Zahn5').csv); });
+t('export header identical to main', function () { assert.strictEqual(C.exportCSV([], false), 'DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated\n'); assert.strictEqual(C.exportCSV([], true).split('\n')[0], 'DateTime,CupSec,CalcCst,SensorCP,AbsDiff,Interpolated,Shift'); });
+t('header row too far -> clear error', function () { assert.throws(function () { C.splitExport([['a']], 14); }, /header expected on row 15/); });
+
 console.log('value worksheet');
 t('mode A scrap with shell share', function () {
   var r = C.computeValue({ mode: 'A', parts: 100000, scrapPct: 10, shellShare: 50, reductionPct: 20, costLow: 100, costHigh: 200 });

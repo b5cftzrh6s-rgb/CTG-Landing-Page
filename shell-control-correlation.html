@@ -32,7 +32,7 @@
 <section class="card" aria-labelledby="s1">
   <h2 class="step-title" id="s1"><span class="step-num">1</span>Upload CSV</h2>
   <div class="grid">
-    <div class="field"><label for="headerRow">Header row (Excel row #)</label><input id="headerRow" type="number" min="1" step="1" value="15"><span class="hint">Default 15 for the standard sensor export. Data starts on the next row.</span></div>
+    <div class="field"><label for="headerRow">Header row (Excel row #)</label><input id="headerRow" type="number" min="1" step="1" value="15"><span class="hint">Default 15 = original export layout (prebuilt rows 1–14, column headers on row 15, data from row 16).</span></div>
   </div>
   <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="loadStatus">
     <strong>Drop a CSV here</strong> or <label for="fileInput" style="text-decoration:underline;cursor:pointer">choose a file</label>
@@ -59,10 +59,11 @@
     <div class="field"><label for="slurryDensity">Slurry density / SG (g/cm³)</label><input id="slurryDensity" type="number" min="0.01" step="0.001" value="1.0"><span class="hint">cP = cSt × SG. 1.0 = no conversion.</span></div>
   </div>
   <p class="formula" id="cupInfo"></p>
-  <p class="desc">Readings outside the cup’s valid range, or that would give cSt ≤ 0, are flagged and excluded. Formula V = k·T − C/T. EZ #4/#5: GARDCO EZ Zahn cup manuals. ISO #6: ISO 2431 Table 1. ISO #8: common 8 mm constants, not an ISO 2431 cup. Default ranges: Zahn ~20–80 s (ASTM D4212 guidance), ISO 6 30–100 s (ISO 2431); ISO #8 range is an unverified default. Check them against your cup’s documentation.</p>
+  <p class="desc">Readings outside the cup’s valid range, or that would give cSt ≤ 0, are flagged and excluded. Formula V = k·T − C/T. Cup constants for EZ-Zahn #4, EZ-Zahn #5, ISO #6 and ISO #8 are from GARDCO (Paul N. Gardner Co.), the cup manufacturer: <a href="https://www.gardco.com/en-GB/resources/knowledge-library/viscosity-faq" target="_blank" rel="noopener noreferrer">GARDCO viscosity knowledge library</a>, <a href="https://assets-cdn-prod-dfauhca6edaxdvgy.a01.azurefd.net/assets%2FMultimedia%2FGARDCO%2FAssets%2FDocuments%2FManuals%2FViscometers%2Fvi%2FEZ-Zahn-Cups-Manual.pdf" target="_blank" rel="noopener noreferrer">GARDCO EZ Zahn cup manual (PDF)</a>. Default valid ranges: EZ-Zahn 20–80 s, ISO 30–100 s.</p>
   <h3>Pairing</h3>
   <div class="grid">
-    <div class="field"><label for="windowMin">Max time gap to sensor sample (minutes)</label><input id="windowMin" type="number" min="0" step="any" value="5"><span class="hint">Used when a date/time column is selected.</span></div>
+    <div class="field"><label for="pairMode">Pairing method</label><select id="pairMode"><option value="row" selected>Row order (original behavior)</option><option value="time">Timestamp (nearest sensor sample in time)</option></select><span class="hint">Row order matches the original tool: same-row sensor value, else the average of the nearest valid rows.</span></div>
+    <div class="field"><label for="windowMin">Max time gap to sensor sample (minutes)</label><input id="windowMin" type="number" min="0" step="any" value="5"><span class="hint">Timestamp pairing only.</span></div>
   </div>
   <h3>Cup spec limits (seconds)</h3>
   <div class="grid">
@@ -108,7 +109,7 @@
 </main>
 
 <footer class="ctg-footer">
-  3D TRASAR, SlurrySense, CleanWave, ECOLAB3D &mdash; For internal and customer proposal use only
+  CTG Tools
 </footer>
 
 <script>
@@ -164,11 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         var parsed = C.parseCSV(String(rd.result));
         var hr = Math.max(1, parseInt($('headerRow').value, 10) || 15) - 1;
-        if (parsed.length <= hr) throw new Error('The file has only ' + parsed.length + ' rows; header expected on row ' + (hr + 1) + '.');
-        var head = parsed[hr].map(function (h) { return String(h == null ? '' : h).trim(); });
-        if (!head.some(function (h) { return h; })) throw new Error('Header row ' + (hr + 1) + ' is empty. Check the header row number.');
-        var rows = parsed.slice(hr + 1).filter(function (r) { return r.some(function (c) { return String(c).trim(); }); });
-        if (!rows.length) throw new Error('No data rows after header row ' + (hr + 1) + '.');
+        var sp = C.splitExport(parsed, hr), head = sp.headers, rows = sp.rows;
         S.headers = head; S.rows = rows;
         mapColumns(head);
         $('controls').classList.remove('hidden');
@@ -183,12 +180,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var s = $(id); s.innerHTML = ''; s.add(new Option(id === 'dateCol' ? '— none (pair by row order) —' : '— select column —', ''));
       h.forEach(function (n, i) { s.add(new Option(n || 'Column ' + (i + 1), String(i))); });
     });
-    h.forEach(function (n, i) {
-      var l = n.toLowerCase();
-      if ($('dateCol').value === '' && /date|time/.test(l)) $('dateCol').value = String(i);
-      if ($('manualCol').value === '' && /zahn|efflux|cup|sec/.test(l)) $('manualCol').value = String(i);
-      if ($('sensorCol').value === '' && (/viscosity/.test(l) || (/cp\b|\(cp\)/.test(l) && !/cup/.test(l)))) $('sensorCol').value = String(i);
-    });
+    var det = C.detectColumns(h);  // same rules as the original tool
+    $('dateCol').value = det.date; $('manualCol').value = det.manual; $('sensorCol').value = det.sensor;
   }
   function detectFmt() {
     var d = $('dateCol').value, hint = $('dateFmtHint');
@@ -212,33 +205,34 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!(range.maxSec > range.minSec)) return status('procStatus', 'Cup valid range max must be greater than min.', 'bad');
     var fmt = $('dateFmt').value, det = detectFmt();
     if (fmt === 'auto') fmt = det === 'DMY' ? 'DMY' : 'MDY';
-    var useTime = dc !== '', badDates = 0;
+    var hasDate = dc !== '', useTime = hasDate && $('pairMode').value === 'time', badDates = 0;
     var rows = S.rows.map(function (r) {
-      var t = useTime ? C.parseDateTime(r[+dc], fmt) : null;
-      if (useTime && t === null && String(r[+dc] || '').trim()) badDates++;
-      return { t: t, cup: C.toNum(r[+m]), sensor: C.toNum(r[+sc]) };
+      var t = hasDate ? C.parseDateTime(r[+dc], fmt) : null;
+      if (hasDate && t === null && parseFloat(r[+m]) > 0) badDates++; // as original: manual readings with bad dates
+      return { t: t, cup: parseFloat(r[+m]), sensor: parseFloat(r[+sc]) }; // parseFloat as in the original
     });
     var win = parseFloat($('windowMin').value); if (!(win >= 0)) win = 5;
     var res = C.pairReadings(rows, { mode: useTime ? 'time' : 'row', windowMin: win });
     S.shifts = readShifts(); S.all = []; S.excluded = [];
     var cupCount = rows.filter(function (r) { return r.cup > 0; }).length;
     res.pairs.forEach(function (p) {
+      if (hasDate && p.t === null) return; // original tool skipped readings with unparseable dates
       var chk = C.cupCheck(p.cup, cup, range);
       var rec = { t: p.t, cup: p.cup, sensor: p.sensor, interpolated: p.interpolated, lagMin: p.lagMin, cst: chk.cst, cp: chk.cst !== null ? chk.cst * sg : null, reason: chk.reason };
       rec.absDiff = rec.cp !== null ? Math.abs(rec.cp - p.sensor) : null;
       rec.shift = shiftOf(p.t);
       (chk.ok ? S.all : S.excluded).push(rec);
     });
-    S.useTime = useTime;
+    S.useTime = hasDate;
     var interp = S.all.filter(function (p) { return p.interpolated; }).length;
     $('pairingMetrics').innerHTML = [
       ['Cup readings', cupCount], ['Paired & valid', S.all.length], ['Out of cup range', S.excluded.length], ['No sensor match', res.unpaired],
-      ['Interpolated', interp], ['Bad dates', useTime ? badDates : '—']
+      ['Interpolated', interp], ['Bad dates', hasDate ? badDates : '—']
     ].map(function (x) { return '<div class="metric"><div class="lbl">' + x[0] + '</div><div class="v">' + x[1] + '</div></div>'; }).join('');
-    $('pairNote').innerHTML = '<div class="notice">' + (useTime ? 'Paired by timestamp (' + (fmt === 'DMY' ? 'DD/MM' : 'MM/DD') + '): nearest sensor samples within ±' + win + ' min, linearly interpolated in time.' : 'No date column: paired by row order (same row, else average of nearest valid rows). Select a date column for time-based pairing.') + '</div>';
+    $('pairNote').innerHTML = '<div class="notice">' + (useTime ? 'Paired by timestamp (' + (fmt === 'DMY' ? 'DD/MM' : 'MM/DD') + '): nearest sensor samples within ±' + win + ' min, linearly interpolated in time.' : 'Paired by row order (original behavior): same-row sensor value, else the average of the nearest valid rows before/after. Choose Timestamp pairing for time-based matching.') + '</div>';
     if (S.all.length < 3) { $('results').classList.remove('hidden'); return status('procStatus', 'Only ' + S.all.length + ' valid pairs. Check the column mapping, cup type/range, date format and time window.', 'bad'); }
     $('results').classList.remove('hidden');
-    if (useTime) {
+    if (hasDate) {
       var ts = S.all.map(function (p) { return p.t; });
       $('dFrom').value = isoDay(Math.min.apply(null, ts)); $('dTo').value = isoDay(Math.max.apply(null, ts));
       $('dFrom').disabled = $('dTo').disabled = false;
@@ -364,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
   $('tblExclBtn').addEventListener('click', function () { setView('excl'); });
   $('dlBtn').addEventListener('click', function () {
     var d = tableData(); if (!d.length) return status('procStatus', 'No data to download.', 'warn');
-    var c = COLS.map(function (x) { return x[0]; }).join(',') + '\n' + d.map(function (p) { return COLS.map(function (x) { return C.csvField(x[1](p)); }).join(','); }).join('\n') + '\n';
+    var c = C.exportCSV(d, S.shifts.length > 0); // identical columns/format to the original export
     var u = URL.createObjectURL(new Blob([c], { type: 'text/csv' })), a = document.createElement('a');
     a.href = u; a.download = 'shell_control_export_' + Date.now() + '.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u);
   });
