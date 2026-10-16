@@ -338,5 +338,20 @@ t('print CSS: only the report prints, nav/buttons hidden', function () {
   assert.ok(/body\.ctg-printing > \*:not\(#ctg-report\)\{display:none !important\}/.test(css) && /#ctg-report\{display:none\}/.test(css));
 });
 
+console.log('slurry page (v2.4.3)');
+t('slurry page: no solver UI/report and no polymer solids/SG inputs; fixed 50 % / 1.0', function () {
+  var h = fs.readFileSync(path.join(ROOT, 'slurry-calculator.html'), 'utf8');
+  assert.ok(!/id="solver"|slurryAdjust|slurryRebuild|s_ps|s_psg|solMode|Adjust \/ rebuild/.test(h), 'solver still on page');
+  assert.ok(!/poly_solids|poly_sg/.test(h), 'polymer inputs still on page');
+  assert.ok(/POLYMER_SOLIDS_PCT = 50, POLYMER_SG = 1\.0/.test(h) && /polymerSolidsPct: POLYMER_SOLIDS_PCT, polymerSG: POLYMER_SG/.test(h));
+  assert.ok(/fixed at 50 % solids and SG 1\.0/.test(h));
+  var nav = fs.readFileSync(path.join(ROOT, 'navbar.js'), 'utf8'); assert.ok(!/adjust|rebuild|additions/i.test(nav.slice(nav.indexOf("id: 'slurry'"), nav.indexOf("id: 'rpm'"))));
+  assert.ok(typeof C.slurryAdjust === 'function' && typeof C.slurryRebuild === 'function', 'solver kept in calc.js');
+});
+t('recipe math with fixed polymer 50 % / SG 1.0: 40 B + 50 W + 10 P + 100 R', function () {
+  var r = C.slurryRecipe({ binder: { solids: 30, density: 1.2, poly: 0 }, binderLb: 40, waterLb: 50, polymerLb: 10, polymerSolidsPct: 50, polymerSG: 1.0, refs: [{ name: 'F', sg: 2.5, lb: 100 }] });
+  near(r.sg, 1.5, 1e-9); near(r.pctSolids, 58.5, 1e-9); near(r.pctPolymer, 2.5, 1e-9); near(r.pctSilicaInLiquid, 12, 1e-9);
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
