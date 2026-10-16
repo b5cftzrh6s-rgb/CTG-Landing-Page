@@ -78,6 +78,10 @@ t('out of range input rejected and zeroed', function () {
   var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 150, reductionPct: 20 });
   assert.ok(r.errors.shellShare); near(r.drivers.scrap.lo, 0); assert.ok(r.warnings.length);
 });
+t('invalid VC% zeroes revenue (no inflation)', function () {
+  var r = C.computeValue({ mode: 'A', parts: 100000, scrapPct: 10, shellShare: 50, reductionPct: 20, costLow: 100, capacityConstrained: true, priceLow: 500, vcPct: 150 });
+  near(r.drivers.revenue.lo, 0); assert.ok(r.drivers.revenue.invalid); near(r.drivers.scrap.lo, 100000);
+});
 t('negative rejected', function () { assert.ok(C.validateValueInputs({ tanks: -1 }).tanks); });
 t('totals sum drivers', function () {
   var r = C.computeValue({ mode: 'B', scrapDollars: 1e6, shellShare: 50, reductionPct: 10, incidentsYear: 1, costPerIncident: 1000, safetyReductionPct: 100 });

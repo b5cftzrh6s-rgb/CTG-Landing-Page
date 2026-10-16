@@ -299,9 +299,22 @@
     d.downtime = { lo: dt, hi: dt, formula: 'Slurry-related downtime hours/yr × cost/hr × reduction %' };
     var sf = g('incidentsYear') * g('costPerIncident') * pct('safetyReductionPct');
     d.safety = { lo: sf, hi: sf, formula: 'Incidents/yr × cost per incident × reduction %' };
+    /* Any invalid input zeroes its whole driver (never silently inflates). */
+    var DRIVER_FIELDS = {
+      scrap: ['parts', 'scrapPct', 'shellShare', 'reductionPct', 'costLow', 'costHigh', 'scrapDollars'],
+      revenue: ['priceLow', 'priceHigh', 'vcPct', 'parts', 'scrapPct', 'shellShare', 'reductionPct'],
+      labor: ['tanks', 'readsPerDay', 'minsPerReading', 'daysPerYear', 'laborRate', 'laborReductionPct'],
+      rework: ['reworkHoursMonth', 'reworkRate', 'reworkReductionPct'],
+      slurry: ['tanks', 'slurryCostPerTankYear', 'slurryReductionPct'],
+      downtime: ['downtimeHoursYear', 'downtimeCostHour', 'downtimeReductionPct'],
+      safety: ['incidentsYear', 'costPerIncident', 'safetyReductionPct']
+    };
     var lo = 0, hi = 0;
-    for (var k in d) { lo += d[k].lo; hi += d[k].hi; }
-    if (Object.keys(errors).length) warnings.push('Some inputs are out of range and were treated as 0.');
+    for (var k in d) {
+      if (DRIVER_FIELDS[k].some(function (f) { return errors[f]; })) { d[k].lo = 0; d[k].hi = 0; d[k].invalid = true; }
+      lo += d[k].lo; hi += d[k].hi;
+    }
+    if (Object.keys(errors).length) warnings.push('Some inputs are out of range; the affected value drivers are set to $0 until fixed.');
     if (mode === 'A' && g('parts') > 0 && !(g('shellShare') > 0)) warnings.push('Shell-related share is 0 %, so scrap value is $0. Enter the share of scrap caused by shell defects.');
     if (g('reductionPct') > 50) warnings.push('Expected scrap reduction above 50 % is aggressive; support it with site data or a trial.');
     if (inp.capacityConstrained && mode === 'B') warnings.push('Revenue uplift needs part counts and prices (Method A).');

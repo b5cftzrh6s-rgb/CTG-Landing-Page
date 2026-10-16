@@ -6,9 +6,19 @@ Pages:
 
 - `index.html` - landing page with links to each tool
 - `shell-control-correlation.html` - correlates manual cup efflux readings with an inline viscosity sensor
-- `shell-control-value-calculator.html` - shell control value calculator
+- `shell-control-value-calculator.html` - guided 8-step value worksheet (saved in the browser, printable with assumptions)
 - `slurry-calculator.html` - slurry make-up calculator
 - `tank-rpm-calculator.html` - tank volume and rotation speed calculator
+
+Shared files: `ctg.css` (all styling, light/dark), `navbar.js` (tool registry `CTG_TOOLS`, navbar, landing tiles, footer version stamp), `calc.js` (all calculations, no DOM).
+
+Tests: `node tests/calc.test.js` (no dependencies). `tests/sample-correlation.csv` is a synthetic DD/MM sample file for the correlation tool (SG 1.7, EZ-Zahn #5, cup rows offset from sensor rows).
+
+### Adding a tool
+
+1. Copy `tank-rpm-calculator.html` as a template (it already loads `ctg.css`, `calc.js`, `navbar.js`).
+2. Put the math in `calc.js` and add tests.
+3. Add one entry to `CTG_TOOLS` in `navbar.js`. The nav link and landing tile appear automatically; `status: 'planned'` shows a "coming soon" tile.
 
 To run locally: `python -m http.server 8000`, then open `http://localhost:8000`. `app.yaml` runs the same server as a Databricks App.
 
@@ -43,7 +53,10 @@ The tool tries to auto-detect these from the header names; check the mappings be
 
 ### How readings are paired
 
-Each manual cup reading is paired with the sensor value on the same row. If that sensor value is missing or invalid, the tool averages the nearest valid values before and after it (or uses whichever one exists) and counts the row as interpolated.
+- **With a date/time column (recommended):** each cup reading is paired with the sensor samples nearest in *time*. If valid samples exist on both sides within the window (default ±5 min, configurable) the value is linearly interpolated in time; otherwise the nearest one within the window is used; otherwise the reading is counted as "No sensor match". Row order does not matter.
+- **Date format:** Auto-detects MM/DD vs DD/MM when a day above 12 appears; if every date is ambiguous it assumes MM/DD and says so. You can force either. ISO `YYYY-MM-DD` is always recognised.
+- **Without a date column:** falls back to row order (same row, else the average of the nearest valid rows before/after).
+- **Cup valid range:** readings outside the cup's valid seconds range (editable; defaults Zahn 20–80 s, ISO 6 30–100 s, ISO 8 30–100 s unverified) or giving cSt ≤ 0 are excluded and listed under "Excluded readings".
 
 ### Reading the results
 
