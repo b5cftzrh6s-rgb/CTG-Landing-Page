@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
+<script src="print.js" defer></script>
 <style>
 .tier h3{margin:0 0 4px}
 .tier .pct{font-family:var(--mono);font-weight:700}
@@ -34,7 +35,6 @@
 
 <main id="main">
   <div class="toolbar no-print">
-    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
     <button class="btn secondary" type="button" id="resetBtn">Reset to defaults</button>
   </div>
 
@@ -108,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('main').addEventListener('change', calc);
   $('resetBtn').addEventListener('click', function () { IDS.forEach(function (k) { $(k).value = DEF[k]; }); calc(); });
   calc();
+  CTGPrint.register({ id: 'biocide', title: 'Biocide Addition Calculator',
+    results: function () { return [
+      { title: '6451 addition by dose tier', node: $('tiers') }, { node: $('warnings') },
+      { title: 'Formula', node: $('formula') }
+    ]; } });
 });
 </script>
 </body>

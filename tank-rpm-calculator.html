@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
+<script src="print.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -29,7 +30,6 @@
 
 <main id="main">
   <div class="toolbar no-print">
-    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
     <button class="btn secondary" type="button" id="resetBtn">Reset</button>
   </div>
 
@@ -119,6 +119,12 @@ document.addEventListener('DOMContentLoaded', function () {
     $('diameter_in').value = ''; preset.value = 'backup'; applyPreset();
   });
   applyPreset();
+  CTGPrint.register({ id: 'rpm', title: 'Tank RPM Calculator',
+    extraInputs: function () { return [{ group: 'Derived', rows: [{ label: 'Tank diameter (converted)', value: $('diameter_m').value, unit: 'm' }] }]; },
+    results: function () { return [
+      { title: 'Recommended RPM', node: $('results') },
+      { text: 'Formula: RPM = Vp ÷ (π × D), with D in metres (1 in = 0.0254 m). Presets: backup slurries 90–110 m/min; prime 80 m/min. Confirm against your tank and drive limits.' }
+    ]; } });
 });
 </script>
 </body>

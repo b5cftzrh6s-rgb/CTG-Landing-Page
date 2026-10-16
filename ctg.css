@@ -126,3 +126,16 @@ a.tile:hover{transform:translateY(-3px);border-color:var(--brand)}
   .card{box-shadow:none;break-inside:avoid;border-color:#ccc}
   .page-header{background:none;color:#000;padding:0 0 8px;border-bottom:2px solid #000}
 }
+
+/* ---------- shared print report (print.js) ---------- */
+#ctg-report{display:none}
+.ctg-report-meta{margin-bottom:16px}
+.ctg-report-meta textarea{font:inherit;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
+@page{margin:12mm}
+@media print{
+  :root{color-scheme:light}
+  html,body{background:#fff !important;color:#000 !important}
+  body.ctg-printing > *:not(#ctg-report){display:none !important}
+  body.ctg-printing #ctg-report{display:block !important}
+  #ctg-banner{display:none !important}
+}

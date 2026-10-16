@@ -109,3 +109,13 @@ Installing requires **HTTPS or localhost**. Databricks Apps and GitHub Pages are
 - **Run locally:** `./run-local.sh` (macOS/Linux) or `run-local.bat` (Windows) starts `python -m http.server 8000`. Then open http://localhost:8000 and install from there. Python 3 is required.
 - **Releasing:** bump `CTG_VERSION` in `navbar.js` **and** `CACHE_VERSION` in `sw.js` together (a test enforces this), and add any new page to `PRECACHE` in `sw.js` (a test checks every `.html` file is listed). Otherwise installed users keep the old cached version.
 - **Electron:** a native desktop wrapper (Electron/Tauri) would be possible, but it isn't included. The PWA install already gives a desktop window and works offline, without the extra 100+ MB runtime.
+
+## Print / Save PDF reports (`print.js`)
+Every tool page has the same **Print / Save PDF** button, which is the first button in the toolbar at the top of the page. Next to it are **Download report (HTML)** and an optional **Report details** box for customer, site and notes. Printing, whether from the button or Ctrl+P, produces one consolidated report:
+1. **Header:** CTG Tools, tool name, date/time, version, and customer/site/notes.
+2. **Inputs (as applied):** every visible input with its label, value and unit, plus the selected presets and modes.
+3. **Results:** all outputs with units, including charts.
+
+The report always prints in a light theme. The navbar, buttons and interactive controls are hidden. To save a PDF, choose "Save as PDF" in the print dialog.
+
+To add a new tool, load `print.js` and call `CTGPrint.register({ id, title, inputs?, extraInputs?, results })`. With no `inputs`, every visible control in `<main>` is collected automatically, and units come from the "(unit)" part of each label. Tests check that every tool page registers.

@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="ctg.css">
 <script src="calc.js" defer></script>
 <script src="navbar.js" defer></script>
+<script src="print.js" defer></script>
 <style>
 .step{scroll-margin-top:80px}
 .step .result{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);flex-wrap:wrap}
@@ -41,7 +42,6 @@
 
 <main id="main">
   <div class="toolbar no-print">
-    <button class="btn" type="button" onclick="window.print()">Print / Save PDF</button>
     <button class="btn secondary" type="button" id="clearBtn">Clear worksheet</button>
     <span class="progress" id="saveState" aria-live="polite">Saved in this browser.</span>
   </div>
@@ -195,6 +195,16 @@ document.addEventListener('DOMContentLoaded', function () {
     render();
   });
   render();
+  CTGPrint.register({ id: 'value', title: 'Shell Control Value Worksheet',
+    inputs: function () {
+      var g = CTGPrint.collectInputs(['#ws']);
+      g.forEach(function (x) { if (/^Shell-related scrap/.test(x.group)) x.rows.unshift({ label: 'Scrap input method', value: state.mode === 'B' ? 'B: annual scrap $' : 'A: per-part counts & cost', unit: '' }); });
+      return g;
+    },
+    results: function () { return [
+      { title: 'Annual value by driver (Low / High) with formulas', node: $('sumTable') }, { node: $('warnings') },
+      { title: 'Assumptions', node: $('assumptions') }
+    ]; } });
 });
 </script>
 </body>
